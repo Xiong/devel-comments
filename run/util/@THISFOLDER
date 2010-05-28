@@ -1,0 +1,7 @@
+~/projects/(project)/run/util/
+
+This is the project utility script directory. 
+
+Files in this folder are intended for developer use, 
+	of a more general nature than test scripts, 
+	or otherwise not integral to the project. 

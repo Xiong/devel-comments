@@ -1,0 +1,9 @@
+~/projects/(project)/config/
+
+This is the folder for text files other than code; i.e., configurations. 
+
+Developers should create a symlink: 
+
+~/.(project)/config --> ~/projects/(project)/config/
+
+Distributions will create a real folder at that location. 

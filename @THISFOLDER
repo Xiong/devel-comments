@@ -1,0 +1,23 @@
+~/projects/(project)/
+
+This is the project development root directory. 
+
+This folder name is the Geany project name 
+ but not the Geany project base path. 
+
+All (major) folders within this one also contain a similar file, @THISFOLDER. 
+Unlike a README file this describes only the folder role and structure; 
+ not its specific contents. 
+
+In these descriptions, parentheses represent project-specific substitutions: 
+
+	(project)				The project under development
+	(Project::Module)		A Perl module developed for (project)
+	(Module.pm)				The file implementing (Project::Module)
+	(Project)				Namespace (folder) of (Module.pm)
+	
+	* Naturally, (Project) need not be the Title Case of (project). 
+	  If a module under development looks to be of more general use, 
+	   its namespace should be reconsidered. 
+
+It is essential that all symlinks here be *relative*. 
