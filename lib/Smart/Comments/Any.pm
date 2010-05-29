@@ -11,29 +11,43 @@ use List::Util qw(sum);
 
 use Filter::Simple;
 
+BEGIN {print STDERR "# Smart::Comments::Any loaded.\n";}
+
 # # # # # # My Smart::Comments:Any code in here. # # # # # # # # # # # # # # #
 
-my $first_arg			= $_[0];	# look but don't take
-my $outfh				;
+# global, which can be got at from anywhere
 
-# But is it really a filehandle? Was one given?
-if ( $first_arg eq '-ENV' || substr $first_arg, 0, 1 eq '#' ) {
-	$outfh				= *STDERR;	# only regular S::C args, bypass ::Any
-}	
-else {
-	$outfh				= shift;	# take it
+sub set_output {
+	print join q{|}, @_, "\n";
+	my $first_arg			= $_[1];	# look but don't take
+	print 'Mine: ', $first_arg, "\n";
+	print 'Got: >', (substr $first_arg, 0, 1 ), "<\n";
 	
-	# Is it a writable filehandle?
-	if ( not -w $outfh ) {
-		$outfh				= *STDERR;	# default if it is no good
-		carp   q{Bad filehandle:}
-			. qq{$outfh}; 
-			.  q{in call to 'use Smart::Comments::Any',}
-			.  q{defaulting to STDERR};
+	
+	my $outfh				;
+
+	# But is it really a filehandle? Was one given?
+	if ( $first_arg eq '-ENV' || (substr $first_arg, 0, 1) eq '#' ) {
+		$outfh				= *STDERR;	# only regular S::C args, bypass ::Any
+	}	
+	else {
+		my $class			= shift;	# not that we want it
+		$outfh				= shift;	# take it
+		unshift @_, $class;				# put it back
+
+	print join q{|}, @_, "\n";
+
+		
+		# Is it a writable filehandle?
+		if ( not -w $outfh ) {
+			carp   q{Bad filehandle: }
+				. qq{$outfh} 
+				.  q{ in call to 'use Smart::Comments::Any',}
+				.  q{defaulting to STDERR};
+			$outfh				= *STDERR;	# default if it is no good
+		};
 	};
 };
-
-
 
 
 
@@ -66,6 +80,9 @@ my $DBX = '$DB::single = $DB::single = 1;';
 FILTER {
     shift;        # Don't need the package name
     s/\r\n/\n/g;  # Handle win32 line endings
+    
+    # Handle the ::Any work
+    
 
     # Default introducer pattern...
     my $intro = qr/#{3,}/;
@@ -93,7 +110,7 @@ FILTER {
 
     if (my @unknowns = grep {!/$intro/} @intros) {
         croak "Incomprehensible arguments: @unknowns\n",
-              "in call to 'use Smart::Comments'";
+              "in call to 'use Smart::Comments::Any'";
     }
 
     # Make non-default introducer pattern...
@@ -137,39 +154,41 @@ FILTER {
     # Any other smart comment is a simple dump.
     # Dump a raw scalar (the varname is used as the label)...
     s{ ^ $hws* $intro [ \t]+ (\$ [\w:]* \w) $optcolon $hws* $ }
-     {Smart::Comments::_Dump(pref=>q{$1:},var=>[$1]);$DBX}gmx;
+     {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[$1]);$DBX}gmx;
 
     # Dump a labelled scalar...
     s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
-     {Smart::Comments::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
+     {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
     # Dump a raw hash or array (the varname is used as the label)...
     s{ ^ $hws* $intro [ \t]+ ([\@%] [\w:]* \w) $optcolon $hws* $ }
-     {Smart::Comments::_Dump(pref=>q{$1:},var=>[\\$1]);$DBX}gmx;
+     {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[\\$1]);$DBX}gmx;
 
     # Dump a labelled hash or array...
     s{ ^ $hws* $intro [ \t]+ (.+ :) [ \t]* ([\@%] [\w:]* \w) $optcolon $hws* $ }
-     {Smart::Comments::_Dump(pref=>q{$1},var=>[\\$2]);$DBX}gmx;
+     {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[\\$2]);$DBX}gmx;
 
     # Dump a labelled expression...
     s{ ^ $hws* $intro [ \t]+ (.+ :) (.+) }
-     {Smart::Comments::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
+     {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
     # Dump an 'in progress' message
     s{ ^ $hws* $intro $hws* (.+ [.]{3}) $hws* $ }
-     {Smart::Comments::_Dump(pref=>qq{$1});$DBX}gmx;
+     {Smart::Comments::Any::_Dump(pref=>qq{$1});$DBX}gmx;
 
     # Dump an unlabelled expression (the expression is used as the label)...
     s{ ^ $hws* $intro $hws* (.*) $optcolon $hws* $ }
-     {Smart::Comments::_Dump(pref=>q{$1:},var=>Smart::Comments::_quiet_eval(q{[$1]}));$DBX}gmx;
+     {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>Smart::Comments::Any::_quiet_eval(q{[$1]}));$DBX}gmx;
 
-    # An empty comment dumps an empty line...
-    s{ ^ $hws* $intro [ \t]+ $ }
-     {warn qq{\n};}gmx;
+# This doesn't work as expected, don't know why
+#    # An empty comment dumps an empty line...
+#    s{ ^ $hws* $intro [ \t]+ $ }
+#     {warn qq{\n};}gmx;
 
-    # Anything else is a literal string to be printed...
-    s{ ^ $hws* $intro $hws* (.*) }
-     {Smart::Comments::_Dump(pref=>q{$1});$DBX}gmx;
+# This is never needed; for some reason it's caught by "unlabeled expression"
+#    # Anything else is a literal string to be printed...
+#    s{ ^ $hws* $intro $hws* (.*) }
+#     {Smart::Comments::Any::_Dump(pref=>q{$1});$DBX}gmx;
 };
 
 sub _quiet_eval {
@@ -186,7 +205,7 @@ sub _decode_assert {
     # Choose the right signalling mechanism...
     $fatal = $fatal ? 'die "\n"' : 'warn "\n"';
 
-    my $dump = 'Smart::Comments::_Dump';
+    my $dump = 'Smart::Comments::Any::_Dump';
     use Text::Balanced qw(extract_variable extract_multiple);
 
     # Extract variables from assertion and enreference any arrays or hashes...
@@ -208,7 +227,7 @@ sub _decode_for {
     $ID++;
 
     # Rewrite the loop with a progress bar as its first statement...
-    return "my \$not_first__$ID;$for (my \@SmartComments__range__$ID = $range) { Smart::Comments::_for_progress(qq{$mesg}, \$not_first__$ID, \\\@SmartComments__range__$ID);";
+    return "my \$not_first__$ID;$for (my \@SmartComments__range__$ID = $range) { Smart::Comments::Any::_for_progress(qq{$mesg}, \$not_first__$ID, \\\@SmartComments__range__$ID);";
 }
 
 # Generate progress-bar code for a Perlish while loop...
@@ -219,7 +238,7 @@ sub _decode_while {
     $ID++;
 
     # Rewrite the loop with a progress bar as its first statement...
-    return "my \$not_first__$ID;$while { Smart::Comments::_while_progress(qq{$mesg}, \\\$not_first__$ID);";
+    return "my \$not_first__$ID;$while { Smart::Comments::Any::_while_progress(qq{$mesg}, \\\$not_first__$ID);";
 }
 
 # Generate approximate time descriptions...
@@ -453,6 +472,12 @@ my $prev_STDERR = 0;
 my %prev_caller = ( file => q{}, line => 0 );
 
 sub _Dump {
+
+#print '_Dump: My caller: ', ( caller(1) )[3], "\n";
+my ($caller_ns, undef, undef)		= caller;
+print '_Dump: My caller: ', $caller_ns, "\n";
+my *outfh							=  *{$caller_ns::$outfh};
+
     my %args = @_;
     my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};
 

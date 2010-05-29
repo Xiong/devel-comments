@@ -4,19 +4,15 @@ use lib qw{
 	      lib
 	   ../lib
 	../../lib
-	 hump/lib
 	      run/t
 	   ../run/t
 	../../run/t
-	 hump/run/t
 };
-
-use IO::Capture::Sayfix;
 
 use Test::More tests => 1;
 
 BEGIN {
-	use_ok( 'Test::Hump' );
+	use_ok( 'Smart::Comments::Any' );
 }
 
-diag( "Testing Test::Hump $Test::Hump::VERSION" );
+diag( "Testing Smart::Comments::Any $Smart::Comments::Any::VERSION" );
