@@ -17,36 +17,47 @@ BEGIN {print STDERR "# Smart::Comments::Any loaded.\n";}
 
 # global, which can be got at from anywhere
 
-sub set_output {
+sub _set_output {
 	print join q{|}, @_, "\n";
 	my $first_arg			= $_[1];	# look but don't take
-	print 'Mine: ', $first_arg, "\n";
-	print 'Got: >', (substr $first_arg, 0, 1 ), "<\n";
+#	print 'Mine: ', $first_arg, "\n";
+#	print 'Got: >', (substr $first_arg, 0, 1 ), "<\n";
 	
 	
 	my $outfh				;
 
-	# But is it really a filehandle? Was one given?
-	if ( $first_arg eq '-ENV' || (substr $first_arg, 0, 1) eq '#' ) {
-		$outfh				= *STDERR;	# only regular S::C args, bypass ::Any
-	}	
-	else {
-		my $class			= shift;	# not that we want it
-		$outfh				= shift;	# take it
-		unshift @_, $class;				# put it back
+#	# But is it really a filehandle? Was one given?
+#	if ( $first_arg eq '-ENV' || (substr $first_arg, 0, 1) eq '#' ) {
+#		$outfh				= *STDERR;	# only regular S::C args, bypass ::Any
+#	}	
+#	else {
+#		my $class			= shift;	# not that we want it
+#		$outfh				= shift;	# take it
+#		unshift @_, $class;				# put it back
 
-	print join q{|}, @_, "\n";
+#	print join q{|}, @_, "\n";
 
 		
-		# Is it a writable filehandle?
-		if ( not -w $outfh ) {
-			carp   q{Bad filehandle: }
-				. qq{$outfh} 
-				.  q{ in call to 'use Smart::Comments::Any',}
-				.  q{defaulting to STDERR};
-			$outfh				= *STDERR;	# default if it is no good
-		};
-	};
+#		# Is it a writable filehandle?
+#		if ( not -w $outfh ) {
+#			carp   q{Bad filehandle: }
+#				. qq{$outfh} 
+#				.  q{ in call to 'use Smart::Comments::Any',}
+#				.  q{defaulting to STDERR};
+#			$outfh				= *STDERR;	# default if it is no good
+#		};
+#	};
+	# TODO: For now, ignore all that above and set explicitly
+#	$outfh		= *STDERR;
+	$outfh		= *STDOUT;
+#	$outfh		= 'foobar';
+	
+	my ($caller_ns, undef, undef)					= caller(2);
+#print STDERR '_set_output: My caller: ', $caller_ns, "\n";
+	no strict 'refs';
+	${ *{"${caller_ns}\::smart-comments-outfh"} }	= $outfh;
+	return ${ *{"${caller_ns}\::smart-comments-outfh"} }; # silence warning
+	use strict 'refs';
 };
 
 
@@ -82,7 +93,7 @@ FILTER {
     s/\r\n/\n/g;  # Handle win32 line endings
     
     # Handle the ::Any work
-    
+    my $inottell	= _set_output();
 
     # Default introducer pattern...
     my $intro = qr/#{3,}/;
@@ -475,8 +486,11 @@ sub _Dump {
 
 #print '_Dump: My caller: ', ( caller(1) )[3], "\n";
 my ($caller_ns, undef, undef)		= caller;
-print '_Dump: My caller: ', $caller_ns, "\n";
-my *outfh							=  *{$caller_ns::$outfh};
+#print STDERR '_Dump: My caller: ', $caller_ns, "\n";
+	no strict 'refs';
+my $outfh				= ${ *{"${caller_ns}\::smart-comments-outfh"} };
+	use strict 'refs';
+#print STDERR $outfh;
 
     my %args = @_;
     my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};
@@ -499,8 +513,8 @@ my *outfh							=  *{$caller_ns::$outfh};
     # Handle a prefix with no actual variable...
     if ($pref && !defined $varref) {
         $pref =~ s/:$//;
-        print STDERR "\n" if $spacer_required;
-        warn "### $pref\n";
+        print $outfh "\n" if $spacer_required;
+        print $outfh "### $pref\n";
         $prev_STDOUT = tell(*STDOUT);
         $prev_STDERR = tell(*STDERR);
         return;
@@ -529,8 +543,8 @@ my *outfh							=  *{$caller_ns::$outfh};
     $dumped =~ s/^[ ]{$indent}([ ]*)/### $outdent$1/gm;
 
     # Print the message...
-    print STDERR "\n" if $spacer_required;
-    warn "### $pref $dumped\n";
+    print $outfh "\n" if $spacer_required;
+    print $outfh "### $pref $dumped\n";
     $prev_STDERR = tell(*STDERR);
     $prev_STDOUT = tell(*STDOUT);
 }
