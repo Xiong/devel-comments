@@ -11,57 +11,9 @@ use List::Util qw(sum);
 
 use Filter::Simple;
 
-BEGIN {print STDERR "# Smart::Comments::Any loaded.\n";}
+#BEGIN {print STDERR "# Smart::Comments::Any loaded.\n";}
 
 # # # # # # My Smart::Comments:Any code in here. # # # # # # # # # # # # # # #
-
-# global, which can be got at from anywhere
-
-sub _set_output {
-	print join q{|}, @_, "\n";
-	my $first_arg			= $_[1];	# look but don't take
-#	print 'Mine: ', $first_arg, "\n";
-#	print 'Got: >', (substr $first_arg, 0, 1 ), "<\n";
-	
-	
-	my $outfh				;
-
-#	# But is it really a filehandle? Was one given?
-#	if ( $first_arg eq '-ENV' || (substr $first_arg, 0, 1) eq '#' ) {
-#		$outfh				= *STDERR;	# only regular S::C args, bypass ::Any
-#	}	
-#	else {
-#		my $class			= shift;	# not that we want it
-#		$outfh				= shift;	# take it
-#		unshift @_, $class;				# put it back
-
-#	print join q{|}, @_, "\n";
-
-		
-#		# Is it a writable filehandle?
-#		if ( not -w $outfh ) {
-#			carp   q{Bad filehandle: }
-#				. qq{$outfh} 
-#				.  q{ in call to 'use Smart::Comments::Any',}
-#				.  q{defaulting to STDERR};
-#			$outfh				= *STDERR;	# default if it is no good
-#		};
-#	};
-	# TODO: For now, ignore all that above and set explicitly
-#	$outfh		= *STDERR;
-	$outfh		= *STDOUT;
-#	$outfh		= 'foobar';
-	
-	my ($caller_ns, undef, undef)					= caller(2);
-#print STDERR '_set_output: My caller: ', $caller_ns, "\n";
-	no strict 'refs';
-	${ *{"${caller_ns}\::smart-comments-outfh"} }	= $outfh;
-	return ${ *{"${caller_ns}\::smart-comments-outfh"} }; # silence warning
-	use strict 'refs';
-};
-
-
-
 # # # # # # Original Smart::Comments code below here # # # # # # # # # # # # #
 
 my $maxwidth           = 69;  # Maximum width of display
@@ -92,9 +44,51 @@ FILTER {
     shift;        # Don't need the package name
     s/\r\n/\n/g;  # Handle win32 line endings
     
-    # Handle the ::Any work
-    my $inottell	= _set_output();
-
+    ## Handle the ::Any setup
+    
+    my $fh_seen		= 0;			# none seen yet
+    my $outfh		= *STDERR;		# default
+    my $arg			;				# trial from @_
+    
+    # Dig through the args to see if one is a filehandle
+	SETFH:
+    for my $i ( 0..$#_ ) {			# will need the index in a bit
+		$arg			= $_[$i];
+		
+		# Is $arg defined by vanilla Smart::Comments?
+		if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
+			next SETFH;				# not ::Any arg, keep looking
+		};
+#		print 'Mine: >', $arg, "<\n";
+		
+		# Vanilla doesn't want to see it, so remove from @_
+		splice @_, $i;
+		
+		# Is it a writable filehandle?
+		if ( not -w $arg ) {
+			carp   q{Not a writable filehandle: }
+				. qq{$arg} 
+				.  q{ in call to 'use Smart::Comments::Any'.}
+				;
+		}							# and keep looking
+		else {
+			$outfh		= $arg;
+			last SETFH;				# found, so we're done looking
+		};
+	};
+	
+	# Stash $outfh inside caller's namespace
+	my ($caller_ns, undef, undef)		= caller(1);
+	
+	no strict 'refs';		# disable complaint about symbolic reference
+	no warnings 'once';		# disable complaint about var only used once
+	${ *{"${caller_ns}\::smart-comments-outfh"} }	= $outfh;
+	use warnings;
+	use strict;
+    
+	## done with the ::Any setup
+	
+	
     # Default introducer pattern...
     my $intro = qr/#{3,}/;
 
@@ -200,7 +194,7 @@ FILTER {
 #    # Anything else is a literal string to be printed...
 #    s{ ^ $hws* $intro $hws* (.*) }
 #     {Smart::Comments::Any::_Dump(pref=>q{$1});$DBX}gmx;
-};
+}; ######## /FILTER ########
 
 sub _quiet_eval {
     local $SIG{__WARN__} = sub{};
@@ -483,15 +477,17 @@ my $prev_STDERR = 0;
 my %prev_caller = ( file => q{}, line => 0 );
 
 sub _Dump {
+	
+	## Get the ::Any $outfh
 
-#print '_Dump: My caller: ', ( caller(1) )[3], "\n";
-my ($caller_ns, undef, undef)		= caller;
-#print STDERR '_Dump: My caller: ', $caller_ns, "\n";
+	my ($caller_ns, undef, undef)		= caller;
 	no strict 'refs';
-my $outfh				= ${ *{"${caller_ns}\::smart-comments-outfh"} };
+	my $outfh		= ${ *{"${caller_ns}\::smart-comments-outfh"} };
 	use strict 'refs';
 #print STDERR $outfh;
-
+	
+	## Done ::Any
+	
     my %args = @_;
     my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};
 

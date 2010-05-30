@@ -23,7 +23,8 @@ use IO::Capture::Stderr::Extended;
 use IO::Capture::Sayfix;
 use IO::Capture::Tellfix;
 
-# Make S::C::Any print to STDOUT instead of STDERR
+# Make S::C::Any print to a file 
+# using a variable in the use line
 
 # passed to done_testing() after all subtests are run
 my $test_counter	= 0;
@@ -51,9 +52,13 @@ $self->{-capture}{-stdout}->start();		# STDOUT captured
 $self->{-capture}{-stderr}->start();		# STDERR captured
 {
 	try {
-		my $outfh	= *STDOUT;
+		BEGIN{ 			# set to a temporary hard disk file
+			open $::outfh, '+<', '/home/xiong/projects/smartlog/file/test.log'
+			or die 'Failed to create temporary file for testing. ', $!;
+		}
+		my $outfh	= $::outfh;
 		say $outfh '#-1';
-		use Smart::Comments::Any *STDOUT;
+		use Smart::Comments::Any $::outfh;
 		say $outfh '#-2';
 		### foobar
 		say $outfh '#-3';
@@ -87,6 +92,28 @@ my $subwhat			;
 
 $subwhat			= q{-stdout};
 $self->{-want}{$subwhat}{-string}	
+	= q{};			# exactly empty, thank you
+
+&$do_cap_string($subwhat);
+
+$subwhat			= q{-stderr};
+$self->{-want}{$subwhat}{-string}	
+	= q{};			# exactly empty, thank you
+
+&$do_cap_string($subwhat);
+
+# now test the temp file contents
+seek $::outfh, 0, 0;
+
+my $prev_fh			= select $::outfh;
+local $/			= undef;			# slurp
+select $prev_fh;
+
+$got				= <$::outfh>;
+
+print ">$got<\n";
+
+$expected	
 	= q{#-1}		. qq{\n}
 										# use
 	. q{#-2}		. qq{\n}
@@ -99,16 +126,22 @@ $self->{-want}{$subwhat}{-string}
 	. q{#-4}		. qq{\n}
 										# foobar
 	. q{#-5}		. qq{\n}
-	
+
 	;
 
-&$do_cap_string($subwhat);
+$subname		= join q{}, $name, q{-tmpfile}, q{-string};
+	$test_counter++;
+	is( $got, $expected, $subname );
+	
 
-$subwhat			= q{-stderr};
-$self->{-want}{$subwhat}{-string}	
-	= q{};			# exactly empty, thank you
 
-&$do_cap_string($subwhat);
+
+#$subwhat			= q{-stderr};
+
+#&$do_cap_string($subwhat);
+
+
+
 
 #	# character-by-character testing
 #	my $obtained	= $self->{-got}{$subwhat}{-string};

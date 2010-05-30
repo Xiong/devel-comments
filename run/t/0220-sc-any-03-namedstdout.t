@@ -23,7 +23,8 @@ use IO::Capture::Stderr::Extended;
 use IO::Capture::Sayfix;
 use IO::Capture::Tellfix;
 
-# Make S::C::Any print to STDOUT instead of STDERR
+# Make S::C::Any print to STDOUT instead of STDERR 
+# using a variable in the use line
 
 # passed to done_testing() after all subtests are run
 my $test_counter	= 0;
@@ -51,9 +52,10 @@ $self->{-capture}{-stdout}->start();		# STDOUT captured
 $self->{-capture}{-stderr}->start();		# STDERR captured
 {
 	try {
-		my $outfh	= *STDOUT;
+		BEGIN{ $::outfh	= *STDOUT;	}
+		my $outfh	= $::outfh;
 		say $outfh '#-1';
-		use Smart::Comments::Any *STDOUT;
+		use Smart::Comments::Any $::outfh;
 		say $outfh '#-2';
 		### foobar
 		say $outfh '#-3';
