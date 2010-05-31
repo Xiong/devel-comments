@@ -80,11 +80,13 @@ FILTER {
 	# Stash $outfh inside caller's namespace
 	my ($caller_ns, undef, undef)		= caller(1);
 	
-	no strict 'refs';		# disable complaint about symbolic reference
-	no warnings 'once';		# disable complaint about var only used once
-	${ *{"${caller_ns}\::smart-comments-outfh"} }	= $outfh;
+#	no strict 'refs';		# disable complaint about symbolic reference
+#	no warnings 'once';		# disable complaint about var only used once
+	${ $::{$caller_ns}{smart_comments_outfh} }	= $outfh;
 	use warnings;
 	use strict;
+    
+    # ${ $::{$ns}{foo} }
     
 	## done with the ::Any setup
 	
@@ -481,9 +483,9 @@ sub _Dump {
 	## Get the ::Any $outfh
 
 	my ($caller_ns, undef, undef)		= caller;
-	no strict 'refs';
-	my $outfh		= ${ *{"${caller_ns}\::smart-comments-outfh"} };
-	use strict 'refs';
+#	no strict 'refs';
+	my $outfh		= ${ $::{$caller_ns}{smart_comments_outfh} };
+#	use strict 'refs';
 #print STDERR $outfh;
 	
 	## Done ::Any

@@ -111,7 +111,7 @@ select $prev_fh;
 
 $got				= <$::outfh>;
 
-print ">$got<\n";
+#print ">$got<\n";
 
 $expected	
 	= q{#-1}		. qq{\n}
