@@ -8,36 +8,43 @@ use warnings;
 use feature 'say';
 
 {
-	package Teddy;
+	package Teddy::Yum;
+	sub say_caller {
+		my $caller = caller;
+		say '    $caller: ',	$caller;
+	};
 }
 
 package main;
-no strict 'refs';
+my $ns					= 'Teddy::Yum::';
+my $sym					= 'foo';
+Teddy::Yum::say_caller;
 
-my $ns					= 'Teddy';
-my $glob				= *{${ns} . '::foo'};
-say '      $glob: ',	$glob;
-say '$Teddy::foo: ', 	$Teddy::foo;
+{
+	say '$Teddy::Yum::foo: ', 	$Teddy::Yum::foo;
 
-my $cram				= 'cheese';
-say '      $cram: ',	$cram;
+	my $cram				= 'cheese';
+	say '      $cram: ',	$cram;
 
-${ *{${ns} . '::foo'} }	= $cram;
-say '$Teddy::foo: ', 	$Teddy::foo;
+#	${ $::{$ns}{foo} }		= $cram;
+	${ $::{$ns}{$sym} }		= $cram;
+	say '$Teddy::Yum::foo: ', 	$Teddy::Yum::foo;
+}
 
-my $yank				= ${ *{"${ns}\::foo"} };
-say '      $yank: ',	$yank;
-
+{
+	my $yank				= ${ $::{$ns}{foo} };
+	say '      $yank: ',	$yank;
+}
 
 __DATA__
 
 Output: 
 
-      $glob: *Teddy::foo
-Use of uninitialized value $Teddy::foo in say...
-$Teddy::foo: 
+      $glob: *Teddy::Yum::foo
+Use of uninitialized value $Teddy::Yum::foo in say...
+$Teddy::Yum::foo: 
       $cram: cheese
-$Teddy::foo: cheese
+$Teddy::Yum::foo: cheese
       $yank: cheese
 
 __END__
