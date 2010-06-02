@@ -1,5 +1,6 @@
 package Smart::Comments::Any;
 
+######## use section ########
 use 5.008;
 use strict;
 use warnings;
@@ -11,27 +12,29 @@ use List::Util qw(sum);
 
 use Filter::Simple;
 
-#BEGIN {print STDERR "# Smart::Comments::Any loaded.\n";}
+use feature 'say';				# disable in production; debug only
 
-# # # # # # My Smart::Comments:Any code in here. # # # # # # # # # # # # # # #
-# # # # # # Original Smart::Comments code below here # # # # # # # # # # # # #
+######## / use ########
 
-my $maxwidth           = 69;  # Maximum width of display
-my $showwidth          = 35;  # How wide to make the indicator
-my $showstarttime      = 6;   # How long before showing time-remaining estimate
-my $showmaxtime        = 10;  # Don't start estimate if less than this to go
-my $whilerate          = 30;  # Controls the rate at which while indicator grows
-my $minfillwidth       = 5;   # Fill area must be at least this wide
-my $average_over       = 5;   # Number of time-remaining estimates to average
-my $minfillreps        = 2;   # Minimum size of a fill and fill cap indicator
-my $forupdatequantum   = 0.01;  # Only update every 1% of elapsed distance
+######## lexical constants section ########
+
+# time and space constants
+my $maxwidth		  	= 69;  	# Maximum width of display
+my $showwidth		  	= 35;  	# How wide to make the indicator
+my $showstarttime	  	= 6;   	# How long before showing time-remaining estimate
+my $showmaxtime			= 10;  	# Don't start estimate if less than this to go
+my $whilerate		  	= 30;  	# Controls the rate at which while indicator grows
+my $minfillwidth	   	= 5;   	# Fill area must be at least this wide
+my $average_over	   	= 5;   	# Number of time-remaining estimates to average
+my $minfillreps			= 2;   	# Minimum size of a fill and fill cap indicator
+my $forupdatequantum   	= 0.01;	# Only update every 1% of elapsed distance
 
 # Synonyms for asserts and requirements...
 my $require = qr/require|ensure|assert|insist/;
 my $check   = qr/check|verify|confirm/;
 
 # Horizontal whitespace...
-my $hws     = qr/[^\S\n]/;
+my $hws	 = qr/[^\S\n]/;
 
 # Optional colon...
 my $optcolon = qr/$hws*;?/;
@@ -39,20 +42,27 @@ my $optcolon = qr/$hws*;?/;
 # Automagic debugging as well...
 my $DBX = '$DB::single = $DB::single = 1;';
 
+######## / lexical constants ########
+
+sub bloo { say 'Hey!' };
+
 # Implement comments-to-code source filter...
 FILTER {
-    shift;        # Don't need the package name
-    s/\r\n/\n/g;  # Handle win32 line endings
-    
-    ## Handle the ::Any setup
-    
-    my $fh_seen		= 0;			# none seen yet
-    my $outfh		= *STDERR;		# default
-    my $arg			;				# trial from @_
-    
-    # Dig through the args to see if one is a filehandle
+	bloo();
+	blee();
+	
+	shift;		# Don't need the package name
+	s/\r\n/\n/g;  # Handle win32 line endings
+	
+	## Handle the ::Any setup
+	
+	my $fh_seen		= 0;			# none seen yet
+	my $outfh		= *STDERR;		# default
+	my $arg			;				# trial from @_
+	
+	# Dig through the args to see if one is a filehandle
 	SETFH:
-    for my $i ( 0..$#_ ) {			# will need the index in a bit
+	for my $i ( 0..$#_ ) {			# will need the index in a bit
 		$arg			= $_[$i];
 		
 		# Is $arg defined by vanilla Smart::Comments?
@@ -85,235 +95,239 @@ FILTER {
 	${ *{"${caller_ns}\::smart-comments-outfh"} }	= $outfh;
 	use warnings;
 	use strict;
-    
+	
 	## done with the ::Any setup
 	
 	
-    # Default introducer pattern...
-    my $intro = qr/#{3,}/;
+	# Default introducer pattern...
+	my $intro = qr/#{3,}/;
 
-    # Handle args...
-    my @intros;
-    while (@_) {
-        my $arg = shift @_;
+	# Handle args...
+	my @intros;
+	while (@_) {
+		my $arg = shift @_;
 
-        if ($arg =~ m{\A -ENV \Z}xms) {
-            my $env =  $ENV{Smart_Comments} || $ENV{SMART_COMMENTS}
-                    || $ENV{SmartComments}  || $ENV{SMARTCOMMENTS}
-                    ;
+		if ($arg =~ m{\A -ENV \Z}xms) {
+			my $env =  $ENV{Smart_Comments} || $ENV{SMART_COMMENTS}
+					|| $ENV{SmartComments}  || $ENV{SMARTCOMMENTS}
+					;
 
-            return if !$env;   # i.e. if no filtering
+			return if !$env;   # i.e. if no filtering
 
-            if ($env !~ m{\A \s* 1 \s* \Z}xms) {
-                unshift @_, split m{\s+|\s*:\s*}xms, $env;
-            }
-        }
-        else {
-            push @intros, $arg;
-        }
-    }
+			if ($env !~ m{\A \s* 1 \s* \Z}xms) {
+				unshift @_, split m{\s+|\s*:\s*}xms, $env;
+			}
+		}
+		else {
+			push @intros, $arg;
+		}
+	}
 
-    if (my @unknowns = grep {!/$intro/} @intros) {
-        croak "Incomprehensible arguments: @unknowns\n",
-              "in call to 'use Smart::Comments::Any'";
-    }
+	if (my @unknowns = grep {!/$intro/} @intros) {
+		croak "Incomprehensible arguments: @unknowns\n",
+			  "in call to 'use Smart::Comments::Any'";
+	}
 
-    # Make non-default introducer pattern...
-    if (@intros) {
-        $intro = '(?-x:'.join('|',@intros).')(?!\#)';
-    }
+	# Make non-default introducer pattern...
+	if (@intros) {
+		$intro = '(?-x:'.join('|',@intros).')(?!\#)';
+	}
 
-    # Preserve DATA handle if any...
-    if (s{ ^ __DATA__ \s* $ (.*) \z }{}xms) {
-        no strict qw< refs >;
-        my $DATA = $1;
-        open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: $!";
-    }
+	# Preserve DATA handle if any...
+	if (s{ ^ __DATA__ \s* $ (.*) \z }{}xms) {
+		no strict qw< refs >;
+		my $DATA = $1;
+		open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: $!";
+	}
 
-    # Progress bar on a for loop...
-    s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? for(?:each)? \s* (?:my)? \s* (?:\$ [^\W\d]\w*)? \s* ) \( ([^;\n]*?) \) \s* \{
-            [ \t]* $intro \s (.*) \s* $
-     }
-     { _decode_for($1, $2, $3) }xgem;
+	# Progress bar on a for loop...
+	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? for(?:each)? \s* (?:my)? \s* (?:\$ [^\W\d]\w*)? \s* ) \( ([^;\n]*?) \) \s* \{
+			[ \t]* $intro \s (.*) \s* $
+	 }
+	 { _decode_for($1, $2, $3) }xgem;
 
-    # Progress bar on a while loop...
-    s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? (?:while|until) \s* \( .*? \) \s* ) \{
-            [ \t]* $intro \s (.*) \s* $
-     }
-     { _decode_while($1, $2) }xgem;
+	# Progress bar on a while loop...
+	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? (?:while|until) \s* \( .*? \) \s* ) \{
+			[ \t]* $intro \s (.*) \s* $
+	 }
+	 { _decode_while($1, $2) }xgem;
 
-    # Progress bar on a C-style for loop...
-    s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? for \s* \( .*? ; .*? ; .*? \) \s* ) \{
-            $hws* $intro $hws (.*) $hws* $
-     }
-     { _decode_while($1, $2) }xgem;
+	# Progress bar on a C-style for loop...
+	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? for \s* \( .*? ; .*? ; .*? \) \s* ) \{
+			$hws* $intro $hws (.*) $hws* $
+	 }
+	 { _decode_while($1, $2) }xgem;
 
-    # Requirements...
-    s{ ^ $hws* $intro [ \t] $require : \s* (.*?) $optcolon $hws* $ }
-     { _decode_assert($1,"fatal") }gemx;
+	# Requirements...
+	s{ ^ $hws* $intro [ \t] $require : \s* (.*?) $optcolon $hws* $ }
+	 { _decode_assert($1,"fatal") }gemx;
 
-    # Assertions...
-    s{ ^ $hws* $intro [ \t] $check : \s* (.*?) $optcolon $hws* $ }
-     { _decode_assert($1) }gemx;
+	# Assertions...
+	s{ ^ $hws* $intro [ \t] $check : \s* (.*?) $optcolon $hws* $ }
+	 { _decode_assert($1) }gemx;
 
-    # Any other smart comment is a simple dump.
-    # Dump a raw scalar (the varname is used as the label)...
-    s{ ^ $hws* $intro [ \t]+ (\$ [\w:]* \w) $optcolon $hws* $ }
-     {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[$1]);$DBX}gmx;
+	# Any other smart comment is a simple dump.
+	# Dump a raw scalar (the varname is used as the label)...
+	s{ ^ $hws* $intro [ \t]+ (\$ [\w:]* \w) $optcolon $hws* $ }
+	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[$1]);$DBX}gmx;
 
-    # Dump a labelled scalar...
-    s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
-     {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
+	# Dump a labelled scalar...
+	s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
+	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
-    # Dump a raw hash or array (the varname is used as the label)...
-    s{ ^ $hws* $intro [ \t]+ ([\@%] [\w:]* \w) $optcolon $hws* $ }
-     {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[\\$1]);$DBX}gmx;
+	# Dump a raw hash or array (the varname is used as the label)...
+	s{ ^ $hws* $intro [ \t]+ ([\@%] [\w:]* \w) $optcolon $hws* $ }
+	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[\\$1]);$DBX}gmx;
 
-    # Dump a labelled hash or array...
-    s{ ^ $hws* $intro [ \t]+ (.+ :) [ \t]* ([\@%] [\w:]* \w) $optcolon $hws* $ }
-     {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[\\$2]);$DBX}gmx;
+	# Dump a labelled hash or array...
+	s{ ^ $hws* $intro [ \t]+ (.+ :) [ \t]* ([\@%] [\w:]* \w) $optcolon $hws* $ }
+	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[\\$2]);$DBX}gmx;
 
-    # Dump a labelled expression...
-    s{ ^ $hws* $intro [ \t]+ (.+ :) (.+) }
-     {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
+	# Dump a labelled expression...
+	s{ ^ $hws* $intro [ \t]+ (.+ :) (.+) }
+	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
-    # Dump an 'in progress' message
-    s{ ^ $hws* $intro $hws* (.+ [.]{3}) $hws* $ }
-     {Smart::Comments::Any::_Dump(pref=>qq{$1});$DBX}gmx;
+	# Dump an 'in progress' message
+	s{ ^ $hws* $intro $hws* (.+ [.]{3}) $hws* $ }
+	 {Smart::Comments::Any::_Dump(pref=>qq{$1});$DBX}gmx;
 
-    # Dump an unlabelled expression (the expression is used as the label)...
-    s{ ^ $hws* $intro $hws* (.*) $optcolon $hws* $ }
-     {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>Smart::Comments::Any::_quiet_eval(q{[$1]}));$DBX}gmx;
+	# Dump an unlabelled expression (the expression is used as the label)...
+	s{ ^ $hws* $intro $hws* (.*) $optcolon $hws* $ }
+	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>Smart::Comments::Any::_quiet_eval(q{[$1]}));$DBX}gmx;
 
 # This doesn't work as expected, don't know why
-#    # An empty comment dumps an empty line...
-#    s{ ^ $hws* $intro [ \t]+ $ }
-#     {warn qq{\n};}gmx;
+#	# An empty comment dumps an empty line...
+#	s{ ^ $hws* $intro [ \t]+ $ }
+#	 {warn qq{\n};}gmx;
 
 # This is never needed; for some reason it's caught by "unlabeled expression"
-#    # Anything else is a literal string to be printed...
-#    s{ ^ $hws* $intro $hws* (.*) }
-#     {Smart::Comments::Any::_Dump(pref=>q{$1});$DBX}gmx;
-}; ######## /FILTER ########
+#	# Anything else is a literal string to be printed...
+#	s{ ^ $hws* $intro $hws* (.*) }
+#	 {Smart::Comments::Any::_Dump(pref=>q{$1});$DBX}gmx;
+}; 
+######## /FILTER ########
+
+sub blee { say 'Duh!' };
+
 
 sub _quiet_eval {
-    local $SIG{__WARN__} = sub{};
-    return scalar eval shift;
+	local $SIG{__WARN__} = sub{};
+	return scalar eval shift;
 }
 
 sub _uniq { my %seen; grep { !$seen{$_}++ } @_ }
 
 # Converts an assertion to the equivalent Perl code...
 sub _decode_assert {
-    my ($assertion, $fatal) = @_;
+	my ($assertion, $fatal) = @_;
 
-    # Choose the right signalling mechanism...
-    $fatal = $fatal ? 'die "\n"' : 'warn "\n"';
+	# Choose the right signalling mechanism...
+	$fatal = $fatal ? 'die "\n"' : 'warn "\n"';
 
-    my $dump = 'Smart::Comments::Any::_Dump';
-    use Text::Balanced qw(extract_variable extract_multiple);
+	my $dump = 'Smart::Comments::Any::_Dump';
+	use Text::Balanced qw(extract_variable extract_multiple);
 
-    # Extract variables from assertion and enreference any arrays or hashes...
-    my @vars = map { /^$hws*[%\@]/ ? "$dump(pref=>q{    $_ was:},var=>[\\$_], nonl=>1);"
-                                   : "$dump(pref=>q{    $_ was:},var=>[$_],nonl=>1);"
-                   }
-                _uniq extract_multiple($assertion, [\&extract_variable], undef, 1);
+	# Extract variables from assertion and enreference any arrays or hashes...
+	my @vars = map { /^$hws*[%\@]/ ? "$dump(pref=>q{	$_ was:},var=>[\\$_], nonl=>1);"
+								   : "$dump(pref=>q{	$_ was:},var=>[$_],nonl=>1);"
+				   }
+				_uniq extract_multiple($assertion, [\&extract_variable], undef, 1);
 
-    # Generate the test-and-report code...
-    return qq{unless($assertion){warn "\\n", q{### $assertion was not true};@vars; $fatal}};
+	# Generate the test-and-report code...
+	return qq{unless($assertion){warn "\\n", q{### $assertion was not true};@vars; $fatal}};
 }
 
 # Generate progress-bar code for a Perlish for loop...
 my $ID = 0;
 sub _decode_for {
-    my ($for, $range, $mesg) = @_;
+	my ($for, $range, $mesg) = @_;
 
-    # Give the loop a unique ID...
-    $ID++;
+	# Give the loop a unique ID...
+	$ID++;
 
-    # Rewrite the loop with a progress bar as its first statement...
-    return "my \$not_first__$ID;$for (my \@SmartComments__range__$ID = $range) { Smart::Comments::Any::_for_progress(qq{$mesg}, \$not_first__$ID, \\\@SmartComments__range__$ID);";
+	# Rewrite the loop with a progress bar as its first statement...
+	return "my \$not_first__$ID;$for (my \@SmartComments__range__$ID = $range) { Smart::Comments::Any::_for_progress(qq{$mesg}, \$not_first__$ID, \\\@SmartComments__range__$ID);";
 }
 
 # Generate progress-bar code for a Perlish while loop...
 sub _decode_while {
-    my ($while, $mesg) = @_;
+	my ($while, $mesg) = @_;
 
-    # Give the loop a unique ID...
-    $ID++;
+	# Give the loop a unique ID...
+	$ID++;
 
-    # Rewrite the loop with a progress bar as its first statement...
-    return "my \$not_first__$ID;$while { Smart::Comments::Any::_while_progress(qq{$mesg}, \\\$not_first__$ID);";
+	# Rewrite the loop with a progress bar as its first statement...
+	return "my \$not_first__$ID;$while { Smart::Comments::Any::_while_progress(qq{$mesg}, \\\$not_first__$ID);";
 }
 
 # Generate approximate time descriptions...
 sub _desc_time {
-    my ($seconds) = @_;
-    my $hours = int($seconds/3600);    $seconds -= 3600*$hours;
-    my $minutes = int($seconds/60);    $seconds -= 60*$minutes;
-    my $remaining;
+	my ($seconds) = @_;
+	my $hours = int($seconds/3600);	$seconds -= 3600*$hours;
+	my $minutes = int($seconds/60);	$seconds -= 60*$minutes;
+	my $remaining;
 
-    # Describe hours to the nearest half-hour (and say how close to it)...
-    if ($hours) {
-        $remaining =
-          $minutes < 5   ? "about $hours hour".($hours==1?"":"s")
-        : $minutes < 25  ? "less than $hours.5 hours"
-        : $minutes < 35  ? "about $hours.5 hours"
-        : $minutes < 55  ? "less than ".($hours+1)." hours"
-        :                  "about ".($hours+1)." hours";
-    }
-    # Describe minutes to the nearest minute
-    elsif ($minutes) {
-        $remaining = "about $minutes minutes";
-        chop $remaining if $minutes == 1;
-    }
-    # Describe tens of seconds to the nearest ten seconds...
-    elsif ($seconds > 10) { 
-        $seconds = int(($seconds+5)/10);
-        $remaining = "about ${seconds}0 seconds";
-    }
-    # Never be more accurate than ten seconds...
-    else {  
-        $remaining = "less than 10 seconds";
-    }
-    return $remaining;
+	# Describe hours to the nearest half-hour (and say how close to it)...
+	if ($hours) {
+		$remaining =
+		  $minutes < 5   ? "about $hours hour".($hours==1?"":"s")
+		: $minutes < 25  ? "less than $hours.5 hours"
+		: $minutes < 35  ? "about $hours.5 hours"
+		: $minutes < 55  ? "less than ".($hours+1)." hours"
+		:				  "about ".($hours+1)." hours";
+	}
+	# Describe minutes to the nearest minute
+	elsif ($minutes) {
+		$remaining = "about $minutes minutes";
+		chop $remaining if $minutes == 1;
+	}
+	# Describe tens of seconds to the nearest ten seconds...
+	elsif ($seconds > 10) { 
+		$seconds = int(($seconds+5)/10);
+		$remaining = "about ${seconds}0 seconds";
+	}
+	# Never be more accurate than ten seconds...
+	else {  
+		$remaining = "less than 10 seconds";
+	}
+	return $remaining;
 }
 
 # Update the moving average of a series given the newest measurement...
 my %started;
 my %moving;
 sub _moving_average {
-    my ($context, $next) = @_;
-    my $moving = $moving{$context} ||= [];
-    push @$moving, $next;
-    if (@$moving >= $average_over) {
-        splice @$moving, 0, $#$moving-$average_over;
-    }
-    return sum(@$moving)/@$moving;
+	my ($context, $next) = @_;
+	my $moving = $moving{$context} ||= [];
+	push @$moving, $next;
+	if (@$moving >= $average_over) {
+		splice @$moving, 0, $#$moving-$average_over;
+	}
+	return sum(@$moving)/@$moving;
 }
 
 # Recognize progress bars...
 my @progress_pats = (
-   #    left     extending                 end marker of bar      right
-   #    anchor   bar ("fill")               |    gap after bar    anchor
-   #    ======   =======================   === =================  ====
-   qr{^(\s*.*?) (\[\]\[\])                 ()    \s*               (\S?.*)}x,
-   qr{^(\s*.*?) (\(\)\(\))                 ()    \s*               (\S?.*)}x,
-   qr{^(\s*.*?) (\{\}\{\})                 ()    \s*               (\S?.*)}x,
-   qr{^(\s*.*?) (\<\>\<\>)                 ()    \s*               (\S?.*)}x,
+   #	left	 extending				 end marker of bar	  right
+   #	anchor   bar ("fill")			   |	gap after bar	anchor
+   #	======   =======================   === =================  ====
+   qr{^(\s*.*?) (\[\]\[\])				 ()	\s*			   (\S?.*)}x,
+   qr{^(\s*.*?) (\(\)\(\))				 ()	\s*			   (\S?.*)}x,
+   qr{^(\s*.*?) (\{\}\{\})				 ()	\s*			   (\S?.*)}x,
+   qr{^(\s*.*?) (\<\>\<\>)				 ()	\s*			   (\S?.*)}x,
    qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S+) \s{$minfillreps,} (\S.*)}x,
-   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  ()    \s{$minfillreps,} (\S.*)}x,
-   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S*)                   (?=\s*$)}x,
-   qr{^(\s*.*?) ()                         ()                      () \s*$ }x,
+   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  ()	\s{$minfillreps,} (\S.*)}x,
+   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S*)				   (?=\s*$)}x,
+   qr{^(\s*.*?) ()						 ()					  () \s*$ }x,
 );
 
 # Clean up components of progress bar (inserting defaults)...
 sub _prog_pat {
-    for my $pat (@progress_pats) {
-        $_[0] =~ $pat or next;
-        return ($1, $2||"", $3||"", $4||""); 
-    }
-    return;
+	for my $pat (@progress_pats) {
+		$_[0] =~ $pat or next;
+		return ($1, $2||"", $3||"", $4||""); 
+	}
+	return;
 }
 
 # State information for various progress bars...
@@ -321,95 +335,95 @@ my (%count, %max, %prev_elapsed, %prev_fraction, %showing);
 
 # Animate the progress bar of a for loop...
 sub _for_progress {
-    my ($mesg, $not_first, $data) = @_;
-    my ($at, $max, $elapsed, $remaining, $fraction);
+	my ($mesg, $not_first, $data) = @_;
+	my ($at, $max, $elapsed, $remaining, $fraction);
 
-    # Update progress bar...
-    if ($not_first) {
-        # One more iteration towards the maximum...
-        $at = ++$count{$data};
-        $max = $max{$data};
+	# Update progress bar...
+	if ($not_first) {
+		# One more iteration towards the maximum...
+		$at = ++$count{$data};
+		$max = $max{$data};
 
-        # How long now (both absolute and relative)...
-        $elapsed = time - $started{$data};
-        $fraction = $max>0 ? $at/$max : 1;
+		# How long now (both absolute and relative)...
+		$elapsed = time - $started{$data};
+		$fraction = $max>0 ? $at/$max : 1;
 
-        # How much change occurred...
-        my $motion = $fraction - $prev_fraction{$data};
+		# How much change occurred...
+		my $motion = $fraction - $prev_fraction{$data};
 
-        # Don't update if count wrapped (unlikely) or if finished
-        # or if no visible change...
-        return unless $not_first < 0
-                   || $at == $max
-                   || $motion > $forupdatequantum;
+		# Don't update if count wrapped (unlikely) or if finished
+		# or if no visible change...
+		return unless $not_first < 0
+				   || $at == $max
+				   || $motion > $forupdatequantum;
 
-        # Guestimate how long still to go...
-        $remaining = _moving_average $data,
-                                    $fraction ? $elapsed/$fraction-$elapsed
-                                              : 0;
-    }
-    # If first iteration...
-    else {
-        # Start at the beginning...
-        $at = $count{$data} = 0;
+		# Guestimate how long still to go...
+		$remaining = _moving_average $data,
+									$fraction ? $elapsed/$fraction-$elapsed
+											  : 0;
+	}
+	# If first iteration...
+	else {
+		# Start at the beginning...
+		$at = $count{$data} = 0;
 
-        # Work out where the end will be...
-        $max = $max{$data} = $#$data;
+		# Work out where the end will be...
+		$max = $max{$data} = $#$data;
 
-        # Start the clock...
-        $started{$data} = time;
-        $elapsed = 0;
-        $fraction = 0;
+		# Start the clock...
+		$started{$data} = time;
+		$elapsed = 0;
+		$fraction = 0;
 
-        # After which, it will no longer be the first iteration.
-        $_[1] = 1;  # $not_first
-    }
+		# After which, it will no longer be the first iteration.
+		$_[1] = 1;  # $not_first
+	}
 
-    # Remember the previous increment fraction...
-    $prev_fraction{$data} = $fraction;
+	# Remember the previous increment fraction...
+	$prev_fraction{$data} = $fraction;
 
-    # Now draw the progress bar (if it's a valid one)...
-    if (my ($left, $fill, $leader, $right) = _prog_pat($mesg)) {
-        # Insert the percentage progress in place of a '%'...
-        s/%/int(100*$fraction).'%'/ge for ($left, $leader, $right);
+	# Now draw the progress bar (if it's a valid one)...
+	if (my ($left, $fill, $leader, $right) = _prog_pat($mesg)) {
+		# Insert the percentage progress in place of a '%'...
+		s/%/int(100*$fraction).'%'/ge for ($left, $leader, $right);
 
-        # Work out how much space is available for the bar itself...
-        my $fillwidth = $showwidth - length($left) - length($right);
+		# Work out how much space is available for the bar itself...
+		my $fillwidth = $showwidth - length($left) - length($right);
 
-        # But no less than the prespecified minimum please...
-        $fillwidth = $minfillwidth if $fillwidth < $minfillwidth;
+		# But no less than the prespecified minimum please...
+		$fillwidth = $minfillwidth if $fillwidth < $minfillwidth;
 
-        # Make enough filler...
-        my $totalfill = $fill x $fillwidth;
+		# Make enough filler...
+		my $totalfill = $fill x $fillwidth;
 
-        # How big is the end of the bar...
-        my $leaderwidth = length($leader);
+		# How big is the end of the bar...
+		my $leaderwidth = length($leader);
 
-        # Truncate where?
-        my $fillend = $at==$max ? $fillwidth 
-                    :             $fillwidth*$fraction-$leaderwidth;
-        $fillend = 0 if $fillend < 0;
+		# Truncate where?
+		my $fillend = $at==$max ? $fillwidth 
+					:			 $fillwidth*$fraction-$leaderwidth;
+		$fillend = 0 if $fillend < 0;
 
-        # Now draw the bar, using carriage returns to overwrite it...
-        print STDERR "\r", " "x$maxwidth,
-                     "\r", $left,
-                     sprintf("%-${fillwidth}s",
-                               substr($totalfill, 0, $fillend)
-                             . $leader),
-                     $right;
+		# Now draw the bar, using carriage returns to overwrite it...
+		print STDERR "\r", " "x$maxwidth,
+					 "\r", $left,
+					 sprintf("%-${fillwidth}s",
+							   substr($totalfill, 0, $fillend)
+							 . $leader),
+					 $right;
 
-        # Work out whether to show an ETA estimate...
-        if ($elapsed >= $showstarttime &&
-            $at < $max &&
-            ($showing{$data} || $remaining && $remaining >= $showmaxtime)
-        ) {
-            print STDERR "  (", _desc_time($remaining), " remaining)";
-            $showing{$data} = 1;
-        }
+		# Work out whether to show an ETA estimate...
+		if ($elapsed >= $showstarttime &&
+			$at < $max &&
+			($showing{$data} || $remaining && $remaining >= $showmaxtime)
+		) {
+			print STDERR "  (", _desc_time($remaining), " remaining)";
+			$showing{$data} = 1;
+		}
 
-        # Close off the line, if we're finished...
-        print STDERR "\r", " "x$maxwidth, "\n" if $at >= $max;
-    }
+		# Close off the line, if we're finished...
+		print STDERR "\r", " "x$maxwidth, "\n" if $at >= $max;
+	}
 }
 
 my %shown;
@@ -417,50 +431,50 @@ my $prev_length = -1;
 
 # Animate the progress bar of a while loop...
 sub _while_progress {
-    my ($mesg, $not_first_ref) = @_;
-    my $at;
+	my ($mesg, $not_first_ref) = @_;
+	my $at;
 
-    # If we've looped this one before, recover the current iteration count...
-    if ($$not_first_ref) {
-        $at = ++$count{$not_first_ref};
-    }
-    # Otherwise set the iteration count to zero...
-    else {
-        $at = $count{$not_first_ref} = 0;
-        $$not_first_ref = 1;
-    }
+	# If we've looped this one before, recover the current iteration count...
+	if ($$not_first_ref) {
+		$at = ++$count{$not_first_ref};
+	}
+	# Otherwise set the iteration count to zero...
+	else {
+		$at = $count{$not_first_ref} = 0;
+		$$not_first_ref = 1;
+	}
 
-    # Extract the components of the progress bar...
-    if (my ($left, $fill, $leader, $right) = _prog_pat($mesg)) {
-        # Replace any '%' with the current iteration count...
-        s/%/$at/ge for ($left, $leader, $right);
+	# Extract the components of the progress bar...
+	if (my ($left, $fill, $leader, $right) = _prog_pat($mesg)) {
+		# Replace any '%' with the current iteration count...
+		s/%/$at/ge for ($left, $leader, $right);
 
-        # How much space is there for the progress bar?
-        my $fillwidth = $showwidth - length($left) - length($right);
+		# How much space is there for the progress bar?
+		my $fillwidth = $showwidth - length($left) - length($right);
 
-        # Make it at least the prespecified minimum amount...
-        $fillwidth = $minfillwidth if $fillwidth < $minfillwidth;
+		# Make it at least the prespecified minimum amount...
+		$fillwidth = $minfillwidth if $fillwidth < $minfillwidth;
 
-        # How big is the end of the bar?
-        my $leaderwidth = length($leader);
+		# How big is the end of the bar?
+		my $leaderwidth = length($leader);
 
-        # How big does that make the bar itself (use reciprocal growth)...
-        my $length = int(($fillwidth-$leaderwidth)
-                           *(1-$whilerate/($whilerate+$at))+0.000000000001);
+		# How big does that make the bar itself (use reciprocal growth)...
+		my $length = int(($fillwidth-$leaderwidth)
+						   *(1-$whilerate/($whilerate+$at))+0.000000000001);
 
-        # Don't update if the picture would look the same...
-        return
-            if length $fill && $prev_length == $length;
+		# Don't update if the picture would look the same...
+		return
+			if length $fill && $prev_length == $length;
 
-        # Otherwise, remember where we got to...
-        $prev_length = $length;
+		# Otherwise, remember where we got to...
+		$prev_length = $length;
 
-        # And print the bar...
-        print STDERR "\r", " "x$maxwidth,
-                     "\r", $left,
-                     sprintf("%-${fillwidth}s", substr($fill x $fillwidth, 0, $length) . $leader),
-                     $right;
-    }
+		# And print the bar...
+		print STDERR "\r", " "x$maxwidth,
+					 "\r", $left,
+					 sprintf("%-${fillwidth}s", substr($fill x $fillwidth, 0, $length) . $leader),
+					 $right;
+	}
 }
 
 # Vestigal (I think)...
@@ -488,61 +502,61 @@ sub _Dump {
 	
 	## Done ::Any
 	
-    my %args = @_;
-    my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};
+	my %args = @_;
+	my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};
 
-    # Handle timestamps...
-    my (undef, $file, $line) = caller;
-    $pref =~ s/<(?:now|time|when)>/scalar localtime()/ge;
-    $pref =~ s/<(?:here|place|where)>/"$file", line $line/g;
+	# Handle timestamps...
+	my (undef, $file, $line) = caller;
+	$pref =~ s/<(?:now|time|when)>/scalar localtime()/ge;
+	$pref =~ s/<(?:here|place|where)>/"$file", line $line/g;
 
-    # Add a newline?
-    my @caller = caller;
-    my $spacer_required
-        =  $prev_STDOUT != tell(*STDOUT)
-        || $prev_STDERR != tell(*STDERR)
-        || $prev_caller{file} ne $caller[1]
-        || $prev_caller{line} != $caller[2]-1;
-    $spacer_required &&= !$nonl;
-    @prev_caller{qw<file line>} = @caller[1,2];
+	# Add a newline?
+	my @caller = caller;
+	my $spacer_required
+		=  $prev_STDOUT != tell(*STDOUT)
+		|| $prev_STDERR != tell(*STDERR)
+		|| $prev_caller{file} ne $caller[1]
+		|| $prev_caller{line} != $caller[2]-1;
+	$spacer_required &&= !$nonl;
+	@prev_caller{qw<file line>} = @caller[1,2];
 
-    # Handle a prefix with no actual variable...
-    if ($pref && !defined $varref) {
-        $pref =~ s/:$//;
-        print $outfh "\n" if $spacer_required;
-        print $outfh "### $pref\n";
-        $prev_STDOUT = tell(*STDOUT);
-        $prev_STDERR = tell(*STDERR);
-        return;
-    }
+	# Handle a prefix with no actual variable...
+	if ($pref && !defined $varref) {
+		$pref =~ s/:$//;
+		print $outfh "\n" if $spacer_required;
+		print $outfh "### $pref\n";
+		$prev_STDOUT = tell(*STDOUT);
+		$prev_STDERR = tell(*STDERR);
+		return;
+	}
 
-    # Set Data::Dumper up for a tidy dump and do the dump...
-    local $Data::Dumper::Quotekeys = 0;
-    local $Data::Dumper::Sortkeys  = 1;
-    local $Data::Dumper::Indent    = 2;
-    my $dumped = Dumper $varref;
+	# Set Data::Dumper up for a tidy dump and do the dump...
+	local $Data::Dumper::Quotekeys = 0;
+	local $Data::Dumper::Sortkeys  = 1;
+	local $Data::Dumper::Indent	= 2;
+	my $dumped = Dumper $varref;
 
-    # Clean up the results...
-    $dumped =~ s/\$VAR1 = \[\n//;
-    $dumped =~ s/\s*\];\s*$//;
-    $dumped =~ s/\A(\s*)//;
+	# Clean up the results...
+	$dumped =~ s/\$VAR1 = \[\n//;
+	$dumped =~ s/\s*\];\s*$//;
+	$dumped =~ s/\A(\s*)//;
 
-    # How much to shave off and put back on each line...
-    my $indent  = length $1;
-    my $outdent = " " x (length($pref) + 1);
+	# How much to shave off and put back on each line...
+	my $indent  = length $1;
+	my $outdent = " " x (length($pref) + 1);
 
-    # Report "inside-out" and "flyweight" objects more cleanly...
-    $dumped =~ s{bless[(] do[{]\\[(]my \$o = undef[)][}], '([^']+)' [)]}
-                {<Opaque $1 object (blessed scalar)>}g;
+	# Report "inside-out" and "flyweight" objects more cleanly...
+	$dumped =~ s{bless[(] do[{]\\[(]my \$o = undef[)][}], '([^']+)' [)]}
+				{<Opaque $1 object (blessed scalar)>}g;
 
-    # Adjust the indents...
-    $dumped =~ s/^[ ]{$indent}([ ]*)/### $outdent$1/gm;
+	# Adjust the indents...
+	$dumped =~ s/^[ ]{$indent}([ ]*)/### $outdent$1/gm;
 
-    # Print the message...
-    print $outfh "\n" if $spacer_required;
-    print $outfh "### $pref $dumped\n";
-    $prev_STDERR = tell(*STDERR);
-    $prev_STDOUT = tell(*STDOUT);
+	# Print the message...
+	print $outfh "\n" if $spacer_required;
+	print $outfh "### $pref $dumped\n";
+	$prev_STDERR = tell(*STDERR);
+	$prev_STDOUT = tell(*STDOUT);
 }
 
 1; # Magic true value required at end of module
@@ -560,11 +574,11 @@ This document describes Smart::Comments::Any version 1.0.4
 
 =head1 SYNOPSIS
 
-    use Smart::Comments::Any '###';				# acts just like Smart::Comments
-    use Smart::Comments::Any 'STDERR', '###';	# same thing
-    
-    use Smart::Comments::Any $fh, '###';		# prints to $fh instead
-    use Smart::Comments::Any 'FH', '###';		# prints to FH instead
+	use Smart::Comments::Any '###';				# acts just like Smart::Comments
+	use Smart::Comments::Any 'STDERR', '###';	# same thing
+	
+	use Smart::Comments::Any $fh, '###';		# prints to $fh instead
+	use Smart::Comments::Any 'FH', '###';		# prints to FH instead
 	  
 =head1 DESCRIPTION
 
