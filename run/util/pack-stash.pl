@@ -1,5 +1,5 @@
 #!/run/bin/perl
-#       namespace.pl
+#       pack-stash.pl
 #       =  Copyright 2010 Xiong Changnian <xiong@sf-id.com>  =
 #       = Free Software = Artistic License 2.0 = NO WARRANTY =
 
