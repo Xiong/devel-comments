@@ -26,10 +26,15 @@ use Smart::Comments '###', '####';
 
 #
 
+sub _do_one {
+	say q{I'm _do_one!};	
+};
+
 BEGIN 
 {
 	say q{I'm doing stuff in a BEGIN block.};
 	
+	_do_one();
 	_do_other();
 	
 	say q{I'm done with the BEGIN block.};
