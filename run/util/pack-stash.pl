@@ -8,25 +8,25 @@ use warnings;
 use feature 'say';
 
 {
-	package Teddy;
+	package Teddy::Bear;
 }
 
 package main;
 no strict 'refs';
 
-my $ns					= 'Teddy';
-my $glob				= *{${ns} . '::foo'};
-say '      $glob: ',	$glob;
-say '$Teddy::foo: ', 	$Teddy::foo;
+my $ns						= 'Teddy::Bear';
+my $glob					= *{${ns} . '::foo'};
+say '            $glob: ',	$glob;
+say '$Teddy::Bear::foo: ', 	$Teddy::Bear::foo;
 
-my $cram				= 'cheese';
-say '      $cram: ',	$cram;
+my $cram					= 'cheese';
+say '            $cram: ',	$cram;
 
-${ *{${ns} . '::foo'} }	= $cram;
-say '$Teddy::foo: ', 	$Teddy::foo;
+${ *{${ns} . '::foo'} }		= $cram;
+say '$Teddy::Bear::foo: ', 	$Teddy::Bear::foo;
 
-my $yank				= ${ *{"${ns}\::foo"} };
-say '      $yank: ',	$yank;
+my $yank					= ${ *{"${ns}\::foo"} };
+say '            $yank: ',	$yank;
 
 
 __DATA__
