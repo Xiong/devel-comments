@@ -44,12 +44,9 @@ my $DBX = '$DB::single = $DB::single = 1;';
 
 ######## / lexical constants ########
 
-sub bloo { say 'Hey!' };
 
 # Implement comments-to-code source filter...
 FILTER {
-	bloo();
-	blee();
 	
 	shift;		# Don't need the package name
 	s/\r\n/\n/g;  # Handle win32 line endings
@@ -207,7 +204,6 @@ FILTER {
 }; 
 ######## /FILTER ########
 
-sub blee { say 'Duh!' };
 
 
 sub _quiet_eval {
