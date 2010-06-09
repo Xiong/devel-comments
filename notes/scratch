@@ -9,3 +9,11 @@
 # ###     $x was: 0
 # '
 
+
+package Teddy;
+
+my $max		= 2**1;
+
+for (0..$max) {			### Teddy::for2 |===[%]    |
+	sleep(1);
+};

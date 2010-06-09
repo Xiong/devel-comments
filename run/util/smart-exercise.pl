@@ -12,7 +12,7 @@ use lib qw{
 	../../run/t
 };
 
-use Smart::Comments;	# Enable special comments for debugging
+use Smart::Comments '###';	# Enable special comments for debugging
 #use Smart::Comments::Any;	
 
 my $data_structure 	= {
@@ -23,7 +23,7 @@ my $scalar			= 42;
 my %very			;
 my $index			= 18;
 $very{long}{thing}[$index] = 'main';
-### $very{long}{thing}[18]
+#### $very{long}{thing}[18]
 
 #	no strict 'refs';		# disable complaint about symbolic reference
 #	no warnings 'once';		# disable complaint about var only used once
@@ -56,11 +56,11 @@ sub _do_ {
 
 ### This is a comment.
 ### <now> I'm happy.
-### $data_structure
-### $scalar
+#### $data_structure
+#### $scalar
 
 #my $max		= 2**4;
-my $max		= 2**2;
+my $max		= 2**1;
 
 #for (0..$max) {			### for1...			done
 #	sleep(1);
@@ -69,6 +69,19 @@ my $max		= 2**2;
 #for (0..$max) {			### for2 |===[%]    |
 #	sleep(1);
 #};
+
+for (0..$max) {			### outer |===[%]    |
+	for (0..$max) {			### inner |===[%]    |
+		sleep(1);
+	};
+};
+
+use Acme::Teddy;
+for (0..$max) {			### outer |===[%]    |
+	Acme::Teddy::exercise_loop();
+};
+
+
 
 __END__
 
