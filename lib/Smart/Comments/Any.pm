@@ -49,9 +49,39 @@ my $optcolon 			= qr/$hws*;?/;
 # Automagic debugging as well...
 my $DBX 				= '$DB::single = $DB::single = 1;';
 
+# Recognize progress bars...
+my @progress_pats = (
+   #    left     extending                 end marker of bar      right
+   #    anchor   bar ("fill")               |    gap after bar    anchor
+   #    ======   =======================   === =================  ====
+   qr{^(\s*.*?) (\[\]\[\])                 ()    \s*               (\S?.*)}x,
+   qr{^(\s*.*?) (\(\)\(\))                 ()    \s*               (\S?.*)}x,
+   qr{^(\s*.*?) (\{\}\{\})                 ()    \s*               (\S?.*)}x,
+   qr{^(\s*.*?) (\<\>\<\>)                 ()    \s*               (\S?.*)}x,
+   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S+) \s{$minfillreps,} (\S.*)}x,
+   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  ()    \s{$minfillreps,} (\S.*)}x,
+   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S*)                   (?=\s*$)}x,
+   qr{^(\s*.*?) ()                         ()                      () \s*$ }x,
+);
+
 ######## / lexical pseudo-constants ########
 
 ######## pseudo-global variables section ########
+
+## original S::C stuff
+
+# Unique ID assigned to each loop; incremented when assigned
+# 	See: _for_progress, _while_progress
+my $ID 					= 0;
+
+#	See: _for_progress
+my %started				;
+
+#	See: _moving_average
+my %moving				;
+
+
+## ::Any stuff
 
 # Store per-use state info
 my %state_of			;
@@ -314,7 +344,6 @@ sub _decode_assert {
 #		
 # Generate progress-bar code for a Perlish for loop...
 #	
-my $ID = 0;
 sub _decode_for {
 	my ($for, $range, $mesg) = @_;
 
@@ -388,8 +417,6 @@ sub _desc_time {
 #		
 # Update the moving average of a series given the newest measurement...
 #	
-my %started;
-my %moving;
 sub _moving_average {
 	my ($context, $next) = @_;
 	my $moving = $moving{$context} ||= [];
@@ -400,21 +427,6 @@ sub _moving_average {
 	return sum(@$moving)/@$moving;
 };
 ######## /_moving_average ########
-
-# Recognize progress bars...
-my @progress_pats = (
-   #    left     extending                 end marker of bar      right
-   #    anchor   bar ("fill")               |    gap after bar    anchor
-   #    ======   =======================   === =================  ====
-   qr{^(\s*.*?) (\[\]\[\])                 ()    \s*               (\S?.*)}x,
-   qr{^(\s*.*?) (\(\)\(\))                 ()    \s*               (\S?.*)}x,
-   qr{^(\s*.*?) (\{\}\{\})                 ()    \s*               (\S?.*)}x,
-   qr{^(\s*.*?) (\<\>\<\>)                 ()    \s*               (\S?.*)}x,
-   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S+) \s{$minfillreps,} (\S.*)}x,
-   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  ()    \s{$minfillreps,} (\S.*)}x,
-   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S*)                   (?=\s*$)}x,
-   qr{^(\s*.*?) ()                         ()                      () \s*$ }x,
-);
 
 ######## INTERNAL ROUTINE ########
 #
