@@ -298,8 +298,8 @@ sub _decode_assert {
 	my $dump = 'Smart::Comments::Any::_Dump';
 
 	# Extract variables from assertion and enreference any arrays or hashes...
-	my @vars = map { /^$hws*[%\@]/ ? "$dump(pref=>q{	$_ was:},var=>[\\$_], nonl=>1);"
-								   : "$dump(pref=>q{	$_ was:},var=>[$_],nonl=>1);"
+	my @vars = map { /^$hws*[%\@]/ ? "$dump(pref=>q{    $_ was:},var=>[\\$_], nonl=>1);"
+								   : "$dump(pref=>q{    $_ was:},var=>[$_],nonl=>1);"
 				   }
 				_uniq extract_multiple($assertion, [\&extract_variable], undef, 1);
 
