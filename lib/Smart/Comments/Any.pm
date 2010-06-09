@@ -14,6 +14,8 @@ use Filter::Simple;
 
 use feature 'say';				# disable in production; debug only
 
+use Smart::Comments '###';		# playing with fire
+
 ######## / use ########
 
 ######## lexical constants section ########
@@ -30,25 +32,69 @@ my $minfillreps			= 2;   	# Minimum size of a fill and fill cap indicator
 my $forupdatequantum   	= 0.01;	# Only update every 1% of elapsed distance
 
 # Synonyms for asserts and requirements...
-my $require = qr/require|ensure|assert|insist/;
-my $check   = qr/check|verify|confirm/;
+my $require 			= qr/require|ensure|assert|insist/;
+my $check   			= qr/check|verify|confirm/;
 
 # Horizontal whitespace...
-my $hws	 = qr/[^\S\n]/;
+my $hws	 				= qr/[^\S\n]/;
 
 # Optional colon...
-my $optcolon = qr/$hws*;?/;
+my $optcolon 			= qr/$hws*;?/;
 
 # Automagic debugging as well...
-my $DBX = '$DB::single = $DB::single = 1;';
+my $DBX 				= '$DB::single = $DB::single = 1;';
 
 ######## / lexical constants ########
 
+######## pseudo-global section ########
 
-# Implement comments-to-code source filter...
-FILTER {
+# Store per-use state info
+my %state_of			;
+
+######## / pseudo-global ########
+
+######## IMPORT ROUTINE ########
+#		
+# The "normal" import routine must be declared 
+#	*before* the call to FILTER. 
+# However, Filter::Simple will call import()
+#	*after* applying FILTER to caller's source code. 
+#	
+sub import {
 	
-	shift;		# Don't need the package name
+	
+	
+};
+######## /import ########
+
+######## EXTERNAL SUB CALL ########
+#
+# Implement comments-to-code source filter. 
+#
+# This is not a subroutine but a call to Filter::Simple::FILTER
+#	with its single argument being its following block. 
+# 
+# The block may be thought of as a routine which is passed: 
+#	* in @_		the split use line, with $_[0] being *this* package
+# 	* in $_		caller's entire source code to be filtered
+# ... and must return the filtered code in $_
+# 
+# Note (if our module is invoked properly via use): 
+# From caller's viewpoint, use operates as a BEGIN block, 
+# 	including all our-module inline code and this call to FILTER;
+# 		while filtered-in calls to our-module subs take place at run time. 
+# From our viewpoint, our inline code, including FILTER, 
+#	is run after any BEGIN or use in our module;
+#		and filtered-in subs may be viewed 
+#		as if they were externally called subs in a normal module. 
+# 
+# See "How it works" in Filter::Simple's POD. 
+# 
+FILTER {
+	### @_
+	### $_
+	
+	shift;		# Don't need our own package name
 	s/\r\n/\n/g;  # Handle win32 line endings
 	
 	## Handle the ::Any setup
@@ -206,14 +252,36 @@ FILTER {
 
 
 
+######## INTERNAL ROUTINE ########
+#
+#	_quiet_eval();		# short
+#		
+# ???
+#	
 sub _quiet_eval {
 	local $SIG{__WARN__} = sub{};
 	return scalar eval shift;
-}
+};
+######## /_quiet_eval ########
 
-sub _uniq { my %seen; grep { !$seen{$_}++ } @_ }
+######## INTERNAL ROUTINE ########
+#
+#	_uniq();		# short
+#		
+# ???
+#	
+sub _uniq { 
+	my %seen; 
+	grep { !$seen{$_}++ } @_ 
+};
+######## /_uniq ########
 
+######## INTERNAL ROUTINE ########
+#
+#	_decode_assert();		# short
+#		
 # Converts an assertion to the equivalent Perl code...
+#	
 sub _decode_assert {
 	my ($assertion, $fatal) = @_;
 
@@ -231,7 +299,8 @@ sub _decode_assert {
 
 	# Generate the test-and-report code...
 	return qq{unless($assertion){warn "\\n", q{### $assertion was not true};@vars; $fatal}};
-}
+};
+######## /_decode_assert ########
 
 # Generate progress-bar code for a Perlish for loop...
 my $ID = 0;
@@ -473,11 +542,6 @@ sub _while_progress {
 	}
 }
 
-# Vestigal (I think)...
-#sub Assert {
-#   my %arg = @_;
-#   return unless $arg{pass}
-#}
 
 use Data::Dumper 'Dumper';
 
