@@ -6,19 +6,24 @@ use strict;
 use warnings;
 use version; our $VERSION = qv('1.0.4');
 
+# original S::C (originally used here)
 use Carp;
-
 use List::Util qw(sum);
-
 use Filter::Simple;
 
-use feature 'say';				# disable in production; debug only
+# collected S::C (originally distributed in code)
+use Text::Balanced 				# Extract delimited text sequences from strings
+	qw( extract_variable extract_multiple );
+	
+use Data::Dumper 'Dumper';
 
-use Smart::Comments '###';		# playing with fire
+# debug only
+use feature 'say';				# disable in production; debug only
+#use Smart::Comments '###';		# playing with fire;     debug only
 
 ######## / use ########
 
-######## lexical constants section ########
+######## lexical pseudo-constants section ########
 
 # time and space constants
 my $maxwidth		  	= 69;  	# Maximum width of display
@@ -44,14 +49,16 @@ my $optcolon 			= qr/$hws*;?/;
 # Automagic debugging as well...
 my $DBX 				= '$DB::single = $DB::single = 1;';
 
-######## / lexical constants ########
+######## / lexical pseudo-constants ########
 
-######## pseudo-global section ########
+######## pseudo-global variables section ########
 
 # Store per-use state info
 my %state_of			;
 
-######## / pseudo-global ########
+######## / pseudo-global variables ########
+
+#----------------------------------------------------------------------------#
 
 ######## IMPORT ROUTINE ########
 #		
@@ -250,7 +257,7 @@ FILTER {
 }; 
 ######## /FILTER ########
 
-
+#============================================================================#
 
 ######## INTERNAL ROUTINE ########
 #
@@ -289,7 +296,6 @@ sub _decode_assert {
 	$fatal = $fatal ? 'die "\n"' : 'warn "\n"';
 
 	my $dump = 'Smart::Comments::Any::_Dump';
-	use Text::Balanced qw(extract_variable extract_multiple);
 
 	# Extract variables from assertion and enreference any arrays or hashes...
 	my @vars = map { /^$hws*[%\@]/ ? "$dump(pref=>q{	$_ was:},var=>[\\$_], nonl=>1);"
@@ -302,7 +308,12 @@ sub _decode_assert {
 };
 ######## /_decode_assert ########
 
+######## INTERNAL ROUTINE ########
+#
+#	_decode_for();		# short
+#		
 # Generate progress-bar code for a Perlish for loop...
+#	
 my $ID = 0;
 sub _decode_for {
 	my ($for, $range, $mesg) = @_;
@@ -312,9 +323,15 @@ sub _decode_for {
 
 	# Rewrite the loop with a progress bar as its first statement...
 	return "my \$not_first__$ID;$for (my \@SmartComments__range__$ID = $range) { Smart::Comments::Any::_for_progress(qq{$mesg}, \$not_first__$ID, \\\@SmartComments__range__$ID);";
-}
+};
+######## /_decode_for ########
 
+######## INTERNAL ROUTINE ########
+#
+#	_decode_while();		# short
+#		
 # Generate progress-bar code for a Perlish while loop...
+#	
 sub _decode_while {
 	my ($while, $mesg) = @_;
 
@@ -323,9 +340,15 @@ sub _decode_while {
 
 	# Rewrite the loop with a progress bar as its first statement...
 	return "my \$not_first__$ID;$while { Smart::Comments::Any::_while_progress(qq{$mesg}, \\\$not_first__$ID);";
-}
+};
+######## /_decode_while ########
 
+######## INTERNAL ROUTINE ########
+#
+#	_desc_time();		# short
+#		
 # Generate approximate time descriptions...
+#	
 sub _desc_time {
 	my ($seconds) = @_;
 	my $hours = int($seconds/3600);	$seconds -= 3600*$hours;
@@ -356,9 +379,15 @@ sub _desc_time {
 		$remaining = "less than 10 seconds";
 	}
 	return $remaining;
-}
+};
+######## /_desc_time ########
 
+######## INTERNAL ROUTINE ########
+#
+#	_moving_average();		# short
+#		
 # Update the moving average of a series given the newest measurement...
+#	
 my %started;
 my %moving;
 sub _moving_average {
@@ -369,36 +398,48 @@ sub _moving_average {
 		splice @$moving, 0, $#$moving-$average_over;
 	}
 	return sum(@$moving)/@$moving;
-}
+};
+######## /_moving_average ########
 
 # Recognize progress bars...
 my @progress_pats = (
-   #	left	 extending				 end marker of bar	  right
-   #	anchor   bar ("fill")			   |	gap after bar	anchor
-   #	======   =======================   === =================  ====
-   qr{^(\s*.*?) (\[\]\[\])				 ()	\s*			   (\S?.*)}x,
-   qr{^(\s*.*?) (\(\)\(\))				 ()	\s*			   (\S?.*)}x,
-   qr{^(\s*.*?) (\{\}\{\})				 ()	\s*			   (\S?.*)}x,
-   qr{^(\s*.*?) (\<\>\<\>)				 ()	\s*			   (\S?.*)}x,
+   #    left     extending                 end marker of bar      right
+   #    anchor   bar ("fill")               |    gap after bar    anchor
+   #    ======   =======================   === =================  ====
+   qr{^(\s*.*?) (\[\]\[\])                 ()    \s*               (\S?.*)}x,
+   qr{^(\s*.*?) (\(\)\(\))                 ()    \s*               (\S?.*)}x,
+   qr{^(\s*.*?) (\{\}\{\})                 ()    \s*               (\S?.*)}x,
+   qr{^(\s*.*?) (\<\>\<\>)                 ()    \s*               (\S?.*)}x,
    qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S+) \s{$minfillreps,} (\S.*)}x,
-   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  ()	\s{$minfillreps,} (\S.*)}x,
-   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S*)				   (?=\s*$)}x,
-   qr{^(\s*.*?) ()						 ()					  () \s*$ }x,
+   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  ()    \s{$minfillreps,} (\S.*)}x,
+   qr{^(\s*.*?) (?>(\S)\2{$minfillreps,})  (\S*)                   (?=\s*$)}x,
+   qr{^(\s*.*?) ()                         ()                      () \s*$ }x,
 );
 
+######## INTERNAL ROUTINE ########
+#
+#	_prog_pat();		# short
+#		
 # Clean up components of progress bar (inserting defaults)...
+#	
 sub _prog_pat {
 	for my $pat (@progress_pats) {
 		$_[0] =~ $pat or next;
 		return ($1, $2||"", $3||"", $4||""); 
 	}
 	return;
-}
+};
+######## /_prog_pat ########
 
 # State information for various progress bars...
 my (%count, %max, %prev_elapsed, %prev_fraction, %showing);
 
+######## INTERNAL ROUTINE ########
+#
+#	_for_progress();		# short
+#		
 # Animate the progress bar of a for loop...
+#	
 sub _for_progress {
 	my ($mesg, $not_first, $data) = @_;
 	my ($at, $max, $elapsed, $remaining, $fraction);
@@ -489,12 +530,18 @@ sub _for_progress {
 		# Close off the line, if we're finished...
 		print STDERR "\r", " "x$maxwidth, "\n" if $at >= $max;
 	}
-}
+};
+######## /_for_progress ########
 
 my %shown;
 my $prev_length = -1;
 
+######## INTERNAL ROUTINE ########
+#
+#	_while_progress();		# short
+#		
 # Animate the progress bar of a while loop...
+#	
 sub _while_progress {
 	my ($mesg, $not_first_ref) = @_;
 	my $at;
@@ -540,16 +587,21 @@ sub _while_progress {
 					 sprintf("%-${fillwidth}s", substr($fill x $fillwidth, 0, $length) . $leader),
 					 $right;
 	}
-}
+};
+######## /_while_progress ########
 
 
-use Data::Dumper 'Dumper';
 
-# Dump a variable and then reformat the resulting string more prettily...
 my $prev_STDOUT = 0;
 my $prev_STDERR = 0;
 my %prev_caller = ( file => q{}, line => 0 );
 
+######## INTERNAL ROUTINE ########
+#
+#	_Dump();		# short
+#		
+# Dump a variable and then reformat the resulting string more prettily...
+#	
 sub _Dump {
 	
 	## Get the ::Any $outfh
@@ -617,7 +669,9 @@ sub _Dump {
 	print $outfh "### $pref $dumped\n";
 	$prev_STDERR = tell(*STDERR);
 	$prev_STDOUT = tell(*STDOUT);
-}
+};
+######## /_Dump ########
+
 
 1; # Magic true value required at end of module
 __END__
