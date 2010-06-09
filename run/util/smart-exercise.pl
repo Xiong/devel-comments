@@ -33,6 +33,26 @@ $very{long}{thing}[$index] = 'main';
 #	use warnings;
 #	use strict;
 
+######## INTERNAL ROUTINE ########
+#
+#	_do_();		# short
+#		
+# comment
+#	
+sub _do_ {
+	
+	
+	
+};
+######## /_do_ ########
+
+####### 7
+###### 6
+##### 5
+#### 4
+### 3
+## 2
+# 1
 
 ### This is a comment.
 ### <now> I'm happy.
