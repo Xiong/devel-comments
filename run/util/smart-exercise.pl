@@ -70,17 +70,40 @@ my $max		= 2**1;
 #	sleep(1);
 #};
 
-for (0..$max) {			### outer |===[%]    |
-	for (0..$max) {			### inner |===[%]    |
-		sleep(1);
-	};
-};
+#for (0..$max) {			### outer |===[%]    |
+#	for (0..$max) {			### inner |===[%]    |
+#		sleep(1);
+#	};
+#};
+
+#use Acme::Teddy;
+#for (0..$max) {			### outer |===[%]    |
+#	Acme::Teddy::exercise_loop();
+#};
+
+
+### This comment is smart.
+
+no Smart::Comments;
+
+### This comment is dumb.
+
+use Smart::Comments;
+
+### This comment is also smart.
+
+no Smart::Comments;
+
+### This comment is also dumb.
 
 use Acme::Teddy;
-for (0..$max) {			### outer |===[%]    |
-	Acme::Teddy::exercise_loop();
-};
+Acme::Teddy::just_hello();
 
+### This comment is still dumb.
+
+use Smart::Comments;
+
+### This comment is still smart.
 
 
 __END__

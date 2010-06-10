@@ -45,7 +45,10 @@ sub exercise_loop {
 	};
 };
 
-
+sub just_hello {
+	### Hello!
+	return 1;
+};
 
 
 
