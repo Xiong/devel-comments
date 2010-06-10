@@ -25,7 +25,6 @@ for (1..5) {    ### Simple for loop:===[%]   done (%)
 
 my $stringy			= $STDERR;
 $stringy			=~ s/\r/<\n/gxms;
-
 say '*]', $stringy, '[*';
 
 like $STDERR, qr/Simple for loop:\[0%\]      done \(0%\)/

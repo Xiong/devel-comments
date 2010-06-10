@@ -84,9 +84,13 @@ my %moving				;
 #	See: _for_progress, _while_progress
 my (%count, %max, %prev_elapsed, %prev_fraction, %showing);
 
-
 #	See: _while_progress
 my $prev_length = -1;
+
+#	See: _Dump
+my $prev_STDOUT = 0;
+my $prev_STDERR = 0;
+my %prev_caller = ( file => q{}, line => 0 );
 
 
 ## ::Any stuff
@@ -152,8 +156,8 @@ sub import {
 # See "How it works" in Filter::Simple's POD. 
 # 
 FILTER {
-	### @_
-	### $_
+	#### @_
+	#### $_
 	
 	shift;		# Don't need our own package name
 	s/\r\n/\n/g;  # Handle win32 line endings
@@ -362,10 +366,10 @@ sub _uniq {
 # 
 #	
 sub _decode_assert {
-	my ($assertion, $fatal) = @_;
+	my ($assertion, $signal_flag) = @_;
 
 	# Choose the right signalling mechanism...
-	$fatal = $fatal ? 'die "\n"' : 'warn "\n"';
+	my $signal_code = $signal_flag ? 'die "\n"' : 'warn "\n"';
 
 	my $dump = 'Smart::Comments::Any::_Dump';
 
@@ -377,7 +381,11 @@ sub _decode_assert {
 
 	# Generate the test-and-report code...
 	return 	qq<unless($assertion)>
-		.	qq<{warn "\\n", q{### $assertion was not true};@vars; $fatal}>
+		.	qq<{>
+		.		qq<warn "\\n", q{### $assertion was not true};>
+		.		qq<@vars;>
+		.		qq<$signal_code>
+		.	qq<}>
 		;
 };
 ######## /_decode_assert ########
@@ -436,7 +444,15 @@ sub _decode_while {
 	$ID++;
 
 	# Rewrite the loop with a progress bar as its first statement...
-	return "my \$not_first__$ID;$while { Smart::Comments::Any::_while_progress(qq{$mesg}, \\\$not_first__$ID);";
+	return 	qq<my \$not_first__$ID;>
+		.	qq<$while>
+		.	qq<{>		# closing brace found somewhere in client code
+		.	qq<Smart::Comments::Any::_while_progress(>
+		.		qq<qq{$mesg},>
+		.		qq<\\\$not_first__$ID>
+		.	qq<);>
+		.	qq<>
+		;
 };
 ######## /_decode_while ########
 
@@ -659,7 +675,7 @@ sub _for_progress {
 sub _while_progress {
 	my ($mesg, $not_first_ref) = @_;
 	my $at;
-
+#say '$prev_length: ', $prev_length;
 	# If we've looped this one before, recover the current iteration count...
 	if ($$not_first_ref) {
 		$at = ++$count{$not_first_ref};
@@ -703,12 +719,6 @@ sub _while_progress {
 	}
 };
 ######## /_while_progress ########
-
-
-
-my $prev_STDOUT = 0;
-my $prev_STDERR = 0;
-my %prev_caller = ( file => q{}, line => 0 );
 
 ######## INTERNAL ROUTINE ########
 #
