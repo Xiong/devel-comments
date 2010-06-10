@@ -102,6 +102,119 @@ my %state_of			;
 
 #----------------------------------------------------------------------------#
 
+
+
+######## INTERNAL ROUTINE ########
+#
+#	$intro		= _prefilter(@_);		# Handle arguments to FILTER
+#		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
+# ____
+# 
+sub _prefilter {
+	
+	shift;		# Don't need our own package name
+	s/\r\n/\n/g;  # Handle win32 line endings
+	
+	# Default introducer pattern...
+	my $intro = qr/#{3,}/;
+	my @intros;
+	
+	
+	## Handle the ::Any setup
+	
+	my $fh_seen		= 0;			# no filehandle seen yet
+	my $outfh		= *STDERR;		# default
+	my $arg			;				# trial from @_
+	
+	# Dig through the args to see if one is a filehandle
+	SETFH:
+	for my $i ( 0..$#_ ) {			# will need the index in a bit
+		$arg			= $_[$i];
+		
+		# Is $arg defined by vanilla Smart::Comments?
+		if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
+			next SETFH;				# not ::Any arg, keep looking
+		};
+#		print 'Mine: >', $arg, "<\n";
+		
+		# Vanilla doesn't want to see it, so remove from @_
+		splice @_, $i;
+		
+		# Is it a writable filehandle?
+		if ( not -w $arg ) {
+			carp   q{Not a writable filehandle: }
+				. qq{$arg} 
+				.  q{ in call to 'use Smart::Comments::Any'.}
+				;
+		}							# and keep looking
+		else {
+			$outfh		= $arg;
+			last SETFH;				# found, so we're done looking
+		};
+	};
+	
+	# Stash $outfh inside $state_of{caller}
+for my $frame (0..3) {
+	my @caller_info		= caller $frame;
+	no warnings;
+	say "($frame): ", join "\t\n", 
+		$caller_info[0], $caller_info[1], $caller_info[2], ;
+	use warnings;
+};
+	
+	my ($caller_ns, undef, undef)		= caller(1);
+	
+	no strict 'refs';		# disable complaint about symbolic reference
+	no warnings 'once';		# disable complaint about var only used once
+	${ *{"${caller_ns}\::smart-comments-outfh"} }	= $outfh;
+	use warnings;
+	use strict;
+	
+	## done with the ::Any setup
+	
+	
+	# Handle intros and env args...
+	while (@_) {
+		my $arg = shift @_;
+
+		if ($arg =~ m{\A -ENV \Z}xms) {
+			my $env =  $ENV{Smart_Comments} || $ENV{SMART_COMMENTS}
+					|| $ENV{SmartComments}  || $ENV{SMARTCOMMENTS}
+					;
+
+			return 0 if !$env;   # i.e. if no filtering ABORT
+
+			if ($env !~ m{\A \s* 1 \s* \Z}xms) {
+				unshift @_, split m{\s+|\s*:\s*}xms, $env;
+			}
+		}
+		else {
+			push @intros, $arg;
+		}
+	}
+
+	if (my @unknowns = grep {!/$intro/} @intros) {
+		croak "Incomprehensible arguments: @unknowns\n",
+			  "in call to 'use Smart::Comments::Any'";
+	}
+
+	# Make non-default introducer pattern...
+	if (@intros) {
+		$intro = '(?-x:'.join('|',@intros).')(?!\#)';
+	}
+
+	return $intro;
+};
+######## /_prefilter ########
+
 ######## IMPORT ROUTINE ########
 #		
 # Purpose  : ____
@@ -141,9 +254,9 @@ sub import {
 # This is not a subroutine but a call to Filter::Simple::FILTER
 #	with its single argument being its following block. 
 # 
-# The block may be thought of as a routine which is passed @_ and $_
-# 	and must return the filtered code in $_
-# 
+# The block may be thought of as an import routine 
+#	which is passed @_ and $_ and must return the filtered code in $_
+#
 # Note (if our module is invoked properly via use): 
 # From caller's viewpoint, use operates as a BEGIN block, 
 # 	including all our-module inline code and this call to FILTER;
@@ -152,94 +265,19 @@ sub import {
 #	is run after any BEGIN or use in our module;
 #		and filtered-in subs may be viewed 
 #		as if they were externally called subs in a normal module. 
+# Because FILTER is called as part of a constructed import routine, 
+#	it executes every time our module is use()-ed, 
+# 	although other inline code in our module only executes one time only, 
+#	when first use()-ed. 
 # 
 # See "How it works" in Filter::Simple's POD. 
 # 
 FILTER {
 	#### @_
 	#### $_
+	my $intro		= _prefilter(@_);		# Handle arguments to FILTER
+	return 0 if !$intro;   # i.e. if no filtering ABORT
 	
-	shift;		# Don't need our own package name
-	s/\r\n/\n/g;  # Handle win32 line endings
-	
-	## Handle the ::Any setup
-	
-	my $fh_seen		= 0;			# none seen yet
-	my $outfh		= *STDERR;		# default
-	my $arg			;				# trial from @_
-	
-	# Dig through the args to see if one is a filehandle
-	SETFH:
-	for my $i ( 0..$#_ ) {			# will need the index in a bit
-		$arg			= $_[$i];
-		
-		# Is $arg defined by vanilla Smart::Comments?
-		if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
-			next SETFH;				# not ::Any arg, keep looking
-		};
-#		print 'Mine: >', $arg, "<\n";
-		
-		# Vanilla doesn't want to see it, so remove from @_
-		splice @_, $i;
-		
-		# Is it a writable filehandle?
-		if ( not -w $arg ) {
-			carp   q{Not a writable filehandle: }
-				. qq{$arg} 
-				.  q{ in call to 'use Smart::Comments::Any'.}
-				;
-		}							# and keep looking
-		else {
-			$outfh		= $arg;
-			last SETFH;				# found, so we're done looking
-		};
-	};
-	
-	# Stash $outfh inside caller's namespace
-	my ($caller_ns, undef, undef)		= caller(1);
-	
-	no strict 'refs';		# disable complaint about symbolic reference
-	no warnings 'once';		# disable complaint about var only used once
-	${ *{"${caller_ns}\::smart-comments-outfh"} }	= $outfh;
-	use warnings;
-	use strict;
-	
-	## done with the ::Any setup
-	
-	
-	# Default introducer pattern...
-	my $intro = qr/#{3,}/;
-
-	# Handle args...
-	my @intros;
-	while (@_) {
-		my $arg = shift @_;
-
-		if ($arg =~ m{\A -ENV \Z}xms) {
-			my $env =  $ENV{Smart_Comments} || $ENV{SMART_COMMENTS}
-					|| $ENV{SmartComments}  || $ENV{SMARTCOMMENTS}
-					;
-
-			return if !$env;   # i.e. if no filtering
-
-			if ($env !~ m{\A \s* 1 \s* \Z}xms) {
-				unshift @_, split m{\s+|\s*:\s*}xms, $env;
-			}
-		}
-		else {
-			push @intros, $arg;
-		}
-	}
-
-	if (my @unknowns = grep {!/$intro/} @intros) {
-		croak "Incomprehensible arguments: @unknowns\n",
-			  "in call to 'use Smart::Comments::Any'";
-	}
-
-	# Make non-default introducer pattern...
-	if (@intros) {
-		$intro = '(?-x:'.join('|',@intros).')(?!\#)';
-	}
 
 	# Preserve DATA handle if any...
 	if (s{ ^ __DATA__ \s* $ (.*) \z }{}xms) {
@@ -247,7 +285,7 @@ FILTER {
 		my $DATA = $1;
 		open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: $!";
 	}
-
+	
 	# Progress bar on a for loop...
 	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? for(?:each)? \s* (?:my)? \s* (?:\$ [^\W\d]\w*)? \s* ) \( ([^;\n]*?) \) \s* \{
 			[ \t]* $intro \s (.*) \s* $
@@ -724,13 +762,13 @@ sub _while_progress {
 #
 #	_Dump();		# short
 #		
-# Purpose  : ____
+# Purpose  : Dump a variable (any variable?)
 # Parms    : ____
 # Reads    : ____
 # Returns  : ____
 # Writes   : ____
 # Throws   : ____
-# See also : ____
+# See also : Data::Dumper, FILTER # Any other smart comment is a simple dump
 # 
 # Dump a variable and then reformat the resulting string more prettily...
 #	
