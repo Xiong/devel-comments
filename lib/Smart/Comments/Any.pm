@@ -23,7 +23,7 @@ use feature 'say';				# disable in production; debug only
 
 ######## / use ########
 
-######## lexical pseudo-constants section ########
+######## pseudo-constants section ########
 
 # time and space constants
 my $maxwidth		  	= 69;  	# Maximum width of display
@@ -64,7 +64,7 @@ my @progress_pats = (
    qr{^(\s*.*?) ()                         ()                      () \s*$ }x,
 );
 
-######## / lexical pseudo-constants ########
+######## / pseudo-constants ########
 
 ######## pseudo-global variables section ########
 
@@ -80,6 +80,14 @@ my %started				;
 #	See: _moving_average
 my %moving				;
 
+# State information for various progress bars...
+#	See: _for_progress, _while_progress
+my (%count, %max, %prev_elapsed, %prev_fraction, %showing);
+
+
+#	See: _while_progress
+my $prev_length = -1;
+
 
 ## ::Any stuff
 
@@ -92,6 +100,14 @@ my %state_of			;
 
 ######## IMPORT ROUTINE ########
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # The "normal" import routine must be declared 
 #	*before* the call to FILTER. 
 # However, Filter::Simple will call import()
@@ -106,6 +122,14 @@ sub import {
 
 ######## EXTERNAL SUB CALL ########
 #
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Implement comments-to-code source filter. 
 #
 # This is not a subroutine but a call to Filter::Simple::FILTER
@@ -293,7 +317,14 @@ FILTER {
 #
 #	_quiet_eval();		# short
 #		
-# ???
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 #	
 sub _quiet_eval {
 	local $SIG{__WARN__} = sub{};
@@ -305,7 +336,14 @@ sub _quiet_eval {
 #
 #	_uniq();		# short
 #		
-# ???
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 #	
 sub _uniq { 
 	my %seen; 
@@ -317,6 +355,14 @@ sub _uniq {
 #
 #	_decode_assert();		# short
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Converts an assertion to the equivalent Perl code...
 #	
 sub _decode_assert {
@@ -342,6 +388,14 @@ sub _decode_assert {
 #
 #	_decode_for();		# short
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Generate progress-bar code for a Perlish for loop...
 #	
 sub _decode_for {
@@ -359,6 +413,14 @@ sub _decode_for {
 #
 #	_decode_while();		# short
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Generate progress-bar code for a Perlish while loop...
 #	
 sub _decode_while {
@@ -376,6 +438,14 @@ sub _decode_while {
 #
 #	_desc_time();		# short
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Generate approximate time descriptions...
 #	
 sub _desc_time {
@@ -415,6 +485,14 @@ sub _desc_time {
 #
 #	_moving_average();		# short
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Update the moving average of a series given the newest measurement...
 #	
 sub _moving_average {
@@ -432,6 +510,14 @@ sub _moving_average {
 #
 #	_prog_pat();		# short
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Clean up components of progress bar (inserting defaults)...
 #	
 sub _prog_pat {
@@ -443,13 +529,18 @@ sub _prog_pat {
 };
 ######## /_prog_pat ########
 
-# State information for various progress bars...
-my (%count, %max, %prev_elapsed, %prev_fraction, %showing);
-
 ######## INTERNAL ROUTINE ########
 #
 #	_for_progress();		# short
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Animate the progress bar of a for loop...
 #	
 sub _for_progress {
@@ -545,13 +636,18 @@ sub _for_progress {
 };
 ######## /_for_progress ########
 
-my %shown;
-my $prev_length = -1;
-
 ######## INTERNAL ROUTINE ########
 #
 #	_while_progress();		# short
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Animate the progress bar of a while loop...
 #	
 sub _while_progress {
@@ -612,6 +708,14 @@ my %prev_caller = ( file => q{}, line => 0 );
 #
 #	_Dump();		# short
 #		
+# Purpose  : ____
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
 # Dump a variable and then reformat the resulting string more prettily...
 #	
 sub _Dump {
@@ -685,7 +789,9 @@ sub _Dump {
 ######## /_Dump ########
 
 
-1; # Magic true value required at end of module
+#############################
+######## END MODULE #########
+1;
 __END__
 
 =head1 NAME
