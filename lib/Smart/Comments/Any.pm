@@ -122,23 +122,23 @@ sub import {
 
 ######## EXTERNAL SUB CALL ########
 #
-# Purpose  : ____
-# Parms    : ____
+# Purpose  : Rewrite caller's smart comments into code
+# Parms    : 
+#			 @_		: The split use line, with $_[0] being *this* package
+# 			 $_		: Caller's entire source code to be filtered
 # Reads    : ____
-# Returns  : ____
+# Returns  : $_		: Filtered code
 # Writes   : ____
 # Throws   : ____
-# See also : ____
+# See also : Filter::Simple
 # 
 # Implement comments-to-code source filter. 
 #
 # This is not a subroutine but a call to Filter::Simple::FILTER
 #	with its single argument being its following block. 
 # 
-# The block may be thought of as a routine which is passed: 
-#	* in @_		the split use line, with $_[0] being *this* package
-# 	* in $_		caller's entire source code to be filtered
-# ... and must return the filtered code in $_
+# The block may be thought of as a routine which is passed @_ and $_
+# 	and must return the filtered code in $_
 # 
 # Note (if our module is invoked properly via use): 
 # From caller's viewpoint, use operates as a BEGIN block, 
@@ -313,18 +313,15 @@ FILTER {
 
 #============================================================================#
 
-######## INTERNAL ROUTINE ########
+######## REPLACEMENT CODE ########
 #
-#	_quiet_eval();		# short
+#	_Dump( _quiet_eval($codestring) );		# string eval, no errors
 #		
-# Purpose  : ____
-# Parms    : ____
-# Reads    : ____
-# Returns  : ____
-# Writes   : ____
-# Throws   : ____
-# See also : ____
-# 
+# Purpose  : String eval some code and suppress any errors
+# Parms    : $codestring	: Arbitrary client code
+# Reads, Returns, Writes  	: Whatever client code does
+# Throws   : nothing, ever
+# See also : FILTER # Dump an unlabelled expression
 #	
 sub _quiet_eval {
 	local $SIG{__WARN__} = sub{};
@@ -342,7 +339,7 @@ sub _quiet_eval {
 # Returns  : ____
 # Writes   : ____
 # Throws   : ____
-# See also : ____
+# See also : _decode_assert
 # 
 #	
 sub _uniq { 
@@ -351,19 +348,18 @@ sub _uniq {
 };
 ######## /_uniq ########
 
-######## INTERNAL ROUTINE ########
+######## REPLACEMENT CODE ########
 #
 #	_decode_assert();		# short
 #		
-# Purpose  : ____
+# Purpose  : Converts an assertion to the equivalent Perl code.
 # Parms    : ____
 # Reads    : ____
 # Returns  : ____
 # Writes   : ____
 # Throws   : ____
-# See also : ____
+# See also : FILTER # Requirements, # Assertions
 # 
-# Converts an assertion to the equivalent Perl code...
 #	
 sub _decode_assert {
 	my ($assertion, $fatal) = @_;
@@ -380,11 +376,13 @@ sub _decode_assert {
 				_uniq extract_multiple($assertion, [\&extract_variable], undef, 1);
 
 	# Generate the test-and-report code...
-	return qq{unless($assertion){warn "\\n", q{### $assertion was not true};@vars; $fatal}};
+	return 	qq<unless($assertion)>
+		.	qq<{warn "\\n", q{### $assertion was not true};@vars; $fatal}>
+		;
 };
 ######## /_decode_assert ########
 
-######## INTERNAL ROUTINE ########
+######## REPLACEMENT CODE ########
 #
 #	_decode_for();		# short
 #		
@@ -405,11 +403,19 @@ sub _decode_for {
 	$ID++;
 
 	# Rewrite the loop with a progress bar as its first statement...
-	return "my \$not_first__$ID;$for (my \@SmartComments__range__$ID = $range) { Smart::Comments::Any::_for_progress(qq{$mesg}, \$not_first__$ID, \\\@SmartComments__range__$ID);";
+	return 	qq<my \$not_first__$ID;>
+		.	qq<$for (my \@SmartComments__range__$ID = $range)>
+		.	qq<{>		# closing brace found somewhere in client code
+		.	qq<Smart::Comments::Any::_for_progress(>
+		.		qq<qq{$mesg},>
+		.		qq<\$not_first__$ID,>
+		.		qq<\\\@SmartComments__range__$ID>
+		.	qq<);>
+		;
 };
 ######## /_decode_for ########
 
-######## INTERNAL ROUTINE ########
+######## REPLACEMENT CODE ########
 #
 #	_decode_while();		# short
 #		
@@ -796,7 +802,7 @@ __END__
 
 =head1 NAME
 
-Smart::Comments::Any - Comments that do more than just print to STDERR
+Smart::Comments::Any - Smart comments that print to any filehandle
 
 
 =head1 VERSION
@@ -806,11 +812,28 @@ This document describes Smart::Comments::Any version 1.0.4
 
 =head1 SYNOPSIS
 
+	use Smart::Comments::Any;					# acts just like Smart::Comments
 	use Smart::Comments::Any '###';				# acts just like Smart::Comments
-	use Smart::Comments::Any 'STDERR', '###';	# same thing
+	use Smart::Comments::Any *STDERR, '###';	# same thing
 	
 	use Smart::Comments::Any $fh, '###';		# prints to $fh instead
-	use Smart::Comments::Any 'FH', '###';		# prints to FH instead
+	use Smart::Comments::Any *FH, '###';		# prints to FH instead
+	
+	BEGIN {								# one way to get $fh open early enough
+		my $filename	= 'mylog.txt';
+		open my $fh, '>', $filename
+			or die "Couldn't open $filename to write", $!;
+		use Smart::Comments::Any $fh;
+	}
+	  
+	BEGIN {								# or store $::fh for later use
+		my $filename	= 'mylog.txt';
+		open my $::fh, '>', $filename
+			or die "Couldn't open $filename to write", $!;
+	}
+	use Smart::Comments::Any $::fh;
+	{...}	# do some work
+	close $::fh;
 	  
 =head1 DESCRIPTION
 
@@ -818,20 +841,30 @@ L<Smart::Comments> works well for those who debug with print statements.
 However, it always prints to STDERR. This doesn't work so well when STDERR 
 is being captured and tested. 
 
-Smart::Comments::Any is a straight copy of Smart::Comments, except that 
+Smart::Comments::Any acts like Smart::Comments, except that 
 if a filehandle is passed in the use statement, output will go there instead. 
 
 Please see L<Smart::Comments> for major documentation. 
-Smart::Comments::Any version x.x.x will always be a slightly modified copy 
+Smart::Comments::Any version x.x.x is a modified copy 
 of the same version of Smart::Comments. 
 
 =head1 INTERFACE 
 
-=head2 $fh, FH
+=head2 $fh, *FH
 
 The use statement accepts a valid filehandle as its first argument. 
 Caller must do whatever is needed to manage that filehandle, 
-such as opening and closing it. 
+such as opening and perhaps closing it. 
+
+Note that this module, being a source filter, does its work when 
+it is used: effectively, within a BEGIN block. Therefore, this filehandle
+must be opened within a BEGIN block prior to the use line. If caller needs 
+to do anything else with that filehandle, it might as well be stored 
+in a package variable (since source filtering is global anyway). Otherwise, 
+enclose the open and the use line in the same BEGIN block. 
+
+The filehandle must be opened, obviously, in some writable mode.  
+
 
 =head1 DIAGNOSTICS
 
