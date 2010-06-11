@@ -13,17 +13,38 @@ use lib qw{
 };
 
 use Smart::Comments '###';	# Enable special comments for debugging
+#use Smart::Comments ;		# Enable special comments for debugging
 #use Smart::Comments::Any;	
 
 my $data_structure 	= {
     a => [ 1, 2, 3 ],
 };
-my $scalar			= 42;
+my $scalar			= 42;	### $scalar
 
 my %very			;
 my $index			= 18;
-$very{long}{thing}[$index] = 'main';
-#### $very{long}{thing}[18]
+#$very{long}{thing}[$index] = 'ratass';
+$very{long}{thing}[$index] = 99;
+### verylongthing : $very{long}{thing}[18]
+### $very{long}{thing}[18]
+### '' . $very{long}{thing}[18]
+### 0 + $very{long}{thing}[18]
+### 2 + 3
+
+#~ ### foo
+#~ ### 
+#~ ### foobar
+#~ 
+#~ ###
+#~ 
+#~ ### rebar
+#~ ###
+#~ 
+#~ ### yootoob
+#~ 
+#~ ###
+#~ ### yoomomma
+
 
 #	no strict 'refs';		# disable complaint about symbolic reference
 #	no warnings 'once';		# disable complaint about var only used once
@@ -62,6 +83,10 @@ sub _do_ {
 #my $max		= 2**4;
 my $max		= 2**1;
 
+for (0..$max) {			
+	sleep(0);				### I'm not really sleeping.
+};
+
 #for (0..$max) {			### for1...			done
 #	sleep(1);
 #};
@@ -82,28 +107,28 @@ my $max		= 2**1;
 #};
 
 
-### This comment is smart.
-
-no Smart::Comments;
-
-### This comment is dumb.
-
-use Smart::Comments;
-
-### This comment is also smart.
-
-no Smart::Comments;
-
-### This comment is also dumb.
-
-use Acme::Teddy;
-Acme::Teddy::just_hello();
-
-### This comment is still dumb.
-
-use Smart::Comments;
-
-### This comment is still smart.
+#~ ### This comment is smart.
+#~ 
+#~ no Smart::Comments;
+#~ 
+#~ ### This comment is dumb.
+#~ 
+#~ use Smart::Comments;
+#~ 
+#~ ### This comment is also smart.
+#~ 
+#~ no Smart::Comments;
+#~ 
+#~ ### This comment is also dumb.
+#~ 
+#~ use Acme::Teddy;
+#~ Acme::Teddy::just_hello();
+#~ 
+#~ ### This comment is still dumb.
+#~ 
+#~ use Smart::Comments;
+#~ 
+#~ ### This comment is still smart.
 
 
 __END__

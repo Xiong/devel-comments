@@ -30,12 +30,15 @@ sub _do_one {
 	say q{I'm _do_one!};	
 };
 
+sub _do_last;	# FORWARD
+
 BEGIN 
 {
 	say q{I'm doing stuff in a BEGIN block.};
 	
 	_do_one();
-	_do_other();
+#~ 	_do_other();
+	_do_last();
 	
 	say q{I'm done with the BEGIN block.};
 	
@@ -46,9 +49,21 @@ sub _do_other {
 	say q{I'm _do_other!};	
 };
 
+sub _do_last {
+	say q{I'm _do_last!};	
+};
+
 __DATA__
 
+The moral of this story is that if you call a sub from within a BEGIN block, 
+	you'd better both declare *and* define it first. 
+
 Output: 
+
+I'm doing stuff in a BEGIN block.
+I'm _do_one!
+Undefined subroutine &main::_do_last called at util/begin-other-sub.pl line 41.
+BEGIN failed--compilation aborted at util/begin-other-sub.pl line 45.
 
 
 __END__
