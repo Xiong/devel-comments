@@ -118,9 +118,9 @@ $expected
 										# use
 	. q{#-2}		. qq{\n}
 										# foobar
-	. qq{\n}. qq{\n}
+	. qq{\n}	# decline gratuitous newline unless $outfh eq *STDERR
 	. q{### foobar}	. qq{\n}
-	. qq{\n}
+#	. qq{\n}
 	. q{#-3}		. qq{\n}
 										# no
 	. q{#-4}		. qq{\n}
