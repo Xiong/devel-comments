@@ -1,0 +1,75 @@
+general-notes
+
+I began to hack Smart::Comments, which I have long enjoyed and even publicly defended (see PerlMonks 'In Defense of Smart::Comments'), to remedy just one shortcoming: The original, Vanilla version prints only to STDERR. Granted that it's only a lightweight debugging tool, I still thought it would be simple to upgrade it to print to "::Any" filehandle. 
+
+I made the commitment early on that ::Any would be a drop-in replacement for Vanilla; if ::Any is told to print to STDERR, it should be act identically. 
+
+The overall plan is to write another, wrapper module, Smart::Comments::Log, which will take care of the ugly details of opening a hard disk file and passing it to ::Any, while somehow exporting the filehandle for possible non-smart output by caller. Log::StdLog is on the table for this. 
+
+I did not anticipate a lengthy project, merely a quick hack. I assumed that this would be sufficient, in essence: 
+
+	s/print STDERR/print $outfh/g
+
+...and the only other bit would be to grab $outfh off the use line. It's turned out to be somewhat more difficult. 
+
+= Do as I say, not as I do =
+
+There is a limit to the propriety of my criticism of Conway's code; he certainly has a couple hundred pounds and the reach on me. But I have to say that Smart::Comments defies so many of Conway's own injunctions that I have found it difficult to penetrate. Perhaps a more experienced Perler would find his idioms entirely acceptable. 
+
+Much of my time has been spent commenting, adding comment blocks, reorganizing code, and pulling scattered items together. Some will abhor such verbose style, for which I can only plead necessity. 
+
+= Vanilla Bugs? =
+
+Are these bugs or features: 
+
+* Inserts gratuitous or prophylactic newlines before smart output under various conditions, not all of which I'm sure are wise. 
+
+* Ignores end-of-line '###', which don't become smart comments at all, unless they are loop progress bars. I would like plain dumps to work, too. 
+
+* FILTER appears to want to do something with a blank smart comment: 
+
+	###
+
+...since there's a section of the filter commented 'An empty comment dumps an empty line' (line 138). Well, it doesn't; it prints: 
+
+	### : ###   $VAR1 = [
+
+...which just doesn't seem right. Maybe Conway had something different in mind when he wrote 'empty'? The POD is silent. This being an undocumented feature, I feel justified in commenting it out; none of his own tests fail on this. 
+
+* FILTER also is ready to deal with 'Anything else [as] a literal string to be printed'; this is the final substitution rule (line 142). But apparently, any comment of the form: 
+
+	### Hello!
+
+... is caught earlier; so I've commented this out, too. Will this bite me later? Again, none of Conway's tests fail without it. 
+
+* POD claims that *any* valid Perl expression can be smart-dumped but I've had no luck with: 
+
+	### $very{long}{thing}[18]
+
+But this works as expected: 
+
+	### verylongthing : $very{long}{thing}[18]
+
+...and I don't know if the previous, unlabeled case should be tinkered. Certainly the unlabeled expression is advertised in POD. 
+
+* Each snippet of replacement code ends in the cryptic $DBX, which is seen nowhere else except when it is set, inline, globally (line 34): 
+
+	# Automagic debugging as well...
+	my $DBX = '$DB::single = $DB::single = 1;';
+
+...and I cannot imagine what this might do when inserted into client code. It has the smell of vaporware. 
+
+* Nested loops with progress bars simply don't work. Only the inner loop outputs a progress bar. I don't know if this is right but I can't see offhand how it might be done better. Frankly, I'm not much for this feature anyway. (If I intend to write code that loops for a human-long time, I feel I ought to offer a permanent progress indicator.)
+
+= State =
+
+Part of my difficulty is that S::C is, indeed, a source filter. FILTER is not really a subroutine but a call to Filter::Simple::FILTER with an anonymous sub as its sole argument. Some of Vanilla's subs act at filtering time; they're called directly by FILTER, they do something and return, all at "compile time", as far as caller is concerned. Some of these generate replacement code. Other subs do nothing at filtering time; calls to them are inserted into client code, so they are called during caller's "run time". (This journey through source filtering shows how fuzzy these terms are.) I've labeled all ::Any subs according to when they're called and what, generally, they do. 
+
+I'm not sure what Conway had in mind about state info; it often seems as if S::C is intended to work on only one caller. Yet he does seem elsewhere to think about multiple callers and Vanilla handles this. 
+
+But ::Any *must* take state seriously; multiple callers during a single run might 'use Smart::Comments::Any' with different $outfh. 
+
+
+
+
+
