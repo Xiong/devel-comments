@@ -46,6 +46,7 @@ my $self	= {
 $self->{-capture}{-stdout}	= IO::Capture::Stdout::Extended->new();
 $self->{-capture}{-stderr}	= IO::Capture::Stderr::Extended->new();
 
+BEGIN { $::out_filename		= '/home/xiong/projects/smartlog/file/test.log' }
 
 # execute code within Test::Hump-ish box
 $self->{-capture}{-stdout}->start();		# STDOUT captured
@@ -53,10 +54,12 @@ $self->{-capture}{-stderr}->start();		# STDERR captured
 {
 	try {
 		BEGIN{ 			# set to a temporary hard disk file
-			open $::outfh, '+<', '/home/xiong/projects/smartlog/file/test.log'
-			or die 'Failed to create temporary file for testing. ', $!;
+			open my $outfh, '>', $::out_filename
+				or die 'Failed to open temporary test file for writing. ', $!;
+			$::outfh	= $outfh;
 		}
 		my $outfh	= $::outfh;
+		
 		say $outfh '#-1';
 		use Smart::Comments::Any $::outfh;
 		say $outfh '#-2';
@@ -66,6 +69,8 @@ $self->{-capture}{-stderr}->start();		# STDERR captured
 		say $outfh '#-4';
 		### foobar
 		say $outfh '#-5';
+		
+		close $outfh;
 	}
 	catch {
 		$self->{-got}{-evalerr}	= $_;
@@ -103,13 +108,14 @@ $self->{-want}{$subwhat}{-string}
 &$do_cap_string($subwhat);
 
 # now test the temp file contents
-seek $::outfh, 0, 0;
+open my $outfh, '<', $::out_filename
+	or die 'Failed to open temporary test file for reading. ', $!;
 
-my $prev_fh			= select $::outfh;
+my $prev_fh			= select $outfh;
 local $/			= undef;			# slurp
 select $prev_fh;
 
-$got				= <$::outfh>;
+$got				= <$outfh>;
 
 #print ">$got<\n";
 

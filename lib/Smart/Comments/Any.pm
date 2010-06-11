@@ -953,7 +953,7 @@ sub _spacer_required {
 	my $caller_line		= $caller[2];
 	
 	my $outfh				= $state_of{$caller_name}{-outfh};
-	
+say '$outfh: ', $outfh;	
 	my $prev_tell_outfh		= $state_of{$caller_name}{-tell}{-outfh};
 	my $prev_tell_stdout	= $state_of{$caller_name}{-tell}{-stdout};
 	my $prev_caller_file	= $state_of{$caller_name}{-caller}{-file};

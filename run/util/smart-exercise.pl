@@ -12,9 +12,20 @@ use lib qw{
 	../../run/t
 };
 
-use Smart::Comments '###';	# Enable special comments for debugging
-#use Smart::Comments ;		# Enable special comments for debugging
-#use Smart::Comments::Any;	
+#~ use Smart::Comments '###';	# Enable special comments for debugging
+#~ use Smart::Comments ;		# Enable special comments for debugging
+#~ use Smart::Comments::Any;	
+#~ use Smart::Comments::Any *STDOUT;	
+
+BEGIN{ 			# set to a temporary hard disk file
+	open $::outfh, '+<', '/home/xiong/projects/smartlog/file/test.log'
+	or die 'Failed to create temporary file for testing. ', $!;
+}
+use Smart::Comments::Any $::outfh;	
+
+### One
+### Two
+
 
 my $data_structure 	= {
     a => [ 1, 2, 3 ],
@@ -54,18 +65,18 @@ $very{long}{thing}[$index] = 99;
 #	use warnings;
 #	use strict;
 
-######## INTERNAL ROUTINE ########
-#
-#	_do_();		# short
-#		
-# comment
-#	
-sub _do_ {
-	
-	
-	
-};
-######## /_do_ ########
+#~ ######## INTERNAL ROUTINE ########
+#~ #
+#~ #	_do_();		# short
+#~ #		
+#~ # comment
+#~ #	
+#~ sub _do_ {
+#~ 	
+#~ 	
+#~ 	
+#~ };
+#~ ######## /_do_ ########
 
 ####### 7
 ###### 6
@@ -75,10 +86,10 @@ sub _do_ {
 ## 2
 # 1
 
-### This is a comment.
-### <now> I'm happy.
-#### $data_structure
-#### $scalar
+#~ ### This is a comment.
+#~ ### <now> I'm happy.
+#~ #### $data_structure
+#~ #### $scalar
 
 #my $max		= 2**4;
 my $max		= 2**1;
