@@ -87,22 +87,36 @@ my (%count, %max, %prev_elapsed, %prev_fraction, %showing);
 #	See: _while_progress
 my $prev_length = -1;
 
-#	See: _Dump
-my $prev_STDOUT = 0;
-my $prev_STDERR = 0;
-my %prev_caller = ( file => q{}, line => 0 );
+##	See: _Dump
+#my $prev_STDOUT = 0;
+#my $prev_STDERR = 0;
+#my %prev_caller = ( file => q{}, line => 0 );
 
 
 ## ::Any stuff
-# Current "outside" caller must be available anywhere
-my %caller		= (
-	-name			=> '',			# 'Caller::Module'
-	-file			=> '',			# '../lib/Caller/Module.pm'
-	-line			=> 0			# 273
+# "Outside" caller must be available anywhere while filtering
+my %filter_caller	= (
+	-name				=> '',		# 'Caller::Module'
+	-file				=> '',		# '../lib/Caller/Module.pm'
+	-line				=> 0		# 273
 );
 
-# Store per-use state info
-my %state_of			;			# $caller{-name} is primary key
+# Store per-use (per-caller) state info 
+#	for access by external routines called by replacement code
+my %state_of			;
+#	SomeCaller		=> {			# caller name is primary key
+#		-outfh						# desired output filehandle
+#		-tell			=> {		# stored tell() of...
+#			-outfh					# ... $outfh for real
+#			-stdout					# ... *STDOUT
+#		},
+#		-caller			=> {		# stored caller()...
+#			-name					# ...[0] (= 'SomeCaller')
+#			-file					# ...[1]
+#			-line					# ...[2]
+#		},
+#	},
+#	AnotherCaller...
 
 ######## / pseudo-global variables ########
 
@@ -112,24 +126,31 @@ my %state_of			;			# $caller{-name} is primary key
 
 ######## INTERNAL ROUTINE ########
 #
-#	_set_caller();		# set %caller to "outside" caller
+#	_set_filter_caller();		# set %filter_caller to "outside" caller
 #		
 # Purpose  : Get caller in an invariant fashion
 # Parms    : none
 # Reads    : caller()
 # Returns  : 1
-# Writes   : %caller
+# Writes   : %filter_caller
 # Throws   : never
 # See also : _prefilter()
 # 
 # Because builtin caller() sees the stack starting at its previous call, 
-#	_set_caller() should only be called once, from _prefilter, and not again. 
+#	_set_filter_caller() should only be called once, 
+#	from _prefilter, and not again. 
+# Note that old S::C code hits caller() directly, 
+#	which may be best when its call is from within replacement code. (???)
 # 
-# 
-sub _set_caller {
-	my $frame						= 3;
+sub _set_filter_caller {
+	# frame
+	#	0		_prefilter
+	#	1		FILTER
+	#	2		Filter::Simple
+	#	3		actual use-line caller
+	my $frame						= 3;	
 	my @info						= caller($frame);
-	@caller{ -name, -file, -line }	= @info;
+	@filter_caller{ -name, -file, -line }	= @info;
 	
 #	for my $frame (0..4) {
 #		my @caller_info		= caller $frame;
@@ -141,27 +162,62 @@ sub _set_caller {
 	
 	return 1;
 };
-######## /_set_caller ########
+######## /_set_filter_caller ########
 
 ######## INTERNAL ROUTINE ########
 #
-#	my $outfh		= _get_outfh();		# retrieve from %state_of
+#	my $outfh		= _get_outfh($caller_name);	# retrieve from %state_of
 #		
-# Purpose  : Retrieve output filehandle
-# Parms    : none
-# Reads    : %state_of, %caller
+# Purpose  : Retrieve output filehandle associated with some caller
+# Parms    : $caller_name (optional)
+# Reads    : %state_of, %filter_caller
 # Returns  : stored filehandle for all output
 # Writes   : none
-# Throws   : ____
-# See also : _set_caller(), 
+# Throws   : never
+# See also : _set_filter_caller(), 
 # 
-# ____
+# If called with no args, defaults to the pseudo-global %filter_caller.
 # 
 sub _get_outfh {
-	return $state_of{ $caller{-name} }{ -outfh };
+	my $caller_name		= shift || $filter_caller{-name};
+	return $state_of{$caller_name}{-outfh};
 	
 };
 ######## /_do_ ########
+
+######## INTERNAL ROUTINE ########
+#
+#	_init_state($outfh);		# initialize $state_of filter_caller
+#		
+# Purpose  : Initialize state; store $outfh and avoid warnings later
+# Parms    : $outfh
+# Reads    : %filter_caller
+# Returns  : 1
+# Writes   : %state_of
+# Throws   : never
+# See also : _prefilter(), _set_state()
+# 
+# ____
+# 
+sub _init_state {
+	my $outfh			= shift;
+	my $caller_name		= $filter_caller{-name};
+	my $caller_file		= $filter_caller{-file};
+	my $caller_line		= $filter_caller{-line};
+	
+	# Stash $outfh as caller-dependent state info
+	$state_of{$caller_name}{-outfh}			= $outfh;
+	
+	# It may not matter *what* you initialize these to...	
+	$state_of{$caller_name}{-tell}{-outfh}	= tell $outfh;
+	$state_of{$caller_name}{-tell}{-stdout}	= tell (*STDOUT);
+	$state_of{$caller_name}{-caller}{-file}	= $caller_file;
+	$state_of{$caller_name}{-caller}{-line}	= $caller_line;
+	
+	return 1;
+	
+};
+######## /_init_state ########
 
 ######## INTERNAL ROUTINE ########
 #
@@ -170,24 +226,24 @@ sub _get_outfh {
 # Purpose  : Handle arguments and do pseudo-global setup
 # Parms    : @_
 # Reads    : ____
-# Returns  : ____
-# Writes   : ____
-# Throws   : ____
+# Returns  : $intro		(or 0 to abort filtering entirely)
+# Writes   : %filter_caller, %state_of
+# Throws   : carp() if passed a bad filehandle in @_
 # See also : ____
 # 
-# ____
+# Don't want to be fussy about the order of args passed on the use line, 
+#	so each bit roots through all of them looking for what it wants. 
 # 
 sub _prefilter {
 	
-	shift;		# Don't need our own package name
-	s/\r\n/\n/g;  # Handle win32 line endings
+	shift;							# Don't need our own package name
+	s/\r\n/\n/g;  					# Handle win32 line endings
 	
-	_set_caller();		# set %caller to "outside" caller
+	_set_filter_caller();			# set %filter_caller to "outside" caller
 		
 	# Default introducer pattern...
-	my $intro = qr/#{3,}/;
-	my @intros;
-	
+	my $intro 		= qr/#{3,}/;
+	my @intros		;
 	
 	## Handle the ::Any setup
 	
@@ -198,7 +254,7 @@ sub _prefilter {
 	# Dig through the args to see if one is a filehandle
 	SETFH:
 	for my $i ( 0..$#_ ) {			# will need the index in a bit
-		$arg			= $_[$i];
+		$arg			= $_[$i];	# look but don't take
 		
 		# Is $arg defined by vanilla Smart::Comments?
 		if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
@@ -220,10 +276,9 @@ sub _prefilter {
 			$outfh		= $arg;
 			last SETFH;				# found, so we're done looking
 		};
-	};
+	};		# /SETFH
 	
-	# Stash $outfh as caller-dependent state info
-	$state_of{ $caller{-name} }{ -outfh }	= $outfh;
+	_init_state($outfh);		# initialize $state_of filter_caller
 	
 	## done with the ::Any setup
 	
@@ -299,15 +354,17 @@ sub import;		# FORWARD
 # 
 # See "How it works" in Filter::Simple's POD. 
 # 
+sub FILTERx;	# dummy sub only to appear in editor's symbol table
+#
 FILTER {
 	#### @_
 	#### $_
 	
 	
 	my $intro		= _prefilter(@_);		# Handle arguments to FILTER
-	return 0 if !$intro;   # i.e. if no filtering ABORT
+	return 0 if !$intro;   					# i.e. if no filtering ABORT
 	
-	my $outfh		= _get_outfh();		# retrieve from %state_of
+	my $outfh		= _get_outfh();			# retrieve from %state_of
 
 	# Preserve DATA handle if any...
 	if (s{ ^ __DATA__ \s* $ (.*) \z }{}xms) {
@@ -317,67 +374,82 @@ FILTER {
 	}
 	
 	# Progress bar on a for loop...
+	# Calls _decode_for()
 	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? for(?:each)? \s* (?:my)? \s* (?:\$ [^\W\d]\w*)? \s* ) \( ([^;\n]*?) \) \s* \{
 			[ \t]* $intro \s (.*) \s* $
 	 }
 	 { _decode_for($1, $2, $3) }xgem;
 
 	# Progress bar on a while loop...
+	# Calls _decode_while()
 	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? (?:while|until) \s* \( .*? \) \s* ) \{
 			[ \t]* $intro \s (.*) \s* $
 	 }
 	 { _decode_while($1, $2) }xgem;
 
 	# Progress bar on a C-style for loop...
+	# Calls _decode_while()
 	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? for \s* \( .*? ; .*? ; .*? \) \s* ) \{
 			$hws* $intro $hws (.*) $hws* $
 	 }
 	 { _decode_while($1, $2) }xgem;
 
 	# Requirements...
+	# Calls _decode_assert()
 	s{ ^ $hws* $intro [ \t] $require : \s* (.*?) $optcolon $hws* $ }
 	 { _decode_assert($1,"fatal") }gemx;
 
 	# Assertions...
+	# Calls _decode_assert()
 	s{ ^ $hws* $intro [ \t] $check : \s* (.*?) $optcolon $hws* $ }
 	 { _decode_assert($1) }gemx;
 
 	# Any other smart comment is a simple dump.
+	
 	# Dump a raw scalar (the varname is used as the label)...
+	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t]+ (\$ [\w:]* \w) $optcolon $hws* $ }
 	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[$1]);$DBX}gmx;
 
 	# Dump a labelled scalar...
+	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
 	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
 	# Dump a raw hash or array (the varname is used as the label)...
+	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t]+ ([\@%] [\w:]* \w) $optcolon $hws* $ }
 	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[\\$1]);$DBX}gmx;
 
 	# Dump a labelled hash or array...
+	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t]+ (.+ :) [ \t]* ([\@%] [\w:]* \w) $optcolon $hws* $ }
 	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[\\$2]);$DBX}gmx;
 
 	# Dump a labelled expression...
+	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t]+ (.+ :) (.+) }
 	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
 	# Dump an 'in progress' message
+	# Inserts call to _Dump()
 	s{ ^ $hws* $intro $hws* (.+ [.]{3}) $hws* $ }
 	 {Smart::Comments::Any::_Dump(pref=>qq{$1});$DBX}gmx;
 
 	# Dump an unlabelled expression (the expression is used as the label)...
+	# Inserts call to _Dump() and call to _quiet_eval()
 	s{ ^ $hws* $intro $hws* (.*) $optcolon $hws* $ }
 	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>Smart::Comments::Any::_quiet_eval(q{[$1]}));$DBX}gmx;
 
 # This doesn't work as expected, don't know why
 #	# An empty comment dumps an empty line...
+#	# Inserts call to warn()
 #	s{ ^ $hws* $intro [ \t]+ $ }
 #	 {warn qq{\n};}gmx;
 
 # This is never needed; for some reason it's caught by "unlabeled expression"
 #	# Anything else is a literal string to be printed...
+#	# Inserts call to _Dump()
 #	s{ ^ $hws* $intro $hws* (.*) }
 #	 {Smart::Comments::Any::_Dump(pref=>q{$1});$DBX}gmx;
 }; 
@@ -407,7 +479,7 @@ sub import {
 
 #============================================================================#
 
-######## REPLACEMENT CODE ########
+######## EXTERNAL ROUTINE ########
 #
 #	_Dump( _quiet_eval($codestring) );		# string eval, no errors
 #		
@@ -442,7 +514,7 @@ sub _uniq {
 };
 ######## /_uniq ########
 
-######## REPLACEMENT CODE ########
+######## REPLACEMENT CODE GENERATOR ########
 #
 #	_decode_assert();		# short
 #		
@@ -480,7 +552,7 @@ sub _decode_assert {
 };
 ######## /_decode_assert ########
 
-######## REPLACEMENT CODE ########
+######## REPLACEMENT CODE GENERATOR ########
 #
 #	_decode_for();		# short
 #		
@@ -513,7 +585,7 @@ sub _decode_for {
 };
 ######## /_decode_for ########
 
-######## REPLACEMENT CODE ########
+######## REPLACEMENT CODE GENERATOR ########
 #
 #	_decode_while();		# short
 #		
@@ -641,7 +713,7 @@ sub _prog_pat {
 };
 ######## /_prog_pat ########
 
-######## INTERNAL ROUTINE ########
+######## EXTERNAL ROUTINE ########
 #
 #	_for_progress();		# short
 #		
@@ -748,7 +820,7 @@ sub _for_progress {
 };
 ######## /_for_progress ########
 
-######## INTERNAL ROUTINE ########
+######## EXTERNAL ROUTINE ########
 #
 #	_while_progress();		# short
 #		
@@ -812,6 +884,105 @@ sub _while_progress {
 
 ######## INTERNAL ROUTINE ########
 #
+#	_set_state(@caller);		# short
+#		
+# Purpose  : Store current state info
+# Parms    : @caller
+# Reads    : %state_of
+# Returns  : 1
+# Writes   : %state_of
+# Throws   : dies if called with unknown caller
+# See also : _spacer_required(), _Dump()
+# 
+# ____
+# 
+sub _set_state {
+	my @caller			= @_;
+	my $caller_name		= $caller[0];
+	my $caller_file		= $caller[1];
+	my $caller_line		= $caller[2];
+	
+	die "Smart::Comments::Any: Fatal Error: ",
+		"Attempt to access from unfiltered source code.", 
+		$!		if ( !defined $state_of{$caller_name} );
+	
+	my $outfh			= _get_outfh($caller_name);
+	
+	$state_of{$caller_name}{-tell}{-outfh}	= tell $outfh;
+	$state_of{$caller_name}{-tell}{-stdout}	= tell (*STDOUT);
+	$state_of{$caller_name}{-caller}{-file}	= $caller_file;
+	$state_of{$caller_name}{-caller}{-line}	= $caller_line;
+	
+	return 1;
+	
+};
+######## /_set_state ########
+
+######## INTERNAL ROUTINE ########
+#
+#	$bool		= _spacer_required(@caller);	# newline before?
+#		
+# Purpose  : Ensure the smart output starts flush left.
+# Parms    : @caller
+# Reads    : %state_of
+# Returns  : Boolean: TRUE to prepend a newline to output
+# Writes   : ____
+# Throws   : ____
+# See also : _Dump, %state_of; (the file) notes/musings
+# 
+# Vanilla S::C compared both previous tell()-s of STDOUT and STDERR
+#	before deciding to print a prophylactic newline, even though Vanilla
+#	only ever printed to STDERR. One might assume Conway does this 
+#	on *his* assumption that both are connected to the same output device, 
+#	namely a terminal window or console. 
+# This may or may not be wise but to preserve the exact Vanilla behavior, 
+#	our module tests (the inline caller's chosen) $outfh. 
+#	If it is STDERR, we require a newline if anything has been printed
+#		to STDOUT since our last smart output. 
+#	Otherwise, we only check output to $outfh. 
+# 
+# Again, Vanilla outputs the gratuitous newline 
+#	if $caller_line has changed by more than one line.
+#	This may result in rather "loose" output. 
+#	TODO: Accept a "tighten" arg in use line.
+# 
+sub _spacer_required {
+	my @caller			= @_;
+	my $caller_name		= $caller[0];
+	my $caller_file		= $caller[1];
+	my $caller_line		= $caller[2];
+	
+	my $outfh				= $state_of{$caller_name}{-outfh};
+	
+	my $prev_tell_outfh		= $state_of{$caller_name}{-tell}{-outfh};
+	my $prev_tell_stdout	= $state_of{$caller_name}{-tell}{-stdout};
+	my $prev_caller_file	= $state_of{$caller_name}{-caller}{-file};
+	my $prev_caller_line	= $state_of{$caller_name}{-caller}{-line};
+		
+	my $flag			;
+	
+	# You might not think you can compare filehandles, but you can...
+	if    ( $outfh eq *STDERR ) {	# STDERR chosen, vanilla behavior
+		# newline if STDOUT has been printed to since last smart output
+		$flag	||= $prev_tell_stdout 	!= tell(*STDOUT);
+	};
+	
+	# newline if $outfh has been printed to
+	$flag		||= $prev_tell_outfh	!= tell $outfh;
+	
+	# newline if $caller_file has changed (???)
+	$flag		||= $prev_caller_file	ne $caller_file;
+	
+	# TODO: if $tighten do not...
+	# newline if $caller_line has changed by more or less than 1
+	$flag		||= $prev_caller_line	!= $caller_line -1;
+		
+	return $flag;
+};
+######## /_spacer_required ########
+
+######## EXTERNAL ROUTINE ########
+#
 #	_Dump();		# short
 #		
 # Purpose  : Dump a variable (any variable?)
@@ -826,33 +997,36 @@ sub _while_progress {
 #	
 sub _Dump {
 	
-	my $outfh		= _get_outfh();		# retrieve from %state_of
+	my @caller 			= caller;		# called by replacement code
+	my $caller_name		= $caller[0];
+	my $caller_file		= $caller[1];
+	my $caller_line		= $caller[2];
+	
+	my $outfh			= _get_outfh($caller_name);	# get from %state_of
 	
 	my %args = @_;
 	my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};
 
+	my $spacer_required	;				# TRUE to prepend a newline to output
+	
 	# Handle timestamps...
-	my (undef, $file, $line) = caller;
 	$pref =~ s/<(?:now|time|when)>/scalar localtime()/ge;
-	$pref =~ s/<(?:here|place|where)>/"$file", line $line/g;
+	$pref =~ s/<(?:here|place|where)>/"$caller_file", line $caller_line/g;
 
 	# Add a newline?
-	my @caller = caller;
-	my $spacer_required
-		=  $prev_STDOUT != tell(*STDOUT)
-		|| $prev_STDERR != tell(*STDERR)
-		|| $prev_caller{file} ne $caller[1]
-		|| $prev_caller{line} != $caller[2]-1;
-	$spacer_required &&= !$nonl;
-	@prev_caller{qw<file line>} = @caller[1,2];
-
+	if ($nonl) {
+		$spacer_required	= 0;
+	} 
+	else {
+		$spacer_required	= _spacer_required(@caller);
+	};
+	
 	# Handle a prefix with no actual variable...
 	if ($pref && !defined $varref) {
 		$pref =~ s/:$//;
 		print $outfh "\n" if $spacer_required;
 		print $outfh "### $pref\n";
-		$prev_STDOUT = tell(*STDOUT);
-		$prev_STDERR = tell(*STDERR);
+		_set_state(@caller);
 		return;
 	}
 
@@ -869,7 +1043,7 @@ sub _Dump {
 
 	# How much to shave off and put back on each line...
 	my $indent  = length $1;
-	my $outdent = " " x (length($pref) + 1);
+	my $outdent = q{ } x (length($pref) + 1);
 
 	# Report "inside-out" and "flyweight" objects more cleanly...
 	$dumped =~ s{bless[(] do[{]\\[(]my \$o = undef[)][}], '([^']+)' [)]}
@@ -881,8 +1055,7 @@ sub _Dump {
 	# Print the message...
 	print $outfh "\n" if $spacer_required;
 	print $outfh "### $pref $dumped\n";
-	$prev_STDERR = tell(*STDERR);
-	$prev_STDOUT = tell(*STDOUT);
+	_set_state(@caller);
 };
 ######## /_Dump ########
 
