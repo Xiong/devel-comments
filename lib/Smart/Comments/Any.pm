@@ -94,9 +94,15 @@ my %prev_caller = ( file => q{}, line => 0 );
 
 
 ## ::Any stuff
+# Current "outside" caller must be available anywhere
+my %caller		= (
+	-name			=> '',			# 'Caller::Module'
+	-file			=> '',			# '../lib/Caller/Module.pm'
+	-line			=> 0			# 273
+);
 
 # Store per-use state info
-my %state_of			;
+my %state_of			;			# $caller{-name} is primary key
 
 ######## / pseudo-global variables ########
 
@@ -106,10 +112,63 @@ my %state_of			;
 
 ######## INTERNAL ROUTINE ########
 #
+#	_set_caller();		# set %caller to "outside" caller
+#		
+# Purpose  : Get caller in an invariant fashion
+# Parms    : none
+# Reads    : caller()
+# Returns  : 1
+# Writes   : %caller
+# Throws   : never
+# See also : _prefilter()
+# 
+# Because builtin caller() sees the stack starting at its previous call, 
+#	_set_caller() should only be called once, from _prefilter, and not again. 
+# 
+# 
+sub _set_caller {
+	my $frame						= 3;
+	my @info						= caller($frame);
+	@caller{ -name, -file, -line }	= @info;
+	
+#	for my $frame (0..4) {
+#		my @caller_info		= caller $frame;
+#		no warnings;
+#		say "($frame): ", join "\t\n", 
+#			$caller_info[0], $caller_info[1], $caller_info[2], ;
+#		use warnings;
+#	};
+	
+	return 1;
+};
+######## /_set_caller ########
+
+######## INTERNAL ROUTINE ########
+#
+#	my $outfh		= _get_outfh();		# retrieve from %state_of
+#		
+# Purpose  : Retrieve output filehandle
+# Parms    : none
+# Reads    : %state_of, %caller
+# Returns  : stored filehandle for all output
+# Writes   : none
+# Throws   : ____
+# See also : _set_caller(), 
+# 
+# ____
+# 
+sub _get_outfh {
+	return $state_of{ $caller{-name} }{ -outfh };
+	
+};
+######## /_do_ ########
+
+######## INTERNAL ROUTINE ########
+#
 #	$intro		= _prefilter(@_);		# Handle arguments to FILTER
 #		
-# Purpose  : ____
-# Parms    : ____
+# Purpose  : Handle arguments and do pseudo-global setup
+# Parms    : @_
 # Reads    : ____
 # Returns  : ____
 # Writes   : ____
@@ -123,6 +182,8 @@ sub _prefilter {
 	shift;		# Don't need our own package name
 	s/\r\n/\n/g;  # Handle win32 line endings
 	
+	_set_caller();		# set %caller to "outside" caller
+		
 	# Default introducer pattern...
 	my $intro = qr/#{3,}/;
 	my @intros;
@@ -161,22 +222,8 @@ sub _prefilter {
 		};
 	};
 	
-	# Stash $outfh inside $state_of{caller}
-for my $frame (0..3) {
-	my @caller_info		= caller $frame;
-	no warnings;
-	say "($frame): ", join "\t\n", 
-		$caller_info[0], $caller_info[1], $caller_info[2], ;
-	use warnings;
-};
-	
-	my ($caller_ns, undef, undef)		= caller(1);
-	
-	no strict 'refs';		# disable complaint about symbolic reference
-	no warnings 'once';		# disable complaint about var only used once
-	${ *{"${caller_ns}\::smart-comments-outfh"} }	= $outfh;
-	use warnings;
-	use strict;
+	# Stash $outfh as caller-dependent state info
+	$state_of{ $caller{-name} }{ -outfh }	= $outfh;
 	
 	## done with the ::Any setup
 	
@@ -215,27 +262,7 @@ for my $frame (0..3) {
 };
 ######## /_prefilter ########
 
-######## IMPORT ROUTINE ########
-#		
-# Purpose  : ____
-# Parms    : ____
-# Reads    : ____
-# Returns  : ____
-# Writes   : ____
-# Throws   : ____
-# See also : ____
-# 
-# The "normal" import routine must be declared 
-#	*before* the call to FILTER. 
-# However, Filter::Simple will call import()
-#	*after* applying FILTER to caller's source code. 
-#	
-sub import {
-	
-	
-	
-};
-######## /import ########
+sub import;		# FORWARD
 
 ######## EXTERNAL SUB CALL ########
 #
@@ -275,9 +302,12 @@ sub import {
 FILTER {
 	#### @_
 	#### $_
+	
+	
 	my $intro		= _prefilter(@_);		# Handle arguments to FILTER
 	return 0 if !$intro;   # i.e. if no filtering ABORT
 	
+	my $outfh		= _get_outfh();		# retrieve from %state_of
 
 	# Preserve DATA handle if any...
 	if (s{ ^ __DATA__ \s* $ (.*) \z }{}xms) {
@@ -352,6 +382,28 @@ FILTER {
 #	 {Smart::Comments::Any::_Dump(pref=>q{$1});$DBX}gmx;
 }; 
 ######## /FILTER ########
+
+######## IMPORT ROUTINE ########
+#		
+# Purpose  : dummy for now
+# Parms    : ____
+# Reads    : ____
+# Returns  : ____
+# Writes   : ____
+# Throws   : ____
+# See also : ____
+# 
+# The "normal" import routine must be declared 
+#	*before* the call to FILTER. 
+# However, Filter::Simple will call import()
+#	*after* applying FILTER to caller's source code. 
+#	
+sub import {
+	
+#	say 'Smart::Comments::Any::import().';
+	
+};
+######## /import ########
 
 #============================================================================#
 
@@ -774,15 +826,7 @@ sub _while_progress {
 #	
 sub _Dump {
 	
-	## Get the ::Any $outfh
-
-	my ($caller_ns, undef, undef)		= caller;
-	no strict 'refs';
-	my $outfh		= ${ *{"${caller_ns}\::smart-comments-outfh"} };
-	use strict 'refs';
-#print STDERR $outfh;
-	
-	## Done ::Any
+	my $outfh		= _get_outfh();		# retrieve from %state_of
 	
 	my %args = @_;
 	my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};
