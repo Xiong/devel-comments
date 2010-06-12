@@ -205,13 +205,13 @@ sub _init_state {
 	my $caller_file		= $filter_caller{-file};
 	my $caller_line		= $filter_caller{-line};
 	
-say $outfh '... Entering _init_state() ...';
-say $outfh '... @filter_caller: ', 			     "\n"
-		,  '...                 ', $caller_name, "\n"
-		,  '...                 ', $caller_file, "\n" 
-		,  '...                 ', $caller_line, "\n" 
-		;
-say $outfh '$outfh: ', $outfh;	
+#say $outfh '... Entering _init_state() ...';
+#say $outfh '... @filter_caller: ', 			     "\n"
+#		,  '...                 ', $caller_name, "\n"
+#		,  '...                 ', $caller_file, "\n" 
+#		,  '...                 ', $caller_line, "\n" 
+#		;
+#say $outfh '$outfh: ', $outfh;	
 	
 	# Stash $outfh as caller-dependent state info
 	$state_of{$caller_name}{-outfh}			= $outfh;
@@ -222,15 +222,15 @@ say $outfh '$outfh: ', $outfh;
 	$state_of{$caller_name}{-caller}{-file}	= $caller_file;
 	$state_of{$caller_name}{-caller}{-line}	= $caller_line;
 	
-### Leaving _init_state():
-### %state_of	
-my $varref = \%state_of;
-local $Data::Dumper::Quotekeys = 0;
-local $Data::Dumper::Sortkeys  = 1;
-local $Data::Dumper::Indent	= 2;
-my $dumped = Dumper $varref;
-say $outfh 'Leaving _init_state():';
-say $outfh $dumped;
+#### Leaving _init_state():
+#### %state_of	
+#my $varref = \%state_of;
+#local $Data::Dumper::Quotekeys = 0;
+#local $Data::Dumper::Sortkeys  = 1;
+#local $Data::Dumper::Indent	= 2;
+#my $dumped = Dumper $varref;
+#say $outfh 'Leaving _init_state():';
+#say $outfh $dumped;
 	
 	
 	return 1;
@@ -285,49 +285,49 @@ sub _prefilter {
 					$out_filename	= $packed_args{-file};
 				};	# else if undef, use default
 				splice @_, $i;			# remove the parsed arg
-say '$out_filename: ', $out_filename;		
+#say '$out_filename: ', $out_filename;		
 				open $outfh, '>', $out_filename
 					or die "Smart::Comments::Any: " 
 						,  "Can't open $out_filename to write."
 						, $!
 						;
-say $outfh '... Just after opening $outfh ...';
-say $outfh '$outfh: ', $outfh;	
+#say $outfh '... Just after opening $outfh ...';
+#say $outfh '$outfh: ', $outfh;	
 			};
 		};
 	
-#~ return 0;	
+#return 0;	
 	};		# /GETHREF
 	
-#~ 	# Dig through the args to see if one is a filehandle
-#~ 	SETFH:
-#~ 	for my $i ( 0..$#_ ) {			# will need the index in a bit
-#~ 		$arg			= $_[$i];	# look but don't take
-#~ 		
-#~ 		# Is $arg defined by vanilla Smart::Comments?
-#~ 		if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
-#~ 			next SETFH;				# not ::Any arg, keep looking
-#~ 		};
-#~ #		print 'Mine: >', $arg, "<\n";
-#~ 		
-#~ 		# Vanilla doesn't want to see it, so remove from @_
-#~ 		splice @_, $i;
-#~ 		
-#~ 		# Is it a writable filehandle?
-#~ 		if ( not -w $arg ) {
-#~ 			carp   q{Not a writable filehandle: }
-#~ 				. qq{$arg} 
-#~ 				.  q{ in call to 'use Smart::Comments::Any'.}
-#~ 				;
-#~ 		}							# and keep looking
-#~ 		else {
-#~ 			$outfh		= $arg;
-#~ 			last SETFH;				# found, so we're done looking
-#~ 		};
-#~ 	};		# /SETFH
+	# Dig through the args to see if one is a filehandle
+	SETFH:
+	for my $i ( 0..$#_ ) {			# will need the index in a bit
+		$arg			= $_[$i];	# look but don't take
+		
+		# Is $arg defined by vanilla Smart::Comments?
+		if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
+			next SETFH;				# not ::Any arg, keep looking
+		};
+#		print 'Mine: >', $arg, "<\n";
+		
+		# Vanilla doesn't want to see it, so remove from @_
+		splice @_, $i;
+		
+		# Is it a writable filehandle?
+		if ( not -w $arg ) {
+			carp   q{Not a writable filehandle: }
+				. qq{$arg} 
+				.  q{ in call to 'use Smart::Comments::Any'.}
+				;
+		}							# and keep looking
+		else {
+			$outfh		= $arg;
+			last SETFH;				# found, so we're done looking
+		};
+	};		# /SETFH
 	
-say $outfh '... About to _init_state() ...';
-say $outfh '$outfh: ', $outfh;	
+#say $outfh '... About to _init_state() ...';
+#say $outfh '$outfh: ', $outfh;	
 	_init_state($outfh);		# initialize $state_of filter_caller
 	
 ####	%state_of
@@ -365,7 +365,7 @@ say $outfh '$outfh: ', $outfh;
 		$intro = '(?-x:'.join('|',@intros).')(?!\#)';
 	}
 
-say $outfh '... Leaving _prefilter() ...';
+#say $outfh '... Leaving _prefilter() ...';
 	return $intro;
 };
 ######## /_prefilter ########
@@ -600,13 +600,13 @@ sub _decode_assert {
 				_uniq extract_multiple($assertion, [\&extract_variable], undef, 1);
 
 	# Generate the test-and-report code...
-#~ 	print "\n: ",	qq<unless($assertion)>
-#~ 		, "\n: ",	qq<{>
-#~ 		, "\n: ",		qq<$print_this( "\\n", q{### $assertion was not true} );>
-#~ 		, "\n: ",		qq<@vars;>
-#~ 		, "\n: ",		qq<$signal_code>
-#~ 		, "\n: ",	qq<}>
-#~ 		;
+#	print "\n: ",	qq<unless($assertion)>
+#		, "\n: ",	qq<{>
+#		, "\n: ",		qq<$print_this( "\\n", q{### $assertion was not true} );>
+#		, "\n: ",		qq<@vars;>
+#		, "\n: ",		qq<$signal_code>
+#		, "\n: ",	qq<}>
+#		;
 	return 	qq<unless($assertion)>
 		.	qq<{>
 		.		qq<$warn_this( "\\n", q{### $assertion was not true} );>
@@ -1079,7 +1079,7 @@ sub _spacer_required {
 	my $caller_line		= $caller[2];
 	
 	my $outfh				= $state_of{$caller_name}{-outfh};
-#~ say '$outfh: ', $outfh;	
+#say '$outfh: ', $outfh;	
 	my $prev_tell_outfh		= $state_of{$caller_name}{-tell}{-outfh};
 	my $prev_tell_stdout	= $state_of{$caller_name}{-tell}{-stdout};
 	my $prev_caller_file	= $state_of{$caller_name}{-caller}{-file};
@@ -1113,8 +1113,8 @@ sub _spacer_required {
 	# newline if $caller_line has changed by more or less than 1
 	$flag		||= $prev_caller_line	!= $caller_line -1;
 		
-#~ 	say 'Doing the newline.' if $flag;
-#~ 	return 0;			# never do the newline 
+# 	say 'Doing the newline.' if $flag;
+# 	return 0;			# never do the newline 
 	return $flag;
 };
 ######## /_spacer_required ########
@@ -1140,13 +1140,13 @@ sub _Dump {
 	my $caller_file		= $caller[1];
 	my $caller_line		= $caller[2];
 	my $outfh			= _get_outfh($caller_name);	# get from %state_of
-say $outfh '... Entering _Dump() ...';
-say $outfh '... @caller: ', 			  "\n"
-		,  '...          ', $caller_name, "\n"
-		,  '...          ', $caller_file, "\n" 
-		,  '...          ', $caller_line, "\n" 
-		;
-say $outfh '$outfh: ', $outfh;	
+#say $outfh '... Entering _Dump() ...';
+#say $outfh '... @caller: ', 			  "\n"
+#		,  '...          ', $caller_name, "\n"
+#		,  '...          ', $caller_file, "\n" 
+#		,  '...          ', $caller_line, "\n" 
+#		;
+#say $outfh '$outfh: ', $outfh;	
 	
 	my %args = @_;
 	my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};
@@ -1168,9 +1168,9 @@ say $outfh '$outfh: ', $outfh;
 	# Handle a prefix with no actual variable...
 	if ($pref && !defined $varref) {
 		$pref =~ s/:$//;
-#~ 		print $outfh "*1\n" if $spacer_required;
+# 		print $outfh "*1\n" if $spacer_required;
 		print $outfh "\n" if $spacer_required;
-#~ 		print $outfh "!### $pref!\n!";
+# 		print $outfh "!### $pref!\n!";
 		print $outfh "### $pref\n";
 		_set_state(@caller);
 		return;
@@ -1199,7 +1199,7 @@ say $outfh '$outfh: ', $outfh;
 	$dumped =~ s/^[ ]{$indent}([ ]*)/### $outdent$1/gm;
 
 	# Print the message...
-#~ 	print $outfh "*2\n" if $spacer_required;
+# 	print $outfh "*2\n" if $spacer_required;
 	print $outfh "\n" if $spacer_required;
 	print $outfh "### $pref $dumped\n";
 	_set_state(@caller);
