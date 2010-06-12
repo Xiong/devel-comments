@@ -205,6 +205,14 @@ sub _init_state {
 	my $caller_file		= $filter_caller{-file};
 	my $caller_line		= $filter_caller{-line};
 	
+say $outfh '... Entering _init_state() ...';
+say $outfh '... @filter_caller: ', 			     "\n"
+		,  '...                 ', $caller_name, "\n"
+		,  '...                 ', $caller_file, "\n" 
+		,  '...                 ', $caller_line, "\n" 
+		;
+say $outfh '$outfh: ', $outfh;	
+	
 	# Stash $outfh as caller-dependent state info
 	$state_of{$caller_name}{-outfh}			= $outfh;
 	
@@ -213,6 +221,17 @@ sub _init_state {
 	$state_of{$caller_name}{-tell}{-stdout}	= tell (*STDOUT);
 	$state_of{$caller_name}{-caller}{-file}	= $caller_file;
 	$state_of{$caller_name}{-caller}{-line}	= $caller_line;
+	
+### Leaving _init_state():
+### %state_of	
+my $varref = \%state_of;
+local $Data::Dumper::Quotekeys = 0;
+local $Data::Dumper::Sortkeys  = 1;
+local $Data::Dumper::Indent	= 2;
+my $dumped = Dumper $varref;
+say $outfh 'Leaving _init_state():';
+say $outfh $dumped;
+	
 	
 	return 1;
 	
@@ -247,38 +266,71 @@ sub _prefilter {
 	
 	## Handle the ::Any setup
 	
-	my $fh_seen		= 0;			# no filehandle seen yet
-	my $outfh		= *STDERR;		# default
-	my $arg			;				# trial from @_
+	my $fh_seen			= 0;			# no filehandle seen yet
+	my $outfh			= *STDERR;		# default
+	my $out_filename	= "$0.log";		# default
+	my $arg				;				# trial from @_
+	my %packed_args		;				# possible args packed into a hashref
 	
-	# Dig through the args to see if one is a filehandle
-	SETFH:
+	# Dig through the args to see if one is a hashref
+	GETHREF:
 	for my $i ( 0..$#_ ) {			# will need the index in a bit
 		$arg			= $_[$i];	# look but don't take
 		
-		# Is $arg defined by vanilla Smart::Comments?
-		if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
-			next SETFH;				# not ::Any arg, keep looking
+		if ( ref $arg ) {				# some kind of reference
+			my $stringy		= sprintf $arg;
+			if ( $stringy =~ /HASH/ ) {	# looks like a hash ref
+				%packed_args	= %$arg;
+				if ( defined $packed_args{-file} ) {
+					$out_filename	= $packed_args{-file};
+				};	# else if undef, use default
+				splice @_, $i;			# remove the parsed arg
+say '$out_filename: ', $out_filename;		
+				open $outfh, '>', $out_filename
+					or die "Smart::Comments::Any: " 
+						,  "Can't open $out_filename to write."
+						, $!
+						;
+say $outfh '... Just after opening $outfh ...';
+say $outfh '$outfh: ', $outfh;	
+			};
 		};
-#		print 'Mine: >', $arg, "<\n";
-		
-		# Vanilla doesn't want to see it, so remove from @_
-		splice @_, $i;
-		
-		# Is it a writable filehandle?
-		if ( not -w $arg ) {
-			carp   q{Not a writable filehandle: }
-				. qq{$arg} 
-				.  q{ in call to 'use Smart::Comments::Any'.}
-				;
-		}							# and keep looking
-		else {
-			$outfh		= $arg;
-			last SETFH;				# found, so we're done looking
-		};
-	};		# /SETFH
 	
+#~ return 0;	
+	};		# /GETHREF
+	
+#~ 	# Dig through the args to see if one is a filehandle
+#~ 	SETFH:
+#~ 	for my $i ( 0..$#_ ) {			# will need the index in a bit
+#~ 		$arg			= $_[$i];	# look but don't take
+#~ 		
+#~ 		# Is $arg defined by vanilla Smart::Comments?
+#~ 		if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
+#~ 			next SETFH;				# not ::Any arg, keep looking
+#~ 		};
+#~ #		print 'Mine: >', $arg, "<\n";
+#~ 		
+#~ 		# Vanilla doesn't want to see it, so remove from @_
+#~ 		splice @_, $i;
+#~ 		
+#~ 		# Is it a writable filehandle?
+#~ 		if ( not -w $arg ) {
+#~ 			carp   q{Not a writable filehandle: }
+#~ 				. qq{$arg} 
+#~ 				.  q{ in call to 'use Smart::Comments::Any'.}
+#~ 				;
+#~ 		}							# and keep looking
+#~ 		else {
+#~ 			$outfh		= $arg;
+#~ 			last SETFH;				# found, so we're done looking
+#~ 		};
+#~ 	};		# /SETFH
+	
+say $outfh '... About to _init_state() ...';
+say $outfh '$outfh: ', $outfh;	
 	_init_state($outfh);		# initialize $state_of filter_caller
+	
+####	%state_of
 	
 	## done with the ::Any setup
 	
@@ -313,6 +365,7 @@ sub _prefilter {
 		$intro = '(?-x:'.join('|',@intros).')(?!\#)';
 	}
 
+say $outfh '... Leaving _prefilter() ...';
 	return $intro;
 };
 ######## /_prefilter ########
@@ -966,7 +1019,8 @@ sub _warn_this {
 # Throws   : dies if called with unknown caller
 # See also : _spacer_required(), _Dump()
 # 
-# ____
+# This stores not $outfh itself 
+#	but the current state of output to it, sort of. 
 # 
 sub _set_state {
 	my @caller			= @_;
@@ -1086,6 +1140,13 @@ sub _Dump {
 	my $caller_file		= $caller[1];
 	my $caller_line		= $caller[2];
 	my $outfh			= _get_outfh($caller_name);	# get from %state_of
+say $outfh '... Entering _Dump() ...';
+say $outfh '... @caller: ', 			  "\n"
+		,  '...          ', $caller_name, "\n"
+		,  '...          ', $caller_file, "\n" 
+		,  '...          ', $caller_line, "\n" 
+		;
+say $outfh '$outfh: ', $outfh;	
 	
 	my %args = @_;
 	my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};

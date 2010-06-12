@@ -17,13 +17,17 @@ use lib qw{
 #~ use Smart::Comments::Any;	
 #~ use Smart::Comments::Any *STDOUT;	
 
+#~ BEGIN { $::out_filename		= '/home/xiong/projects/smartlog/file/test.log' }
+#~ BEGIN{ 			# set to a temporary hard disk file
+#~ 	open my $outfh, '>', $::out_filename
+#~ 		or die 'Failed to open temporary test file for writing. ', $!;
+#~ 	$::outfh	= $outfh;
+#~ }
+#~ use Smart::Comments::Any '###', $::outfh;	
+
 BEGIN { $::out_filename		= '/home/xiong/projects/smartlog/file/test.log' }
-BEGIN{ 			# set to a temporary hard disk file
-	open my $outfh, '>', $::out_filename
-		or die 'Failed to open temporary test file for writing. ', $!;
-	$::outfh	= $outfh;
-}
-use Smart::Comments::Any '###', $::outfh;	
+use Smart::Comments::Any ({ -file => $::out_filename });
+
 
 ### One
 ### Two
@@ -83,9 +87,9 @@ for (0..$max) {
 #	sleep(1);
 #};
 
-for (0..$max) {			### for2 |===[%]    |
-	sleep(1);
-};
+#~ for (0..$max) {			### for2 |===[%]    |
+#~ 	sleep(1);
+#~ };
 
 #for (0..$max) {			### outer |===[%]    |
 #	for (0..$max) {			### inner |===[%]    |
