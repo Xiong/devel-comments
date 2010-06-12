@@ -20,7 +20,7 @@ ok length $STDERR == 0           => 'True assertion is silent';
 
 $ASSERTION = << 'END_ASSERT';
 
-# $x < 0 was not true at FILE line 30.
+# $x < 0 was not true at FILE line 00.
 #     $x was: 0
 END_ASSERT
 
@@ -33,7 +33,11 @@ eval {
 ok $@                            => 'False assertion is deadly';
 ok $@ eq "\n"                    => 'False assertion is deadly silent';
 
-$STDERR =~ s/ at \S+ line / at FILE line /;
+# Conway fudges the relatively stable file name 
+#	but not the unstable line number. 
+# For ::Any, we fudge both. 
+#~ $STDERR =~ s/ at \S+ line / at FILE line /;
+$STDERR =~ s/ at \S+ line \d\d/ at FILE line 00/;
 
 ok length $STDERR != 0           => 'False assertion is loud';
 is $STDERR, $ASSERTION           => 'False assertion is loudly correct';
@@ -47,7 +51,7 @@ my $y = [];
 
 my $ASSERTION2 = << 'END_ASSERTION2';
 
-# $y < $x was not true at FILE line 58.
+# $y < $x was not true at FILE line 00.
 #     $y was: []
 #     $x was: 10
 END_ASSERTION2
@@ -61,7 +65,8 @@ eval {
 ok $@                            => 'False two-part assertion is deadly';
 ok $@ eq "\n"                    => 'False two-part assertion is deadly silent';
 
-$STDERR =~ s/ at \S+ line / at FILE line /;
+#~ $STDERR =~ s/ at \S+ line / at FILE line /;
+$STDERR =~ s/ at \S+ line \d\d/ at FILE line 00/;
 
 ok length $STDERR != 0           => 'False two-part assertion is loud';
 is $STDERR, $ASSERTION2          => 'False two-part assertion is loudly correct';

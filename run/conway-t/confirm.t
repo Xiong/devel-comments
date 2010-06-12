@@ -23,7 +23,7 @@ ok length $STDERR == 0           => 'True confirm is silent';
 
 $ASSERTION = << 'END_ASSERT';
 
-# $x < 0 was not true at FILE line 34.
+# $x < 0 was not true at FILE line 00.
 #     $x was: 0
 
 END_ASSERT
@@ -37,7 +37,11 @@ eval {
 ok !$@                           => 'False confirm not deadly';
 
 
-$STDERR =~ s/ at \S+ line / at FILE line /;
+# Conway fudges the relatively stable file name 
+#	but not the unstable line number. 
+# For ::Any, we fudge both. 
+#~ $STDERR =~ s/ at \S+ line / at FILE line /;
+$STDERR =~ s/ at \S+ line \d\d/ at FILE line 00/;
 
 ok length $STDERR != 0           => 'False confirm is loud';
 is $STDERR, $ASSERTION           => 'False confirm is loudly correct';
@@ -51,7 +55,7 @@ my $y = [];
 
 my $ASSERTION2 = << 'END_ASSERTION2';
 
-# $y < $x was not true at FILE line 63.
+# $y < $x was not true at FILE line 00.
 #     $y was: []
 #     $x was: 10
 
@@ -66,7 +70,8 @@ eval {
 ok !$@                           => 'False two-part confirm not deadly';
 
 
-$STDERR =~ s/ at \S+ line / at FILE line /;
+#~ $STDERR =~ s/ at \S+ line / at FILE line /;
+$STDERR =~ s/ at \S+ line \d\d/ at FILE line 00/;
 
 ok length $STDERR != 0           => 'False two-part confirm is loud';
 is $STDERR, $ASSERTION2          => 'False two-part confirm is loudly correct';
