@@ -139,13 +139,13 @@ sub _do_ {
 #
 #	_do_();		# short
 #		
-# Purpose  : ____
-# Parms    : ____
-# Reads    : ____
-# Returns  : ____
-# Writes   : ____
-# Throws   : ____
-# See also : ____
+# Purpose   : ____
+# Parms     : ____
+# Reads     : ____
+# Returns   : ____
+# Writes    : ____
+# Throws    : ____
+# See also  : ____
 # 
 # ____
 # 

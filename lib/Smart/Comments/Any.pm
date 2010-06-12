@@ -225,10 +225,10 @@ sub _init_state {
 #		
 # Purpose  : Handle arguments and do pseudo-global setup
 # Parms    : @_
-# Reads    : ____
+# Reads    : %ENV
 # Returns  : $intro		(or 0 to abort filtering entirely)
 # Writes   : %filter_caller, %state_of
-# Throws   : carp() if passed a bad filehandle in @_
+# Throws   : carp() if passed a bad arg in @_
 # See also : ____
 # 
 # Don't want to be fussy about the order of args passed on the use line, 
@@ -322,14 +322,13 @@ sub import;		# FORWARD
 ######## EXTERNAL SUB CALL ########
 #
 # Purpose  : Rewrite caller's smart comments into code
-# Parms    : 
-#			 @_		: The split use line, with $_[0] being *this* package
-# 			 $_		: Caller's entire source code to be filtered
-# Reads    : ____
+# Parms    : @_		: The split use line, with $_[0] being *this* package
+# 		   : $_		: Caller's entire source code to be filtered
+# Reads    : %ENV, %state_of
 # Returns  : $_		: Filtered code
-# Writes   : ____
-# Throws   : ____
-# See also : Filter::Simple
+# Writes   : %filter_caller, %state_of
+# Throws   : never
+# See also : Filter::Simple, _prefilter()
 # 
 # Implement comments-to-code source filter. 
 #
@@ -498,14 +497,14 @@ sub _quiet_eval {
 
 ######## INTERNAL ROUTINE ########
 #
-#	_uniq();		# short
+#	$quantity	= _uniq(@list);		# short
 #		
 # Purpose  : ____
-# Parms    : ____
-# Reads    : ____
-# Returns  : ____
-# Writes   : ____
-# Throws   : ____
+# Parms    : any @list
+# Reads    : none
+# Returns  : scalar quantity of unique elements
+# Writes   : none
+# Throws   : never
 # See also : _decode_assert
 # 
 #	
@@ -517,17 +516,17 @@ sub _uniq {
 
 ######## REPLACEMENT CODE GENERATOR ########
 #
-#	_decode_assert();		# short
+#	$codestring		= _decode_assert($assertion, $signal_flag);
 #		
 # Purpose  : Converts an assertion to the equivalent Perl code.
-# Parms    : ____
-# Reads    : ____
-# Returns  : ____
-# Writes   : ____
-# Throws   : ____
+# Parms    : $assertion    : text of assertion message
+#		   : $signal_flag  : TRUE to die
+# Reads    : %state_of
+# Returns  : Replacement code string
+# Writes   : none
+# Throws   : never itself but generated code may die
 # See also : FILTER # Requirements, # Assertions
-# 
-#	
+# 	
 sub _decode_assert {
 	my ($assertion, $signal_flag) = @_;
 
@@ -567,18 +566,18 @@ sub _decode_assert {
 
 ######## REPLACEMENT CODE GENERATOR ########
 #
-#	_decode_for();		# short
+#	$codestring		= _decode_for($for, $range, $mesg);
 #		
-# Purpose  : ____
-# Parms    : ____
+# Purpose  : Generate progress-bar code for a Perlish for loop.
+# Parms    : $for 	: 
+#		   : $range	: 
+#		   : $mesg	: 
 # Reads    : ____
-# Returns  : ____
-# Writes   : ____
-# Throws   : ____
-# See also : ____
+# Returns  : Replacement code string
+# Writes   : $ID
+# Throws   : never
+# See also : _for_progress()
 # 
-# Generate progress-bar code for a Perlish for loop...
-#	
 sub _decode_for {
 	my ($for, $range, $mesg) = @_;
 
@@ -600,18 +599,17 @@ sub _decode_for {
 
 ######## REPLACEMENT CODE GENERATOR ########
 #
-#	_decode_while();		# short
+#	_decode_while($while, $mesg);		# short
 #		
-# Purpose  : ____
-# Parms    : ____
-# Reads    : ____
-# Returns  : ____
-# Writes   : ____
-# Throws   : ____
-# See also : ____
+# Purpose   : Generate progress-bar code for a Perlish while loop.
+# Parms     : $while :
+#			: $mesg  :
+# Reads     : ____
+# Returns  : Replacement code string
+# Writes    : $ID
+# Throws    : ____
+# See also  : _while_progress()
 # 
-# Generate progress-bar code for a Perlish while loop...
-#	
 sub _decode_while {
 	my ($while, $mesg) = @_;
 
