@@ -1009,13 +1009,13 @@ sub _set_state {
 #	only ever printed to STDERR. One might assume Conway does this 
 #	on *his* assumption that both are connected to the same output device, 
 #	namely a terminal window or console. 
-# This may or may not be wise but to preserve the exact Vanilla behavior, 
-#	our module tests (the inline caller's chosen) $outfh. 
-#	If it is STDERR, we require a newline if anything has been printed
-#		to STDOUT since our last smart output. 
-#	Otherwise, we only check output to $outfh. 
+# This may or may not be wise but we preserve the exact Vanilla behavior;
+#	while output to disk files contains fewer newlines.  
+# Since we make no explicit check of which or what kind of filehandle, 
+#	I cannot explain why this is so. 
+# The missing newlines are not going to STDOUT, STDERR, or the screen anyway. 
 # 
-# Again, Vanilla outputs the gratuitous newline 
+# TODO: Vanilla outputs a gratuitous newline 
 #	if $caller_line has changed by more than one line.
 #	This may result in rather "loose" output. 
 #	TODO: Accept a "tighten" arg in use line.
