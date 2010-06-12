@@ -17,11 +17,13 @@ use lib qw{
 #~ use Smart::Comments::Any;	
 #~ use Smart::Comments::Any *STDOUT;	
 
+BEGIN { $::out_filename		= '/home/xiong/projects/smartlog/file/test.log' }
 BEGIN{ 			# set to a temporary hard disk file
-	open $::outfh, '+<', '/home/xiong/projects/smartlog/file/test.log'
-	or die 'Failed to create temporary file for testing. ', $!;
+	open my $outfh, '>', $::out_filename
+		or die 'Failed to open temporary test file for writing. ', $!;
+	$::outfh	= $outfh;
 }
-use Smart::Comments::Any $::outfh;	
+use Smart::Comments::Any '###', $::outfh;	
 
 ### One
 ### Two
@@ -34,13 +36,13 @@ my $scalar			= 42;	### $scalar
 
 my %very			;
 my $index			= 18;
-#$very{long}{thing}[$index] = 'ratass';
+#~ $very{long}{thing}[$index] = 'ratass';
 $very{long}{thing}[$index] = 99;
-### verylongthing : $very{long}{thing}[18]
-### $very{long}{thing}[18]
-### '' . $very{long}{thing}[18]
-### 0 + $very{long}{thing}[18]
-### 2 + 3
+#~ ### verylongthing : $very{long}{thing}[18]
+#~ ### $very{long}{thing}[18]
+#~ ### '' . $very{long}{thing}[18]
+#~ ### 0 + $very{long}{thing}[18]
+#~ ### 2 + 3
 
 #~ ### foo
 #~ ### 
@@ -56,27 +58,6 @@ $very{long}{thing}[$index] = 99;
 #~ ###
 #~ ### yoomomma
 
-
-#	no strict 'refs';		# disable complaint about symbolic reference
-#	no warnings 'once';		# disable complaint about var only used once
-#	${ *{"${caller_ns}\::smart-comments-outfh"} }	= 'toejam';
-#	### ${ *{"${caller_ns}\::smart-comments-outfh"} }
-	
-#	use warnings;
-#	use strict;
-
-#~ ######## INTERNAL ROUTINE ########
-#~ #
-#~ #	_do_();		# short
-#~ #		
-#~ # comment
-#~ #	
-#~ sub _do_ {
-#~ 	
-#~ 	
-#~ 	
-#~ };
-#~ ######## /_do_ ########
 
 ####### 7
 ###### 6
@@ -102,9 +83,9 @@ for (0..$max) {
 #	sleep(1);
 #};
 
-#for (0..$max) {			### for2 |===[%]    |
-#	sleep(1);
-#};
+for (0..$max) {			### for2 |===[%]    |
+	sleep(1);
+};
 
 #for (0..$max) {			### outer |===[%]    |
 #	for (0..$max) {			### inner |===[%]    |
