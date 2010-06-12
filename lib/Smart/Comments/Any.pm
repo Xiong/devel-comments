@@ -538,7 +538,7 @@ sub _decode_assert {
 	# Choose the right signalling mechanism...
 	my $signal_code = $signal_flag 
 					? 'die "\n"' 
-					: qq<$warn_this( "\n" )>
+					: qq<$print_this( "\n" )>
 					;
 
 	# Extract variables from assertion and enreference any arrays or hashes...
