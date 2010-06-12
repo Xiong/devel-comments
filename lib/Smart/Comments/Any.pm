@@ -442,6 +442,7 @@ FILTER {
 	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>Smart::Comments::Any::_quiet_eval(q{[$1]}));$DBX}gmx;
 
 # This doesn't work as expected, don't know why
+# If re-enabled, must fix the warn() -- remember that caller won't have $outfh
 #	# An empty comment dumps an empty line...
 #	# Inserts call to warn()
 #	s{ ^ $hws* $intro [ \t]+ $ }
@@ -530,10 +531,15 @@ sub _uniq {
 sub _decode_assert {
 	my ($assertion, $signal_flag) = @_;
 
-	# Choose the right signalling mechanism...
-	my $signal_code = $signal_flag ? 'die "\n"' : 'warn "\n"';
+	my $dump 		= 'Smart::Comments::Any::_Dump';
+	my $print_this 	= 'Smart::Comments::Any::_print_this';
+	my $warn_this 	= 'Smart::Comments::Any::_warn_this';
 
-	my $dump = 'Smart::Comments::Any::_Dump';
+	# Choose the right signalling mechanism...
+	my $signal_code = $signal_flag 
+					? 'die "\n"' 
+					: qq<$warn_this( "\n" )>
+					;
 
 	# Extract variables from assertion and enreference any arrays or hashes...
 	my @vars = map { /^$hws*[%\@]/ ? "$dump(pref=>q{    $_ was:},var=>[\\$_], nonl=>1);"
@@ -542,9 +548,16 @@ sub _decode_assert {
 				_uniq extract_multiple($assertion, [\&extract_variable], undef, 1);
 
 	# Generate the test-and-report code...
+#~ 	print "\n: ",	qq<unless($assertion)>
+#~ 		, "\n: ",	qq<{>
+#~ 		, "\n: ",		qq<$print_this( "\\n", q{### $assertion was not true} );>
+#~ 		, "\n: ",		qq<@vars;>
+#~ 		, "\n: ",		qq<$signal_code>
+#~ 		, "\n: ",	qq<}>
+#~ 		;
 	return 	qq<unless($assertion)>
 		.	qq<{>
-		.		qq<warn "\\n", q{### $assertion was not true};>
+		.		qq<$warn_this( "\\n", q{### $assertion was not true} );>
 		.		qq<@vars;>
 		.		qq<$signal_code>
 		.	qq<}>
@@ -730,6 +743,10 @@ sub _prog_pat {
 sub _for_progress {
 	my ($mesg, $not_first, $data) = @_;
 	my ($at, $max, $elapsed, $remaining, $fraction);
+	
+	my @caller 			= caller;		# called by replacement code
+	my $caller_name		= $caller[0];
+	my $outfh			= _get_outfh($caller_name);	# get from %state_of
 
 	# Update progress bar...
 	if ($not_first) {
@@ -798,7 +815,7 @@ sub _for_progress {
 		$fillend = 0 if $fillend < 0;
 
 		# Now draw the bar, using carriage returns to overwrite it...
-		print STDERR "\r", " "x$maxwidth,
+		print $outfh "\r", " "x$maxwidth,
 					 "\r", $left,
 					 sprintf("%-${fillwidth}s",
 							   substr($totalfill, 0, $fillend)
@@ -810,12 +827,12 @@ sub _for_progress {
 			$at < $max &&
 			($showing{$data} || $remaining && $remaining >= $showmaxtime)
 		) {
-			print STDERR "  (", _desc_time($remaining), " remaining)";
+			print $outfh "  (", _desc_time($remaining), " remaining)";
 			$showing{$data} = 1;
 		}
 
 		# Close off the line, if we're finished...
-		print STDERR "\r", " "x$maxwidth, "\n" if $at >= $max;
+		print $outfh "\r", " "x$maxwidth, "\n" if $at >= $max;
 	}
 };
 ######## /_for_progress ########
@@ -837,7 +854,11 @@ sub _for_progress {
 sub _while_progress {
 	my ($mesg, $not_first_ref) = @_;
 	my $at;
-#say '$prev_length: ', $prev_length;
+
+	my @caller 			= caller;		# called by replacement code
+	my $caller_name		= $caller[0];
+	my $outfh			= _get_outfh($caller_name);	# get from %state_of
+	
 	# If we've looped this one before, recover the current iteration count...
 	if ($$not_first_ref) {
 		$at = ++$count{$not_first_ref};
@@ -874,13 +895,66 @@ sub _while_progress {
 		$prev_length = $length;
 
 		# And print the bar...
-		print STDERR "\r", " "x$maxwidth,
+		print $outfh "\r", " "x$maxwidth,
 					 "\r", $left,
 					 sprintf("%-${fillwidth}s", substr($fill x $fillwidth, 0, $length) . $leader),
 					 $right;
 	}
 };
 ######## /_while_progress ########
+
+######## EXTERNAL ROUTINE ########
+#
+#	_print_this(@args);		# short
+#		
+# Purpose  : Print @args to caller's chosen $outfh
+# Parms    : @args (any printable list)
+# Reads    : caller(), %state_of
+# Returns  : 1
+# Writes   : to $outfh
+# Throws   : ____
+# See also : _warn_this(), _decode_assert()
+# 
+# Call this only from within replacement code. 
+# If called by another our-module routine, it will get the wrong stack frame. 
+# 
+sub _print_this {
+	my @caller 			= caller;		# called by replacement code
+	my $caller_name		= $caller[0];
+	my $outfh			= _get_outfh($caller_name);	# get from %state_of
+	
+	print $outfh @_;
+	return 1;
+};
+######## /_print_this ########
+
+######## EXTERNAL ROUTINE ########
+#
+#	_warn_this(@args);		# short
+#		
+# Purpose  : Print @args *and* $file, $line to caller's chosen $outfh
+#		   :	as if it were warn().
+# Parms    : @args (any printable list)
+# Reads    : caller(), %state_of
+# Returns  : 1
+# Writes   : to $outfh
+# Throws   : ____
+# See also : _print_this(), _decode_assert()
+# 
+# Call this only from within replacement code. 
+# If called by another our-module routine, it will get the wrong stack frame. 
+# 
+sub _warn_this {
+	my @caller 			= caller;		# called by replacement code
+	my $caller_name		= $caller[0];
+	my $caller_file		= $caller[1];
+	my $caller_line		= $caller[2];
+	my $outfh			= _get_outfh($caller_name);	# get from %state_of
+	
+	print $outfh @_, " at $caller_file line $caller_line.\n";
+	return 1;
+};
+######## /_warn_this ########
 
 ######## INTERNAL ROUTINE ########
 #
@@ -953,7 +1027,7 @@ sub _spacer_required {
 	my $caller_line		= $caller[2];
 	
 	my $outfh				= $state_of{$caller_name}{-outfh};
-say '$outfh: ', $outfh;	
+#~ say '$outfh: ', $outfh;	
 	my $prev_tell_outfh		= $state_of{$caller_name}{-tell}{-outfh};
 	my $prev_tell_stdout	= $state_of{$caller_name}{-tell}{-stdout};
 	my $prev_caller_file	= $state_of{$caller_name}{-caller}{-file};
@@ -965,6 +1039,7 @@ say '$outfh: ', $outfh;
 	if    ( $outfh eq *STDERR ) {	# STDERR chosen, vanilla behavior
 		# newline if STDOUT has been printed to since last smart output
 		$flag	||= $prev_tell_stdout 	!= tell(*STDOUT);
+#~ say 'I Vanillaed.';
 	};
 	
 	# newline if $outfh has been printed to
@@ -977,6 +1052,8 @@ say '$outfh: ', $outfh;
 	# newline if $caller_line has changed by more or less than 1
 	$flag		||= $prev_caller_line	!= $caller_line -1;
 		
+#~ say 'Doing the newline.' if $flag;
+#~ return 0;			# never do the newline 
 	return $flag;
 };
 ######## /_spacer_required ########
@@ -1001,7 +1078,6 @@ sub _Dump {
 	my $caller_name		= $caller[0];
 	my $caller_file		= $caller[1];
 	my $caller_line		= $caller[2];
-	
 	my $outfh			= _get_outfh($caller_name);	# get from %state_of
 	
 	my %args = @_;
@@ -1024,6 +1100,7 @@ sub _Dump {
 	# Handle a prefix with no actual variable...
 	if ($pref && !defined $varref) {
 		$pref =~ s/:$//;
+#~ 		print $outfh "*1\n" if $spacer_required;
 		print $outfh "\n" if $spacer_required;
 		print $outfh "### $pref\n";
 		_set_state(@caller);
@@ -1053,6 +1130,7 @@ sub _Dump {
 	$dumped =~ s/^[ ]{$indent}([ ]*)/### $outdent$1/gm;
 
 	# Print the message...
+#~ 	print $outfh "*2\n" if $spacer_required;
 	print $outfh "\n" if $spacer_required;
 	print $outfh "### $pref $dumped\n";
 	_set_state(@caller);
