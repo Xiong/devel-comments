@@ -124,9 +124,10 @@ $expected
 										# use
 	. q{#-2}		. qq{\n}
 										# foobar
-	. qq{\n}. qq{\n}
-	. q{### foobar}	. qq{\n}
+#~ 	. qq{\n}. qq{\n}	# not so many gratuitous newlines, please
 	. qq{\n}
+	. q{### foobar}	. qq{\n}
+#~ 	. qq{\n}
 	. q{#-3}		. qq{\n}
 										# no
 	. q{#-4}		. qq{\n}
