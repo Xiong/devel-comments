@@ -1,11 +1,2 @@
 ... Just after opening $outfh ...
 $outfh: *main::STDERR
-
-### One
-### Two
-
-### 7: 7
-### 6: 6
-### 5: 5
-### 4: 4
-### 3: 3

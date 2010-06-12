@@ -27,7 +27,8 @@ use lib qw{
 
 BEGIN { $::out_filename		= '/home/xiong/projects/smartlog/file/href.log' }
 use Smart::Comments::Hrefbug ({ -file => $::out_filename });
-
+# jest be
+no Smart::Comments::Hrefbug;
 
 ### One
 ### Two

@@ -19,7 +19,7 @@ use Data::Dumper 'Dumper';
 
 # debug only
 use feature 'say';				# disable in production; debug only
-#use Smart::Comments '###';		# playing with fire;     debug only
+use Smart::Comments '###';		# playing with fire;     debug only
 
 ######## / use ########
 
@@ -409,8 +409,8 @@ sub import;		# FORWARD
 sub FILTERx;	# dummy sub only to appear in editor's symbol table
 #
 FILTER {
-	#### @_
-	#### $_
+	### @_
+	### $_
 	
 	
 	my $intro		= _prefilter(@_);		# Handle arguments to FILTER
