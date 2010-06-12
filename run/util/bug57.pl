@@ -35,10 +35,14 @@ use Smart::Comments '###', '####';
 			,  "Can't open $out_filename to write."
 			, $!
 			;
+			
+	say '... Just after opening $outfh ...';
+	say '$outfh: ', $outfh;	
+			
 	say $outfh '... Just after opening $outfh ...';
 	say $outfh '$outfh: ', $outfh;	
 	
-	
+	warn 'Some nasty stuff here Boss...';
 	
 
 __DATA__

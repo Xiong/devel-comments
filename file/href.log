@@ -1,2 +1,3 @@
 ... Just after opening $outfh ...
 $outfh: *main::STDERR
+Some nasty stuff here Boss... at util/bug57.pl line 45.
