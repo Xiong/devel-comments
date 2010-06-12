@@ -1035,12 +1035,21 @@ sub _spacer_required {
 		
 	my $flag			;
 	
-	# You might not think you can compare filehandles, but you can...
-	if    ( $outfh eq *STDERR ) {	# STDERR chosen, vanilla behavior
-		# newline if STDOUT has been printed to since last smart output
-		$flag	||= $prev_tell_stdout 	!= tell(*STDOUT);
-#~ say 'I Vanillaed.';
-	};
+# This test is *not* needed, oddly enough!
+# Intent was to preserve Vanilla behavior by requiring newline
+#	if tell STDOUT had changed when printing to STDERR. 
+# But with this paragraph disabled, Vanilla is preserved 
+#	and also 'use Smart::Comments::Any *STDOUT' yields the same output.
+# Yet when given a hard disk $fh, fewer gratuitous newlines are output, 
+#	which is desired. 
+# I cannot figure out why. Let us consider this a blessing. 
+#	
+#	# You might not think you can compare filehandles, but you can...
+#	if    ( $outfh eq *STDERR ) {	# STDERR chosen, vanilla behavior
+#		# newline if STDOUT has been printed to since last smart output
+#		$flag	||= $prev_tell_stdout 	!= tell(*STDOUT);
+#say 'I Vanillaed.';
+#	};
 	
 	# newline if $outfh has been printed to
 	$flag		||= $prev_tell_outfh	!= tell $outfh;
@@ -1052,8 +1061,8 @@ sub _spacer_required {
 	# newline if $caller_line has changed by more or less than 1
 	$flag		||= $prev_caller_line	!= $caller_line -1;
 		
-#~ say 'Doing the newline.' if $flag;
-#~ return 0;			# never do the newline 
+#~ 	say 'Doing the newline.' if $flag;
+#~ 	return 0;			# never do the newline 
 	return $flag;
 };
 ######## /_spacer_required ########
@@ -1102,6 +1111,7 @@ sub _Dump {
 		$pref =~ s/:$//;
 #~ 		print $outfh "*1\n" if $spacer_required;
 		print $outfh "\n" if $spacer_required;
+#~ 		print $outfh "!### $pref!\n!";
 		print $outfh "### $pref\n";
 		_set_state(@caller);
 		return;

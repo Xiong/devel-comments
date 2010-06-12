@@ -103,6 +103,7 @@ $self->{-want}{$subwhat}{-string}
 	;
 
 &$do_cap_string($subwhat);
+#~ 	print STDERR "*]", $self->{-got}{$subwhat}{-string}, "[*\n";
 
 $subwhat			= q{-stderr};
 $self->{-want}{$subwhat}{-string}	
