@@ -1,4 +1,4 @@
-package Smart::Comments::Hrefbug;	# CHOPPED ::Any FOR DEBUG - DO NOT USE
+package Smart::Comments::Hrefbug;	# CHOPPED ::Hrefbug FOR DEBUG - DO NOT USE
 
 ######## use section ########
 use 5.008;
@@ -93,7 +93,7 @@ my $prev_length = -1;
 #my %prev_caller = ( file => q{}, line => 0 );
 
 
-## ::Any stuff
+## ::Hrefbug stuff
 # "Outside" caller must be available anywhere while filtering
 my %filter_caller	= (
 	-name				=> '',		# 'Caller::Module'
@@ -264,7 +264,7 @@ sub _prefilter {
 	my $intro 		= qr/#{3,}/;
 	my @intros		;
 	
-	## Handle the ::Any setup
+	## Handle the ::Hrefbug setup
 	
 	my $fh_seen			= 0;			# no filehandle seen yet
 	my $outfh			= *STDERR;		# default
@@ -287,12 +287,12 @@ sub _prefilter {
 				splice @_, $i;			# remove the parsed arg
 #say '$out_filename: ', $out_filename;		
 				open $outfh, '>', $out_filename
-					or die "Smart::Comments::Any: " 
+					or die "Smart::Comments::Hrefbug: " 
 						,  "Can't open $out_filename to write."
 						, $!
 						;
-#say $outfh '... Just after opening $outfh ...';
-#say $outfh '$outfh: ', $outfh;	
+say $outfh '... Just after opening $outfh ...';
+say $outfh '$outfh: ', $outfh;	
 			};
 		};
 	
@@ -306,7 +306,7 @@ sub _prefilter {
 		
 		# Is $arg defined by vanilla Smart::Comments?
 		if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
-			next SETFH;				# not ::Any arg, keep looking
+			next SETFH;				# not ::Hrefbug arg, keep looking
 		};
 #		print 'Mine: >', $arg, "<\n";
 		
@@ -317,7 +317,7 @@ sub _prefilter {
 		if ( not -w $arg ) {
 			carp   q{Not a writable filehandle: }
 				. qq{$arg} 
-				.  q{ in call to 'use Smart::Comments::Any'.}
+				.  q{ in call to 'use Smart::Comments::Hrefbug'.}
 				;
 		}							# and keep looking
 		else {
@@ -332,7 +332,7 @@ sub _prefilter {
 	
 ####	%state_of
 	
-	## done with the ::Any setup
+	## done with the ::Hrefbug setup
 	
 	
 	# Handle intros and env args...
@@ -357,7 +357,7 @@ sub _prefilter {
 
 	if (my @unknowns = grep {!/$intro/} @intros) {
 		croak "Incomprehensible arguments: @unknowns\n",
-			  "in call to 'use Smart::Comments::Any'";
+			  "in call to 'use Smart::Comments::Hrefbug'";
 	}
 
 	# Make non-default introducer pattern...
@@ -461,37 +461,37 @@ FILTER {
 	# Dump a raw scalar (the varname is used as the label)...
 	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t]+ (\$ [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[$1]);$DBX}gmx;
+	 {Smart::Comments::Hrefbug::_Dump(pref=>q{$1:},var=>[$1]);$DBX}gmx;
 
 	# Dump a labelled scalar...
 	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
+	 {Smart::Comments::Hrefbug::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
 	# Dump a raw hash or array (the varname is used as the label)...
 	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t]+ ([\@%] [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[\\$1]);$DBX}gmx;
+	 {Smart::Comments::Hrefbug::_Dump(pref=>q{$1:},var=>[\\$1]);$DBX}gmx;
 
 	# Dump a labelled hash or array...
 	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t]+ (.+ :) [ \t]* ([\@%] [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[\\$2]);$DBX}gmx;
+	 {Smart::Comments::Hrefbug::_Dump(pref=>q{$1},var=>[\\$2]);$DBX}gmx;
 
 	# Dump a labelled expression...
 	# Inserts call to _Dump()
 	s{ ^ $hws* $intro [ \t]+ (.+ :) (.+) }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
+	 {Smart::Comments::Hrefbug::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
 	# Dump an 'in progress' message
 	# Inserts call to _Dump()
 	s{ ^ $hws* $intro $hws* (.+ [.]{3}) $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>qq{$1});$DBX}gmx;
+	 {Smart::Comments::Hrefbug::_Dump(pref=>qq{$1});$DBX}gmx;
 
 	# Dump an unlabelled expression (the expression is used as the label)...
 	# Inserts call to _Dump() and call to _quiet_eval()
 	s{ ^ $hws* $intro $hws* (.*) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>Smart::Comments::Any::_quiet_eval(q{[$1]}));$DBX}gmx;
+	 {Smart::Comments::Hrefbug::_Dump(pref=>q{$1:},var=>Smart::Comments::Hrefbug::_quiet_eval(q{[$1]}));$DBX}gmx;
 
 # This doesn't work as expected, don't know why
 # If re-enabled, must fix the warn() -- remember that caller won't have $outfh
@@ -504,7 +504,7 @@ FILTER {
 #	# Anything else is a literal string to be printed...
 #	# Inserts call to _Dump()
 #	s{ ^ $hws* $intro $hws* (.*) }
-#	 {Smart::Comments::Any::_Dump(pref=>q{$1});$DBX}gmx;
+#	 {Smart::Comments::Hrefbug::_Dump(pref=>q{$1});$DBX}gmx;
 }; 
 ######## /FILTER ########
 
@@ -525,7 +525,7 @@ FILTER {
 #	
 sub import {
 	
-#	say 'Smart::Comments::Any::import().';
+#	say 'Smart::Comments::Hrefbug::import().';
 	
 };
 ######## /import ########
@@ -583,9 +583,9 @@ sub _uniq {
 sub _decode_assert {
 	my ($assertion, $signal_flag) = @_;
 
-	my $dump 		= 'Smart::Comments::Any::_Dump';
-	my $print_this 	= 'Smart::Comments::Any::_print_this';
-	my $warn_this 	= 'Smart::Comments::Any::_warn_this';
+	my $dump 		= 'Smart::Comments::Hrefbug::_Dump';
+	my $print_this 	= 'Smart::Comments::Hrefbug::_print_this';
+	my $warn_this 	= 'Smart::Comments::Hrefbug::_warn_this';
 
 	# Choose the right signalling mechanism...
 	my $signal_code = $signal_flag 
@@ -641,7 +641,7 @@ sub _decode_for {
 	return 	qq<my \$not_first__$ID;>
 		.	qq<$for (my \@SmartComments__range__$ID = $range)>
 		.	qq<{>		# closing brace found somewhere in client code
-		.	qq<Smart::Comments::Any::_for_progress(>
+		.	qq<Smart::Comments::Hrefbug::_for_progress(>
 		.		qq<qq{$mesg},>
 		.		qq<\$not_first__$ID,>
 		.		qq<\\\@SmartComments__range__$ID>
@@ -673,7 +673,7 @@ sub _decode_while {
 	return 	qq<my \$not_first__$ID;>
 		.	qq<$while>
 		.	qq<{>		# closing brace found somewhere in client code
-		.	qq<Smart::Comments::Any::_while_progress(>
+		.	qq<Smart::Comments::Hrefbug::_while_progress(>
 		.		qq<qq{$mesg},>
 		.		qq<\\\$not_first__$ID>
 		.	qq<);>
@@ -1028,7 +1028,7 @@ sub _set_state {
 	my $caller_file		= $caller[1];
 	my $caller_line		= $caller[2];
 	
-	die "Smart::Comments::Any: Fatal Error: ",
+	die "Smart::Comments::Hrefbug: Fatal Error: ",
 		"Attempt to access from unfiltered source code.", 
 		$!		if ( !defined $state_of{$caller_name} );
 	
@@ -1091,7 +1091,7 @@ sub _spacer_required {
 # Intent was to preserve Vanilla behavior by requiring newline
 #	if tell STDOUT had changed when printing to STDERR. 
 # But with this paragraph disabled, Vanilla is preserved 
-#	and also 'use Smart::Comments::Any *STDOUT' yields the same output.
+#	and also 'use Smart::Comments::Hrefbug *STDOUT' yields the same output.
 # Yet when given a hard disk $fh, fewer gratuitous newlines are output, 
 #	which is desired. 
 # I cannot figure out why. Let us consider this a blessing. 
@@ -1214,28 +1214,28 @@ __END__
 
 =head1 NAME
 
-Smart::Comments::Any - Smart comments that print to any filehandle
+Smart::Comments::Hrefbug - Smart comments that print to any filehandle
 
 
 =head1 VERSION
 
-This document describes Smart::Comments::Any version 1.0.4
+This document describes Smart::Comments::Hrefbug version 1.0.4
 
 
 =head1 SYNOPSIS
 
-	use Smart::Comments::Any;					# acts just like Smart::Comments
-	use Smart::Comments::Any '###';				# acts just like Smart::Comments
-	use Smart::Comments::Any *STDERR, '###';	# same thing
+	use Smart::Comments::Hrefbug;					# acts just like Smart::Comments
+	use Smart::Comments::Hrefbug '###';				# acts just like Smart::Comments
+	use Smart::Comments::Hrefbug *STDERR, '###';	# same thing
 	
-	use Smart::Comments::Any $fh, '###';		# prints to $fh instead
-	use Smart::Comments::Any *FH, '###';		# prints to FH instead
+	use Smart::Comments::Hrefbug $fh, '###';		# prints to $fh instead
+	use Smart::Comments::Hrefbug *FH, '###';		# prints to FH instead
 	
 	BEGIN {								# one way to get $fh open early enough
 		my $filename	= 'mylog.txt';
 		open my $fh, '>', $filename
 			or die "Couldn't open $filename to write", $!;
-		use Smart::Comments::Any $fh;
+		use Smart::Comments::Hrefbug $fh;
 	}
 	  
 	BEGIN {								# or store $::fh for later use
@@ -1243,7 +1243,7 @@ This document describes Smart::Comments::Any version 1.0.4
 		open my $::fh, '>', $filename
 			or die "Couldn't open $filename to write", $!;
 	}
-	use Smart::Comments::Any $::fh;
+	use Smart::Comments::Hrefbug $::fh;
 	{...}	# do some work
 	close $::fh;
 	  
@@ -1253,11 +1253,11 @@ L<Smart::Comments> works well for those who debug with print statements.
 However, it always prints to STDERR. This doesn't work so well when STDERR 
 is being captured and tested. 
 
-Smart::Comments::Any acts like Smart::Comments, except that 
+Smart::Comments::Hrefbug acts like Smart::Comments, except that 
 if a filehandle is passed in the use statement, output will go there instead. 
 
 Please see L<Smart::Comments> for major documentation. 
-Smart::Comments::Any version x.x.x is a modified copy 
+Smart::Comments::Hrefbug version x.x.x is a modified copy 
 of the same version of Smart::Comments. 
 
 =head1 INTERFACE 
@@ -1282,11 +1282,11 @@ The filehandle must be opened, obviously, in some writable mode.
 
 =over
 
-=item C<< Bad filehandle: %s in call to 'use Smart::Comments::Any', defaulting to STDERR >>
+=item C<< Bad filehandle: %s in call to 'use Smart::Comments::Hrefbug', defaulting to STDERR >>
 
 You loaded the module and passed it a filehandle that couldn't be written to. 
 Note that you'd better open the filehandle for writing in a BEGIN block
-before loading Smart::Comments::Any. 
+before loading Smart::Comments::Hrefbug. 
 
 =back
 
@@ -1338,7 +1338,7 @@ credit goes to Damian Conway. If it fails when Smart::Comments works,
 blame me. 
 
 Before reporting any bug, please be sure it's specific to 
-Smart::Comments::Any by testing with vanilla Smart::Comments. 
+Smart::Comments::Hrefbug by testing with vanilla Smart::Comments. 
 
 Please report any bugs or feature requests to
 C<< <xiong@xuefang.com> >>.
