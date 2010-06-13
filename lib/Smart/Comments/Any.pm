@@ -19,7 +19,7 @@ use Data::Dumper 'Dumper';
 
 # debug only
 use feature 'say';				# disable in production; debug only
-#use Smart::Comments '###';		# playing with fire;     debug only
+use Smart::Comments '###';		# playing with fire;     debug only
 
 ######## / use ########
 
@@ -267,7 +267,8 @@ sub _prefilter {
 	## Handle the ::Any setup
 	
 	my $fh_seen			= 0;			# no filehandle seen yet
-	my $outfh			= *STDERR;		# default
+#	my $outfh			= *STDERR;		# default
+	my $outfh			= undef;		# don't assign it first; see open()
 	my $out_filename	= "$0.log";		# default
 	my $arg				;				# trial from @_
 	my %packed_args		;				# possible args packed into a hashref
@@ -326,11 +327,15 @@ sub _prefilter {
 		};
 	};		# /SETFH
 	
-#say $outfh '... About to _init_state() ...';
-#say $outfh '$outfh: ', $outfh;	
+	if (!$outfh) {
+		$outfh			= *STDERR;		# default
+	};
+	
+say  '... About to _init_state() ...';
+say  '$outfh: ', $outfh;	
 	_init_state($outfh);		# initialize $state_of filter_caller
 	
-####	%state_of
+###	%state_of
 	
 	## done with the ::Any setup
 	
