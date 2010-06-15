@@ -1102,6 +1102,8 @@ sub _spacer_required {
 # I cannot figure out why. Let us consider this a blessing. 
 #	
 #	# You might not think you can compare filehandles, but you can...
+#	# ... but only if they're identical, not if they're equivalent...
+#	# ... *STDERR ne \*STDERR	# although most io routines will accept either
 #	if    ( $outfh eq *STDERR ) {	# STDERR chosen, vanilla behavior
 #		# newline if STDOUT has been printed to since last smart output
 #		$flag	||= $prev_tell_stdout 	!= tell(*STDOUT);

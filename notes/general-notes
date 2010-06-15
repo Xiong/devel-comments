@@ -69,6 +69,38 @@ I'm not sure what Conway had in mind about state info; it often seems as if S::C
 
 But ::Any *must* take state seriously; multiple callers during a single run might 'use Smart::Comments::Any' with different $outfh. 
 
+= ::Log =
+
+Complexity of calling ::Any from yet another module -- who is caller? -- leads me to reject the idea of ::Log. Let's do it all within ::Any. One Juggernaut is enough. 
+
+= Calling syntax, filehandles = 
+
+It's coming clear to me -- dimly -- that a variable-type filehandle (e.g., $fh) is a ref to a bareword filehandle (e.g., STDOUT). Study-up reveals that the variable is an "indirect filehandle". Confusion arises because open(), et al, accept indirect fhs as well as a bareword "real" fh; no need to en-/dereference. 
+
+	..."+<" is almost always preferred for read/write updates, as the dubious "+>" mode would first clobber the file before you could ever read anything from it.		-- Camel 29.02.104
+	
+	+<			won't create a new file (but most common of the three)
+	+>			will clobber existing, making the read problematical
+	+>>			will create and not clobber but all writes go to the end
+
+	# a good idea in the general case
+	truncate(FH, tell(FH))
+		or die "can't truncate counterfile: $!";
+	close(FH)
+		or die "can't close counterfile: $!";
+
+	# Without clobbering it first, you open a file in read/write mode. You read from it first (why you didn't clobber), then write *less* data than used to be there. So, truncate afterwards, then close. 
+	
+	# You don't want to open-read, close, then open-write (truncating on open) in case of getting an exclusive lock, which is on a filehandle, so no reopening. 
+	
+	# The q{_} filehandle can be used for file test operators to return info on the current stat buffer without doing another system call: 
+	if (-s) > 100_000 and -A _ > 90;     # -s on $_ (slow); -A on buffer (fast)
+	
+	
+
+	
+
+
 
 
 
