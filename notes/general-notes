@@ -96,12 +96,28 @@ It's coming clear to me -- dimly -- that a variable-type filehandle (e.g., $fh) 
 	# The q{_} filehandle can be used for file test operators to return info on the current stat buffer without doing another system call: 
 	if (-s) > 100_000 and -A _ > 90;     # -s on $_ (slow); -A on buffer (fast)
 	
+	"...references to typeglobs can't be usefully returned from functions."
+		-- Perl Cookbook 7.16		(Wait, What??)
 	
+* The other main issue here is where to store the filehandle itself. 
 
+	# At first, I thought to stash the filehandle in caller's package global space. This is clever but requires to run under no strict 'refs' and possibly no warnings; it's a symbolic reference. I believe [bart] gets credit for this. 
+
+	my $ns                         = 'Teddy::Bear';
+	${ *{${ns} . '::foo'} }        = $cram;
+	$yank                          = ${ *{"${ns}\::foo"} };
 	
-
-
-
+	# Then [almut] proposed a similar form. This neither is a symbolic reference nor raises a warning; but it cannot handle arbitrary package names. The example works because 'Teddy' is only a top-level namespace. 
+	
+	$ns                            = 'Teddy::';
+	${ $::{$ns}{foo} }             = $cram;
+	$yank                          = ${ $::{$ns}{foo} };
+	
+	* So, I went to stashing -- er, storing -- inside S::C::Any itself, in the lexical pseudo-global %state_of, as $state_of{$caller_name}{-outfh}. This appeared to work at first but then not. 0220-sc-any-25-href-file.t failed; nothing seemed to be written to the given logfile. I tried many things. Eventually, I just command-line cat the logfile and presto, output is as expected. The fault is where? 
+	
+		! The logfile is a block buffered device and S::C doesn't close it explicitly, of course, since we don't know for sure when we're done with it. When we open it for reading inside .t, the buffer hasn't been written out yet. We need to set autoflushing on $outfh from go. 
+	
+	
 
 
 

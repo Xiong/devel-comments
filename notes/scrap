@@ -164,6 +164,16 @@ sub _do_ {
 
 #============================================================================#
 
+
+my $prev_fh			= select $outfh;
+local $/			= undef;			# slurp
+select $prev_fh;
+
+my $prev_fh			= select $outfh;
+local $|			= 1;				# autoflush
+select $prev_fh;
+
+
 # selectively catch warnings
 BEGIN { 
 	$DOWARN		= 1;

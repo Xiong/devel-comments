@@ -19,7 +19,7 @@ use Data::Dumper 'Dumper';
 
 # debug only
 use feature 'say';				# disable in production; debug only
-use Smart::Comments '###';		# playing with fire;     debug only
+#use Smart::Comments '###';		# playing with fire;     debug only
 
 ######## / use ########
 
@@ -292,6 +292,13 @@ sub _prefilter {
 						,  "Can't open $out_filename to write."
 						, $!
 						;
+				# Autoflush $outfh
+				my $prev_fh			= select $outfh;
+				local $|			= 1;				# autoflush
+				select $prev_fh;
+
+				
+				
 #say $outfh '... Just after opening $outfh ...';
 #say $outfh '$outfh: ', $outfh;	
 			};
@@ -331,8 +338,8 @@ sub _prefilter {
 		$outfh			= *STDERR;		# default
 	};
 	
-say  '... About to _init_state() ...';
-say  '$outfh: ', $outfh;	
+#~ say STDERR '... About to _init_state() ...';
+#~ say STDERR '$outfh: ', $outfh;	
 	_init_state($outfh);		# initialize $state_of filter_caller
 	
 ###	%state_of
@@ -1148,12 +1155,15 @@ sub _Dump {
 	my $caller_line		= $caller[2];
 	my $outfh			= _get_outfh($caller_name);	# get from %state_of
 #say $outfh '... Entering _Dump() ...';
+#say STDERR '... Entering _Dump() ...';
+#say STDERR '$outfh: ', $outfh;	
 #say $outfh '... @caller: ', 			  "\n"
 #		,  '...          ', $caller_name, "\n"
 #		,  '...          ', $caller_file, "\n" 
 #		,  '...          ', $caller_line, "\n" 
 #		;
 #say $outfh '$outfh: ', $outfh;	
+### %state_of
 	
 	my %args = @_;
 	my ($pref, $varref, $nonl) = @args{qw(pref var nonl)};

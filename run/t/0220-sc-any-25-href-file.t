@@ -94,6 +94,7 @@ $self->{-want}{$subwhat}{-string}
 &$do_cap_string($subwhat);
 
 # now test the temp file contents
+#~ say '.t: $::out_filename: ', $::out_filename;
 open my $outfh, '<', $::out_filename
 	or die 'Failed to open temporary test file for reading. ', $!;
 
@@ -103,7 +104,7 @@ select $prev_fh;
 
 $got				= <$outfh>;
 
-#print ">$got<\n";
+#~ print ">$got<\n";
 
 $expected	
 	= q{### foobar}	. qq{\n}
