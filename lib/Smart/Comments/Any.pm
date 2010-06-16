@@ -71,23 +71,23 @@ my @progress_pats = (
 ## original S::C stuff
 
 # Unique ID assigned to each loop; incremented when assigned
-# 	See: _for_progress, _while_progress
+# 	See: for_progress, while_progress
 my $ID 					= 0;
 
-#	See: _for_progress
+#	See: for_progress
 my %started				;
 
 #	See: _moving_average
 my %moving				;
 
 # State information for various progress bars...
-#	See: _for_progress, _while_progress
+#	See: for_progress, while_progress
 my (%count, %max, %prev_elapsed, %prev_fraction, %showing);
 
-#	See: _while_progress
+#	See: while_progress
 my $prev_length = -1;
 
-##	See: _Dump
+##	See: Dump
 #my $prev_STDOUT = 0;
 #my $prev_STDERR = 0;
 #my %prev_caller = ( file => q{}, line => 0 );
@@ -471,39 +471,39 @@ FILTER {
 	# Any other smart comment is a simple dump.
 	
 	# Dump a raw scalar (the varname is used as the label)...
-	# Inserts call to _Dump()
+	# Inserts call to Dump()
 	s{ ^ $hws* $intro [ \t]+ (\$ [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[$1]);$DBX}gmx;
+	 {Smart::Comments::Any::Dump(pref=>q{$1:},var=>[$1]);$DBX}gmx;
 
 	# Dump a labelled scalar...
-	# Inserts call to _Dump()
+	# Inserts call to Dump()
 	s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
+	 {Smart::Comments::Any::Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
 	# Dump a raw hash or array (the varname is used as the label)...
-	# Inserts call to _Dump()
+	# Inserts call to Dump()
 	s{ ^ $hws* $intro [ \t]+ ([\@%] [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>[\\$1]);$DBX}gmx;
+	 {Smart::Comments::Any::Dump(pref=>q{$1:},var=>[\\$1]);$DBX}gmx;
 
 	# Dump a labelled hash or array...
-	# Inserts call to _Dump()
+	# Inserts call to Dump()
 	s{ ^ $hws* $intro [ \t]+ (.+ :) [ \t]* ([\@%] [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[\\$2]);$DBX}gmx;
+	 {Smart::Comments::Any::Dump(pref=>q{$1},var=>[\\$2]);$DBX}gmx;
 
 	# Dump a labelled expression...
-	# Inserts call to _Dump()
+	# Inserts call to Dump()
 	s{ ^ $hws* $intro [ \t]+ (.+ :) (.+) }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
+	 {Smart::Comments::Any::Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
 	# Dump an 'in progress' message
-	# Inserts call to _Dump()
+	# Inserts call to Dump()
 	s{ ^ $hws* $intro $hws* (.+ [.]{3}) $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>qq{$1});$DBX}gmx;
+	 {Smart::Comments::Any::Dump(pref=>qq{$1});$DBX}gmx;
 
 	# Dump an unlabelled expression (the expression is used as the label)...
-	# Inserts call to _Dump() and call to _quiet_eval()
+	# Inserts call to Dump() and call to _quiet_eval()
 	s{ ^ $hws* $intro $hws* (.*) $optcolon $hws* $ }
-	 {Smart::Comments::Any::_Dump(pref=>q{$1:},var=>Smart::Comments::Any::_quiet_eval(q{[$1]}));$DBX}gmx;
+	 {Smart::Comments::Any::Dump(pref=>q{$1:},var=>Smart::Comments::Any::_quiet_eval(q{[$1]}));$DBX}gmx;
 
 # This doesn't work as expected, don't know why
 # If re-enabled, must fix the warn() -- remember that caller won't have $outfh
@@ -514,9 +514,9 @@ FILTER {
 
 # This is never needed; for some reason it's caught by "unlabeled expression"
 #	# Anything else is a literal string to be printed...
-#	# Inserts call to _Dump()
+#	# Inserts call to Dump()
 #	s{ ^ $hws* $intro $hws* (.*) }
-#	 {Smart::Comments::Any::_Dump(pref=>q{$1});$DBX}gmx;
+#	 {Smart::Comments::Any::Dump(pref=>q{$1});$DBX}gmx;
 }; 
 ######## /FILTER ########
 
@@ -546,7 +546,7 @@ sub import {
 
 ######## EXTERNAL ROUTINE ########
 #
-#	_Dump( _quiet_eval($codestring) );		# string eval, no errors
+#	Dump( _quiet_eval($codestring) );		# string eval, no errors
 #		
 # Purpose  : String eval some code and suppress any errors
 # Parms    : $codestring	: Arbitrary client code
@@ -595,7 +595,7 @@ sub _uniq {
 sub _decode_assert {
 	my ($assertion, $signal_flag) = @_;
 
-	my $dump 		= 'Smart::Comments::Any::_Dump';
+	my $dump 		= 'Smart::Comments::Any::Dump';
 	my $print_this 	= 'Smart::Comments::Any::_print_this';
 	my $warn_this 	= 'Smart::Comments::Any::_warn_this';
 
@@ -641,7 +641,7 @@ sub _decode_assert {
 # Returns  : Replacement code string
 # Writes   : $ID
 # Throws   : never
-# See also : _for_progress()
+# See also : for_progress()
 # 
 sub _decode_for {
 	my ($for, $range, $mesg) = @_;
@@ -653,7 +653,7 @@ sub _decode_for {
 	return 	qq<my \$not_first__$ID;>
 		.	qq<$for (my \@SmartComments__range__$ID = $range)>
 		.	qq<{>		# closing brace found somewhere in client code
-		.	qq<Smart::Comments::Any::_for_progress(>
+		.	qq<Smart::Comments::Any::for_progress(>
 		.		qq<qq{$mesg},>
 		.		qq<\$not_first__$ID,>
 		.		qq<\\\@SmartComments__range__$ID>
@@ -673,7 +673,7 @@ sub _decode_for {
 # Returns  : Replacement code string
 # Writes    : $ID
 # Throws    : ____
-# See also  : _while_progress()
+# See also  : while_progress()
 # 
 sub _decode_while {
 	my ($while, $mesg) = @_;
@@ -685,7 +685,7 @@ sub _decode_while {
 	return 	qq<my \$not_first__$ID;>
 		.	qq<$while>
 		.	qq<{>		# closing brace found somewhere in client code
-		.	qq<Smart::Comments::Any::_while_progress(>
+		.	qq<Smart::Comments::Any::while_progress(>
 		.		qq<qq{$mesg},>
 		.		qq<\\\$not_first__$ID>
 		.	qq<);>
@@ -791,7 +791,7 @@ sub _prog_pat {
 
 ######## EXTERNAL ROUTINE ########
 #
-#	_for_progress();		# short
+#	for_progress();		# short
 #		
 # Purpose  : ____
 # Parms    : ____
@@ -803,7 +803,7 @@ sub _prog_pat {
 # 
 # Animate the progress bar of a for loop...
 #	
-sub _for_progress {
+sub for_progress {
 	my ($mesg, $not_first, $data) = @_;
 	my ($at, $max, $elapsed, $remaining, $fraction);
 	
@@ -898,11 +898,11 @@ sub _for_progress {
 		print $outfh "\r", " "x$maxwidth, "\n" if $at >= $max;
 	}
 };
-######## /_for_progress ########
+######## /for_progress ########
 
 ######## EXTERNAL ROUTINE ########
 #
-#	_while_progress();		# short
+#	while_progress();		# short
 #		
 # Purpose  : ____
 # Parms    : ____
@@ -914,7 +914,7 @@ sub _for_progress {
 # 
 # Animate the progress bar of a while loop...
 #	
-sub _while_progress {
+sub while_progress {
 	my ($mesg, $not_first_ref) = @_;
 	my $at;
 
@@ -964,7 +964,7 @@ sub _while_progress {
 					 $right;
 	}
 };
-######## /_while_progress ########
+######## /while_progress ########
 
 ######## EXTERNAL ROUTINE ########
 #
@@ -1029,7 +1029,7 @@ sub _warn_this {
 # Returns  : 1
 # Writes   : %state_of
 # Throws   : dies if called with unknown caller
-# See also : _spacer_required(), _Dump()
+# See also : _spacer_required(), Dump()
 # 
 # This stores not $outfh itself 
 #	but the current state of output to it, sort of. 
@@ -1066,7 +1066,7 @@ sub _set_state {
 # Returns  : Boolean: TRUE to prepend a newline to output
 # Writes   : ____
 # Throws   : ____
-# See also : _Dump, %state_of; (the file) notes/musings
+# See also : Dump, %state_of; (the file) notes/musings
 # 
 # Vanilla S::C compared both previous tell()-s of STDOUT and STDERR
 #	before deciding to print a prophylactic newline, even though Vanilla
@@ -1135,7 +1135,7 @@ sub _spacer_required {
 
 ######## EXTERNAL ROUTINE ########
 #
-#	_Dump();		# short
+#	Dump();		# short
 #		
 # Purpose  : Dump a variable (any variable?)
 # Parms    : ____
@@ -1147,15 +1147,15 @@ sub _spacer_required {
 # 
 # Dump a variable and then reformat the resulting string more prettily...
 #	
-sub _Dump {
+sub Dump {
 	
 	my @caller 			= caller;		# called by replacement code
 	my $caller_name		= $caller[0];
 	my $caller_file		= $caller[1];
 	my $caller_line		= $caller[2];
 	my $outfh			= _get_outfh($caller_name);	# get from %state_of
-#say $outfh '... Entering _Dump() ...';
-#say STDERR '... Entering _Dump() ...';
+#say $outfh '... Entering Dump() ...';
+#say STDERR '... Entering Dump() ...';
 #say STDERR '$outfh: ', $outfh;	
 #say $outfh '... @caller: ', 			  "\n"
 #		,  '...          ', $caller_name, "\n"
@@ -1221,7 +1221,7 @@ sub _Dump {
 	print $outfh "### $pref $dumped\n";
 	_set_state(@caller);
 };
-######## /_Dump ########
+######## /Dump ########
 
 
 #############################
