@@ -1231,7 +1231,7 @@ __END__
 
 =head1 NAME
 
-Smart::Comments::Any - Smart comments that print to any filehandle
+Smart::Comments::Any - Smart Comments that print anywhere
 
 
 =head1 VERSION
@@ -1241,59 +1241,296 @@ This document describes Smart::Comments::Any version 1.0.4
 
 =head1 SYNOPSIS
 
-	use Smart::Comments::Any;					# acts just like Smart::Comments
-	use Smart::Comments::Any '###';				# acts just like Smart::Comments
-	use Smart::Comments::Any *STDERR, '###';	# same thing
-	
-	use Smart::Comments::Any $fh, '###';		# prints to $fh instead
-	use Smart::Comments::Any *FH, '###';		# prints to FH instead
-	
-	BEGIN {								# one way to get $fh open early enough
-		my $filename	= 'mylog.txt';
-		open my $fh, '>', $filename
-			or die "Couldn't open $filename to write", $!;
-		use Smart::Comments::Any $fh;
-	}
-	  
-	BEGIN {								# or store $::fh for later use
-		my $filename	= 'mylog.txt';
-		open my $::fh, '>', $filename
-			or die "Couldn't open $filename to write", $!;
-	}
-	use Smart::Comments::Any $::fh;
-	{...}	# do some work
-	close $::fh;
-	  
+    use Smart::Comments::Any LOG, '###';        # recommended
+
+    use Smart::Comments::Any ({                 # if you want the filehandle
+        -fh             => $::outfh,            # undefined package scalar
+        -log            => 1,                   # appends to "$0.log"
+        -level          => 3,                   # same as '###'
+    });     
+
+    use Smart::Comments::Any;                   # acts just like Smart::Comments
+    use Smart::Comments::Any '###';             # acts just like Smart::Comments
+    use Smart::Comments::Any *STDERR, '###';    # same thing
+    
+    use Smart::Comments::Any $fh;               # prints to $fh instead
+    use Smart::Comments::Any *FH;               # prints to FH instead
+
+    use Smart::Comments::Any 'my/log.txt';      # opens file and prints to it
+    use Smart::Comments::Any LOG;               # appends to "$0.log"
+    
+    use Smart::Comments::Any ({                 # hashref call
+        -fh             => *STDERR,             # filehandle
+        -file           => 'my/log',            # filename
+        -log            => 1,                   # appends to "$0.log"
+        -env            => 1,                   # heed $ENV{Smart_Comments}
+        -level          => 3,                   # same as '###'
+        -level          => [3, 5],              # same as '###', '#####'
+        -append         => 1,                   # appends instead of truncating
+    }); 
+    
+      
 =head1 DESCRIPTION
 
 L<Smart::Comments> works well for those who debug with print statements. 
 However, it always prints to STDERR. This doesn't work so well when STDERR 
-is being captured and tested. 
+is being captured and tested. Besides, you might want a more permanent log of 
+smart output. 
 
 Smart::Comments::Any acts like Smart::Comments, except that 
-if a filehandle is passed in the use statement, output will go there instead. 
+output can be sent to other destinations. 
 
 Please see L<Smart::Comments> for major documentation. 
-Smart::Comments::Any version x.x.x is a modified copy 
+Smart::Comments::Any version 1.0.4 is a modification 
 of the same version of Smart::Comments. 
 
 =head1 INTERFACE 
 
-=head2 $fh, *FH
+=head2 The C<use> Line Flat List
 
-The use statement accepts a valid filehandle as its first argument. 
+Because this is a source filter, most work is done at the time the module is
+loaded via use C<Smart::Comments::Any>. If called with vanilla Smart::Comments 
+arguments, ::Any will behave the same; it's a drop-in replacement. 
+
+Besides the vanilla C<'###'>, etc. and C<-ENV> arguments, ::Any accepts 
+filehandles, filenames, and a hashref supplying any or all argument values. 
+
+=head3 $fh, *FH
+
+I<see -fh>
+
+The use statement accepts an open, writable filehandle as an argument. 
 Caller must do whatever is needed to manage that filehandle, 
 such as opening and perhaps closing it. 
 
-Note that this module, being a source filter, does its work when 
-it is used: effectively, within a BEGIN block. Therefore, this filehandle
-must be opened within a BEGIN block prior to the use line. If caller needs 
+Note that modules are used, effectively, within a BEGIN block. 
+Therefore, your filehandle must be opened within a BEGIN block prior to 
+(or including) the use line. If caller needs 
 to do anything else with that filehandle, it might as well be stored 
 in a package variable (since source filtering is global anyway). Otherwise, 
-enclose the open and the use line in the same BEGIN block. 
+you can enclose the open and the use line in the same BEGIN block. 
 
 The filehandle must be opened, obviously, in some writable mode.  
 
+    BEGIN {                             # one way to get $fh open early enough
+        my $filename    = 'mylog.txt';
+        open my $fh, '>', $filename
+            or die "Couldn't open $filename to write", $!;
+        use Smart::Comments::Any $fh;
+    }
+      
+    BEGIN {                             # or store $::fh for later use
+        my $filename    = 'mylog.txt';
+        open my $::fh, '>', $filename
+            or die "Couldn't open $filename to write", $!;
+    }
+    use Smart::Comments::Any $::fh;
+    {...}   # do some work
+    ### $some_variable
+    print {$::fh} 'Some message...';
+    close $::fh;                        # only after the last smart comment
+
+=head3 $filename
+
+I<see -file>
+
+You can pass a filename as an argument. Smart::Comments::Any will open the 
+file for you and direct smart output to it. There's an issue here in that
+a filename might be just about any string; so we assume any 
+otherwise-unrecognized argument to be a filename. Also, if you've 
+chosen a peculiar filename such as '###' or '-ENV', there's going to be confusion. 
+
+=head3 ###, ####, #####, etc.
+
+I<see -level>
+
+As they do in vanilla Smart::Comments, these arguments set the number of 
+octothorpes that may precede a smart comment. If no octothorpes appear on the 
+use line and C<-level> is undefined, then B<all> initial sequences of 3 or more
+octothorpes will introduce a smart comment. 
+
+=head3 LOG
+
+I<see -log>
+
+Pass this in the flat list to print smart output to a file named C<"$0.log">, 
+where C<$0> (might be) is the name of your script.  
+
+=head2 The C<use> Line Hashref
+
+Alternatively, you can pass in a reference to a hash, with keys literal 
+and values corresponding to various arguments. Hash keys are introduced 
+by a single dash: 
+
+=head3 -file
+
+Value can be any filename or path, relative or fully qualified. The file will 
+be created if it doesn't exist, truncated by default, opened for writing, 
+and set to autoflush. All directory components must exist. 
+
+Until your entire program ends, there's no way to be sure that caller won't 
+come into scope (say, a sub called from some other script or module). So ::Any 
+can't do an explicit close(). That shouldn't be a problem, since Perl will 
+close the filehandle when program terminates. If you need to do something 
+differently, supply a filehandle and manage it yourself. 
+
+=head3 -append
+
+Flag; if true, the smart output file will be opened in append mode ('>>') 
+instead of being truncated. Use this with a supplied filename. Ignored if only 
+a filehandle is passed. Reset to a false value to open the file in 
+truncate-then-write mode ('>'); this is the default except when C<-log> is set. 
+
+=head3 -log
+
+Flag; if true, equivalent to C<{file => $0.log, -append => 1}>. You might want 
+to do this in conjunction with, somewhere early in your script: 
+
+    ### <now><here>
+
+=head3 -fh
+
+Value must be a filehandle or indirect filehandle. 
+
+If no filename is also supplied, then the filehandle must be opened for writing. 
+::Any will not do 
+anything special to the filehandle but will print all smart output to it. 
+
+If a filename is supplied as well as a filehandle, then the supplied filehandle
+will be associated with the file, so you can do stuff yourself with the filehandle: 
+
+    BEGIN {                             # "exports"
+        my $filename    = 'mylog.txt';
+        my $::fh;
+        use Smart::Comments::Any ({
+            -file   => $filename,
+            -fh     => $::fh;
+        });
+    }
+    {...}   # do some work
+    ### $some_variable
+    print {$::fh} 'Some message...';
+    close $::fh;                        # only after the last smart comment
+
+=head3 -level
+
+Vanilla accepts arguments like '###', '####', and so forth. If none are given, 
+then all comments introduced with 3 or more octothorpes are considered smart. 
+Otherwise, only those comments introduced with a matching quantity are smart: 
+
+    use Smart::Comments::Any '###', '#####'; 
+    ### This is smart.
+    #### This is dumb.
+    ##### This is also smart. 
+
+::Any will do this too. Or, you can pass an integer or a list of integers: 
+    
+    use Smart::Comments::Any ({-level => [3, 5] }); 
+    ### This is smart.
+    #### This is dumb.
+    ##### This is also smart. 
+    
+If you define C<-level => 0>, to C<[0]>, or to C<[]>, then all comments will 
+be dumb. But if C<-level => undef> or doesn't exist at all, then all comments 
+(introduced by 3 or more) will be smart. Remember, though, that multiple level 
+specifications are cummulative. 
+
+A level of 1 or 2 simply doesn't work. So don't do that. 
+
+=head3 -env
+
+Yet another way of specifying arguments (besides as a list or hashref 
+in the use line) is to pass them in the environment variable 
+C<$ENV{Smart_Comments}>. But to enable this, you must pass C<-ENV> in the use line 
+or define C<-env> in a hashref passed in the use line. 
+
+Don't try to pass a hashref inside of the environment variable; 
+you won't like the result.
+
+=head2 Mixed and Redefined Calling
+
+If you manage to pass different values for the same thing more than once, 
+the last of these will override: 
+
+=over
+
+=item *
+
+Passed in a hashref value
+
+=item *
+
+Passed in the use line flat list (overrides hashref)
+
+=item *
+
+Passed in the environment variable (overrides hashref and flat list)
+
+=back
+
+The overriding will be complete, except in the case that the output level is 
+set more than once ('###' or -level syntax); then all of the levels specified 
+will be smart (logical OR). 
+
+=head1 SCOPE, STATE, OUTPUT REGIMES
+
+::Any may be called more than once in the same program, e.g., from two 
+different loaded modules. As does Vanilla, ::Any has effect until the end of 
+the file or a C<no Smart::Comments::Any> line (which must be the first thing 
+on its line). If used again, ::Any will parse the new use line and apply it to 
+your source code from there on out. 
+
+This required no special logic in Vanilla; the filter is applied once per use 
+and although multiple modules might call S::C routines from within filtered 
+code, all output went to STDERR. But multiple uses of ::Any may choose 
+different output regimes. So state information is stored for each caller. 
+
+If you supply a filehandle (other than STDOUT or STDERR), your (filtered) 
+code will need that later to print smart output where you want it to go. If you 
+supply a package variable as an indirect filehandle (such as C<$My::Module::fh>), 
+then all is well. If you supply a lexical (C<my>) variable, ::Any will still 
+work, even after it goes out of scope in your package, because a reference is 
+stored in ::Any's namespace. But by the same token, don't expect it to be 
+garbage-collected. You may as well use a package "global" variable, since 
+source filtering is pretty much a global operation anyway. 
+
+If you pass a filename but no filehandle, you'll get smart output but you won't
+have any way to write directly to the file (should you take that notion). Not 
+recommended to open the file again within your script, although that might work. 
+
+If you supply a filename I<and> a filehandle, then your filehandle will be 
+associated with the file. Peculiar things may happen if that filehandle is 
+previously defined; you were warned. Recommended to pass an undefined scalar, 
+which you can use, if you choose, to print directly from within your script. 
+
+You might well reuse the same file for smart output from several modules; if so, 
+you probably want to preserve it from use to use. 
+So C<use Smart::Comments::Any ({-file => 'my/log', -append => 1});> in each,
+or simply C<use Smart::Comments::Any LOG>. 
+
+=head1 ASSERTIONS
+
+Assertions defined with one of the words C<[require|assert|ensure|insist]> 
+will C<die()> under both Vanilla and ::Any. Assertions defined with 
+C<[check|confirm|verify]> raise a warning in Vanilla, which of course prints 
+to STDERR. In ::Any, these print to whatever's been chosen for smart output 
+and the C<warn()> is simulated. 
+
+=head1 PROGRESS BARS
+
+Progress bars can be generated by putting certain types of smart comment 
+trailing the first line of some loops: 
+
+    use Smart::Comments::Any;    ### praying...       done
+    foreach (@monk) {
+        pray($_);
+    };
+
+Both Vanilla and ::Any animate the progress bar by printing the C<"\r"> 
+character and wiping the line with spaces. This is unchanged when smart output
+goes to a disk file. Depending on your method of reading that file, you may see
+multiple lines or nothing at all. But if, for some reason, the loop aborts, you 
+may see how far along it got. 
 
 =head1 DIAGNOSTICS
 
