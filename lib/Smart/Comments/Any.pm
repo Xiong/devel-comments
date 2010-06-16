@@ -501,9 +501,9 @@ FILTER {
 	 {Smart::Comments::Any::Dump(pref=>qq{$1});$DBX}gmx;
 
 	# Dump an unlabelled expression (the expression is used as the label)...
-	# Inserts call to Dump() and call to _quiet_eval()
+	# Inserts call to Dump() and call to quiet_eval()
 	s{ ^ $hws* $intro $hws* (.*) $optcolon $hws* $ }
-	 {Smart::Comments::Any::Dump(pref=>q{$1:},var=>Smart::Comments::Any::_quiet_eval(q{[$1]}));$DBX}gmx;
+	 {Smart::Comments::Any::Dump(pref=>q{$1:},var=>Smart::Comments::Any::quiet_eval(q{[$1]}));$DBX}gmx;
 
 # This doesn't work as expected, don't know why
 # If re-enabled, must fix the warn() -- remember that caller won't have $outfh
@@ -546,19 +546,19 @@ sub import {
 
 ######## EXTERNAL ROUTINE ########
 #
-#	Dump( _quiet_eval($codestring) );		# string eval, no errors
+#	$return		= quiet_eval($codestring);		# string eval, no errors
 #		
 # Purpose  : String eval some code and suppress any errors
 # Parms    : $codestring	: Arbitrary client code
 # Reads, Returns, Writes  	: Whatever client code does
-# Throws   : nothing, ever
+# Throws   : never, ever
 # See also : FILTER # Dump an unlabelled expression
 #	
-sub _quiet_eval {
+sub quiet_eval {
 	local $SIG{__WARN__} = sub{};
 	return scalar eval shift;
 };
-######## /_quiet_eval ########
+######## /quiet_eval ########
 
 ######## INTERNAL ROUTINE ########
 #
@@ -596,13 +596,13 @@ sub _decode_assert {
 	my ($assertion, $signal_flag) = @_;
 
 	my $dump 		= 'Smart::Comments::Any::Dump';
-	my $print_this 	= 'Smart::Comments::Any::_print_this';
-	my $warn_this 	= 'Smart::Comments::Any::_warn_this';
+	my $print_this 	= 'Smart::Comments::Any::print_this';
+	my $warn_this 	= 'Smart::Comments::Any::warn_this';
 
 	# Choose the right signalling mechanism...
 	my $signal_code = $signal_flag 
-					? 'die "\n"' 
-					: qq<$print_this( "\n" )>
+					? 'die "\n"' 				# sim warn first, then real die
+					: qq<$print_this( "\n" )>	# sim warn first, then newline
 					;
 
 	# Extract variables from assertion and enreference any arrays or hashes...
@@ -968,7 +968,7 @@ sub while_progress {
 
 ######## EXTERNAL ROUTINE ########
 #
-#	_print_this(@args);		# short
+#	print_this(@args);		# short
 #		
 # Purpose  : Print @args to caller's chosen $outfh
 # Parms    : @args (any printable list)
@@ -976,12 +976,12 @@ sub while_progress {
 # Returns  : 1
 # Writes   : to $outfh
 # Throws   : ____
-# See also : _warn_this(), _decode_assert()
+# See also : warn_this(), _decode_assert()
 # 
 # Call this only from within replacement code. 
 # If called by another our-module routine, it will get the wrong stack frame. 
 # 
-sub _print_this {
+sub print_this {
 	my @caller 			= caller;		# called by replacement code
 	my $caller_name		= $caller[0];
 	my $outfh			= _get_outfh($caller_name);	# get from %state_of
@@ -989,11 +989,11 @@ sub _print_this {
 	print $outfh @_;
 	return 1;
 };
-######## /_print_this ########
+######## /print_this ########
 
 ######## EXTERNAL ROUTINE ########
 #
-#	_warn_this(@args);		# short
+#	warn_this(@args);		# short
 #		
 # Purpose  : Print @args *and* $file, $line to caller's chosen $outfh
 #		   :	as if it were warn().
@@ -1002,12 +1002,12 @@ sub _print_this {
 # Returns  : 1
 # Writes   : to $outfh
 # Throws   : ____
-# See also : _print_this(), _decode_assert()
+# See also : print_this(), _decode_assert()
 # 
 # Call this only from within replacement code. 
 # If called by another our-module routine, it will get the wrong stack frame. 
 # 
-sub _warn_this {
+sub warn_this {
 	my @caller 			= caller;		# called by replacement code
 	my $caller_name		= $caller[0];
 	my $caller_file		= $caller[1];
@@ -1017,7 +1017,7 @@ sub _warn_this {
 	print $outfh @_, " at $caller_file line $caller_line.\n";
 	return 1;
 };
-######## /_warn_this ########
+######## /warn_this ########
 
 ######## INTERNAL ROUTINE ########
 #
@@ -1185,9 +1185,7 @@ sub Dump {
 	# Handle a prefix with no actual variable...
 	if ($pref && !defined $varref) {
 		$pref =~ s/:$//;
-# 		print $outfh "*1\n" if $spacer_required;
 		print $outfh "\n" if $spacer_required;
-# 		print $outfh "!### $pref!\n!";
 		print $outfh "### $pref\n";
 		_set_state(@caller);
 		return;
@@ -1216,7 +1214,6 @@ sub Dump {
 	$dumped =~ s/^[ ]{$indent}([ ]*)/### $outdent$1/gm;
 
 	# Print the message...
-# 	print $outfh "*2\n" if $spacer_required;
 	print $outfh "\n" if $spacer_required;
 	print $outfh "### $pref $dumped\n";
 	_set_state(@caller);
