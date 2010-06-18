@@ -72,6 +72,12 @@ $self->{-capture}{-stderr}->start();		# STDERR captured
 $self->{-capture}{-stdout}->stop();			# not captured
 $self->{-capture}{-stderr}->stop();			# not captured
 
+# Test for and report any eval error
+$subname		= join q{}, $name, q{-evalerr};
+$test_counter++;
+ok( !$self->{-got}{-evalerr}, $subname );
+diag("Eval error: $self->{-got}{-evalerr}") if $self->{-got}{-evalerr};
+
 # define Test::Hump-ish subtests
 my $do_cap_string	= sub {				# exact string eq STD*
 	my $stdwhat		= shift;			# '-stdout' or '-stderr'
