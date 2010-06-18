@@ -32,6 +32,8 @@ use Smart::Comments::Any ({ -file => $::out_filename });
 ### One
 ### Two
 
+#~ my @caller = Smart::Comments::Any::_get_caller();
+#~ ### @caller
 
 my $data_structure 	= {
     a => [ 1, 2, 3 ],
