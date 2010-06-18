@@ -20,3 +20,30 @@ for (0..$max) {			### Teddy::for2 |===[%]    |
 
 
 	. qq{\n}	# decline gratuitous newline unless $outfh eq *STDERR
+
+
+#say $outfh '... Entering _init_state() ...';
+#say $outfh '... @filter_caller: ', 			     "\n"
+#		,  '...                 ', $caller_name, "\n"
+#		,  '...                 ', $caller_file, "\n" 
+#		,  '...                 ', $caller_line, "\n" 
+#		;
+#say $outfh '$outfh: ', $outfh;	
+	
+#my $varref = \%state_of;
+#local $Data::Dumper::Quotekeys = 0;
+#local $Data::Dumper::Sortkeys  = 1;
+#local $Data::Dumper::Indent	= 2;
+#my $dumped = Dumper $varref;
+#say $outfh 'Leaving _init_state():';
+#say $outfh $dumped;
+
+	# Dump all caller info on all stack frames...
+    $i = 0;
+    while (($package, $filename, $line, $subroutine,
+            $hasargs, $wantarray, $evaltext, $is_require,
+            $hints, $bitmask) = caller($i++) )
+    {
+        ...
+    }
+

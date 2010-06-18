@@ -43,7 +43,12 @@ Conway is clever; I don't imagine myself a spot of tar on his shoe. One might wi
 
 Xiong Changnian		2010-06-10 00:49:02
 
+= Regexes =
 
+Actual source filtering is done by means of regexs binding to $_ of form: 
 
+	s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
+     {Smart::Comments::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
 
+When did we start being so thrifty with source code bytes? I sense a state of mind like "It's replacement code, it will never be seen; for efficiency, let's eliminate all unnecessary whitespace." But it *is* code and it *is* seen, right there in the module. All of the reasons why we write clean code apply. 
 

@@ -40,7 +40,7 @@ Are these bugs or features:
 
 	### Hello!
 
-... is caught earlier; so I've commented this out, too. Will this bite me later? Again, none of Conway's tests fail without it. 
+... is caught earlier; so I've commented this out, too. Will this bite me later? Again, none of Conway's tests fail with it out. 
 
 * POD claims that *any* valid Perl expression can be smart-dumped but I've had no luck with: 
 
@@ -57,9 +57,17 @@ But this works as expected:
 	# Automagic debugging as well...
 	my $DBX = '$DB::single = $DB::single = 1;';
 
-...and I cannot imagine what this might do when inserted into client code. It has the smell of vaporware. 
+...and I cannot imagine what this might do when inserted into client code. 
+
+Update: This turns out to have something to do with the Perl debugger; I think it inserts a breakpoint. Still can't think why the double assignment...
 
 * Nested loops with progress bars simply don't work. Only the inner loop outputs a progress bar. I don't know if this is right but I can't see offhand how it might be done better. Frankly, I'm not much for this feature anyway. (If I intend to write code that loops for a human-long time, I feel I ought to offer a permanent progress indicator.)
+
+* POD tells user to end any text-only smart comment in three dots: 
+
+	### Hello...
+	
+	... but the fact is that the dots aren't necessary. The only time dots mean anything is in a simple progress bar syntax. 
 
 = State =
 
@@ -69,6 +77,46 @@ I'm not sure what Conway had in mind about state info; it often seems as if S::C
 
 But ::Any *must* take state seriously; multiple callers during a single run might 'use Smart::Comments::Any' with different $outfh. 
 
+* Where to store the filehandle itself? 
+
+	# At first, I thought to stash the filehandle in caller's package global space. This is clever but requires to run under no strict 'refs' and possibly no warnings; it's a symbolic reference. I believe [bart] gets credit for this. 
+
+	my $ns                         = 'Teddy::Bear';
+	${ *{${ns} . '::foo'} }        = $cram;
+	$yank                          = ${ *{"${ns}\::foo"} };
+	
+	# Then [almut] proposed a similar form. This neither is a symbolic reference nor raises a warning; but it cannot handle arbitrary package names. The example works because 'Teddy' is only a top-level namespace. 
+	
+	$ns                            = 'Teddy::';
+	${ $::{$ns}{foo} }             = $cram;
+	$yank                          = ${ $::{$ns}{foo} };
+	
+	* So, I went to stashing -- er, storing -- inside S::C::Any itself, in the lexical pseudo-global %state_of, as $state_of{$caller_name}{-outfh}. This appeared to work at first but then not. 0220-sc-any-25-href-file.t failed; nothing seemed to be written to the given logfile. I tried many things. Eventually, I just command-line cat the logfile and presto, output is as expected. The fault is where? 
+	
+		! The logfile is a block buffered device and S::C doesn't close it explicitly, of course, since we don't know for sure when we're done with it. When we open it for reading inside .t, the buffer hasn't been written out yet. We need to set autoflushing on $outfh from go. 
+	
+* How to retrieve $outfh at need? 
+
+	This turns out to raise points about the previous question: where to store. If $outfh is stored as $state_of{$caller_name}{-outfh} then $caller_name must be found before doing any output. If all code that prints smart output (since it's probably going to a disk file) should be checked for error, it makes sense to define a print_for(). But then: 
+	
+		If print_for() is called from within client code, 
+			caller(0)[0] contains $caller_name.
+		If print_for() is called from within another ::Any routine, 
+			caller(1)[0] contains $caller_name.
+	
+	... and meanwhile there's still the clumsy _set_filter_caller() (or is it _get_filter_caller?). 
+	
+	Meanwhile, I'm seriously starting to wonder if it's right to set state according to __PACKAGE__, rather than to __FILE__. After all, I suspect that Filter::Simple will pass the remainder of the file, not cross file boundaries to pass the rest of the package, which conceivably isn't even known at "compile-time". Filter::Simple's POD strongly suggests this (toward its end). Vanilla Smart::Comments POD is silent. 
+	
+	For a moment there, I was leaning back toward [bart]'s symref stash-in-package-variable solution. But that doesn't play well with storing state according to filtered __FILE__! 
+	
+!!	Now, I'm thinking more of changing the nature of replacement code itself. If each time ::Any is called it increments, say, $caller_id, and inserts that *value*, literally, into each call to an external routine that prints (directly or more neatly, via print_for), then the filtered source code itself keeps track of which $outfh was intended for its smart output. It's not really necessary even to think about which file or package that may be. 
+	
+	Then the primary key to %state_of is $caller_id. The literal value can be interpolated at filter time as "$caller_id". 
+	
+	The more I think about the likelihood of disaster attendant upon keying off $caller_name -- however obtained -- the better this seems. 
+		
+	
 = ::Log =
 
 Complexity of calling ::Any from yet another module -- who is caller? -- leads me to reject the idea of ::Log. Let's do it all within ::Any. One Juggernaut is enough. 
@@ -96,28 +144,19 @@ It's coming clear to me -- dimly -- that a variable-type filehandle (e.g., $fh) 
 	# The q{_} filehandle can be used for file test operators to return info on the current stat buffer without doing another system call: 
 	if (-s) > 100_000 and -A _ > 90;     # -s on $_ (slow); -A on buffer (fast)
 	
-	"...references to typeglobs can't be usefully returned from functions."
-		-- Perl Cookbook 7.16		(Wait, What??)
+* Caution not to attempt to pass FH as a string: 
+		Strings ("LOGFILE" instead of *LOGFILE) require special finessing to work between packages, and references to typeglobs can't be usefully returned from functions.
+			-- Perl Cookbook 7.16
 	
-* The other main issue here is where to store the filehandle itself. 
+* To test filehandle equivalence, test == for fileno($fh):
 
-	# At first, I thought to stash the filehandle in caller's package global space. This is clever but requires to run under no strict 'refs' and possibly no warnings; it's a symbolic reference. I believe [bart] gets credit for this. 
+	if ( fileno $fh == fileno *STDERR ) {...};	# IN == 0, OUT == 1, ERR == 2
 
-	my $ns                         = 'Teddy::Bear';
-	${ *{${ns} . '::foo'} }        = $cram;
-	$yank                          = ${ *{"${ns}\::foo"} };
+	These can change, though, so test correctly; don't test against literal 2. 
 	
-	# Then [almut] proposed a similar form. This neither is a symbolic reference nor raises a warning; but it cannot handle arbitrary package names. The example works because 'Teddy' is only a top-level namespace. 
+* Do tilde expansion on passed-in filenames: 
 	
-	$ns                            = 'Teddy::';
-	${ $::{$ns}{foo} }             = $cram;
-	$yank                          = ${ $::{$ns}{foo} };
-	
-	* So, I went to stashing -- er, storing -- inside S::C::Any itself, in the lexical pseudo-global %state_of, as $state_of{$caller_name}{-outfh}. This appeared to work at first but then not. 0220-sc-any-25-href-file.t failed; nothing seemed to be written to the given logfile. I tried many things. Eventually, I just command-line cat the logfile and presto, output is as expected. The fault is where? 
-	
-		! The logfile is a block buffered device and S::C doesn't close it explicitly, of course, since we don't know for sure when we're done with it. When we open it for reading inside .t, the buffer hasn't been written out yet. We need to set autoflushing on $outfh from go. 
+	open(MAILRC, (glob("~/.mailrc"))[0])     # expand tilde first
+		or die "can't open ~/.mailrc: $!";
 	
 	
-
-
-
