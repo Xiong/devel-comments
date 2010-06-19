@@ -35,7 +35,7 @@ my $expected		;
 my $subname			;
 
 # setup Test::Hump-ish
-my $name			= 'sc-any-load-deep';
+my $name			= 'sc-any-tostdout';
 
 my $self	= {
 	
