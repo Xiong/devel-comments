@@ -8,46 +8,44 @@ use lib qw{
 
 use Test::More tests => 1;
 
-#~ BEGIN {
-#~ #= 	eval { use_ok( 'Smart::Comments::Any' ) };
-#~ 	use_ok( 'Smart::Comments::Any' );
-#~ }
-#~ 
-#~ BEGIN {
-#~ 	eval { use Smart::Comments::Any; };
-#~ }
-#~ 
-#~ BEGIN {
-#~ 	BAIL_OUT( q[Couldn't use module; can't continue.] ) if $@;
-#~ }
+# Allow testing of various modules with one test script.
+BEGIN {
+	%::MUDH	= (
+		1		=> 'Smart::Comments::Any',
+		2		=> 'Smart::Comments',
+		
+	);
+	$::MUDH{0}	= $::MUDH{1};	# we're not fussy
+}
 
+# Catch fatal errors and report them. 
 BEGIN {
 	$SIG{__DIE__}	= sub {
 		warn @_;
 		BAIL_OUT( q[Couldn't use module; can't continue.] );	
-		
 	};
 }	
 
+# Decide which module to load.
+# Choose module number with: prove [-options] [dirs|files] :: 2 
 BEGIN {
-	use Smart::Comments::Any;
-#~ 	use_ok( 'Smart::Comments::Any' );
+	if ($ARGV[0]) 	{ $::MUDX	= $::MUDH{$ARGV[0]} } 
+	else 			{ $::MUDX	= $::MUDH{0} };
+	
+	$::MUD		= $::MUDX;		# save original string for report and symref
+	$::MUDX		=~ s{::}{/}g;	# replace pathpart separators !UNIX ONLY SORRY!
+	$::MUDX		.= q{.pm};		# append standard perl module file extension
 }
 
-pass( 'Load module.' );
+# Simulate use().
+BEGIN {
+	require $::MUDX;			
+#	import  $::MUDX	();			# empty list supresses import or supply a list
+}
 
-#~ eval { use Smart::Comments::Any; };
-#~ BAIL_OUT( q[Couldn't use module; can't continue.] ) if $@;
-diag( "Testing Smart::Comments::Any $Smart::Comments::Any::VERSION" );
+# Getting this far is a pass. 
+pass(  q[load-module] );
+diag( qq[Testing $MUD ${"$MUD\::VERSION"}] );	# comment out if more testing
 
-#= BEGIN {
-#= #~ 	use Smart::Comments;
-#= 	use_ok( 'Smart::Comments' );
-#= }
-#= 
-#= 
-#= #~ eval { use Smart::Comments; };
-#= BAIL_OUT( q[Couldn't use module; can't continue.] ) if $@;
-#= diag( "Testing Smart::Comments $Smart::Comments::VERSION" );
-
-
+# NOTE (Camel): 
+# use() eq BEGIN { require MODULE; import MODULE LIST; }
