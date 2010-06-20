@@ -4,9 +4,6 @@ use lib qw{
 	      lib
 	   ../lib
 	../../lib
-	      run/t
-	   ../run/t
-	../../run/t
 };
 
 use Test::More tests => 1;
