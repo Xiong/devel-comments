@@ -18,11 +18,15 @@ use Text::Balanced 				# Extract delimited text sequences from strings
 use Data::Dumper 'Dumper';
 
 # debug only
+
+$DB::single=1;
 use feature 'say';				# disable in production; debug only
 #~ use Smart::Comments '###';		# playing with fire;     debug only
 #~ use Smart::Comments '#####';		# playing with fire;     debug only
 
 ######## / use ########
+
+say '---| Smart::Comments::Any at line ', __LINE__;
 
 ######## pseudo-constants section ########
 
@@ -317,6 +321,8 @@ sub _init_state {
 # 
 sub _prefilter {
 	
+say '---| Smart::Comments::Any at line ', __LINE__;
+	
 	shift;							# Don't need our own package name
 	s/\r\n/\n/g;  					# Handle win32 line endings
 	
@@ -486,12 +492,13 @@ sub import;		# FORWARD
 # 
 # See "How it works" in Filter::Simple's POD. 
 # 
-sub FILTERx;	# dummy sub only to appear in editor's symbol table
+sub FILTERx {};	# dummy sub only to appear in editor's symbol table
 #
 FILTER {
+	##### |--- Start of filter ---|
 	##### @_
 	##### $_
-	
+say "---| Source to be filtered:\n", $_, '|--- END SOURCE CODE';
 	
 	my $prefilter		= _prefilter(@_);		# Handle arguments to FILTER
 	return 0 if !$prefilter;	   				# i.e. if no filtering ABORT
@@ -506,7 +513,7 @@ FILTER {
 		open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: $!";
 	}
 	
-### ...In FILTER...
+say '---| Smart::Comments::Any at line ', __LINE__;
 	
 	# Progress bar on a for loop...
 	# Calls _decode_for()
@@ -617,10 +624,18 @@ FILTER {
 #	s{ ^ $hws* $intro $hws* (.*) }
 #	 {Smart::Comments::Any::Dump_for(-prefix=>q{$1});$DBX}gmx;
 
+	##### |--- End of filter ---|
 	##### @_
 	##### $_
 
-}; 
+}
+#~ qr/STOP/
+; 
+#~ { terminator => qr/no\s*Smart::Comments::.*;/ }		# terminate filtering on this source line
+#~ { terminator => qr/STOP/}
+#~  [2,3,4]
+#~ qr/no\s*Smart::Comments::.*;/
+;
 ######## /FILTER ########
 
 ######## IMPORT ROUTINE ########
@@ -640,7 +655,7 @@ FILTER {
 #	
 sub import {
 	
-#	say 'Smart::Comments::Any::import().';
+say '---| Smart::Comments::Any at line ', __LINE__;
 	
 };
 ######## /import ########
@@ -1402,6 +1417,7 @@ sub Dump_for {
 };
 ######## /Dump_for ########
 
+say '---| Smart::Comments::Any at line ', __LINE__;
 
 #############################
 ######## END MODULE #########

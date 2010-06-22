@@ -159,4 +159,32 @@ It's coming clear to me -- dimly -- that a variable-type filehandle (e.g., $fh) 
 	open(MAILRC, (glob("~/.mailrc"))[0])     # expand tilde first
 		or die "can't open ~/.mailrc: $!";
 	
+= Filter::Simple =
+
+2010-06-22 01:57:27
+
+* It appears that the filter terminator parameter doesn't work at all.
+
+	See util/use-filter-bang.pl, lib/BANG.pm, util/load-dumb-no.pl.
+
+	POD (Disabling or changing <no> behaviour) says: 
 	
+		By default, the installed filter only filters up to a line...
+		no ModuleName;  # optional comment
+		[or] __END__
+		[or] __DATA__
+		...but this can be altered by passing a second argument to use Filter::Simple or FILTER...
+	
+	It goes on to trail FILTER with a qr// and a hashref; an example is shown. 
+	
+	The example does not work. No amount of fooling with it works. Something does happen, although it's not clear what. If the using script contains 
+	
+		no BANG;
+	
+	... then filtering is terminated as expected. But if some alternate terminator is specified in BANG.pm and given in the using script, then FILTER is called *twice*, with the source code before and after the terminator. 
+	
+	It doesn't seem to matter whether the terminator's regex includes string boundaries or not, with or without /m (multiline input flag), or is given as a literal string; or whether the terminator is given by itself or as a value for the key 'terminator' in a hashref. Nothing works right. 
+	
+	Either Conway (also Filter:::Simple author) boldly advertised this feature without testing it or something broke it later. I don't see any exercise of this feature in its test suite. The test suite loads several test-only modules (source filter callers of F::S) and none specify a terminator. There are only 4 test scripts in the suite and only one tests source filtering termination in any way -- and it does it with a 'no Module;' line. 
+
+	Steffen Mueller is credited as the CPAN maintainer but it's not clear he actually maintains the module; POD says 'Filter::Simple is now maintained by the Perl5-Porters...'. I think it's time for a bug report. 

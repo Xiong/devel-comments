@@ -42,7 +42,7 @@ BEGIN {
 # Simulate use().
 BEGIN {
 	require $::MUDX;			
-	import  $::MUDX;			# empty list supresses import or supply a list
+	&{"$::MUD\::import"}('foo');	# empty list supresses import or supply a list
 }
 
 # NOTE (Camel): 
@@ -50,7 +50,11 @@ BEGIN {
 
 #----------------------------------------------------------------------------#
 
+# RIGHT.
 # Getting this far is a pass. 
 pass(  q[load-module] );
 diag( qq[Testing $::MUD ${"$::MUD\::VERSION"}] );	# comment out if more testing
 
+# STOP.
+no Smart::Comments::Any;
+# WRONG!
