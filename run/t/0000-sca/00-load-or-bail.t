@@ -39,18 +39,27 @@ BEGIN {
 	$::MUDX		.= q{.pm};		# append standard perl module file extension
 }
 
-# Simulate use().
-BEGIN {
-	require $::MUDX;			
-	import  $::MUDX;			# empty list supresses import or supply a list
-}
+# Conditional use
+use if $::MUD eq 'Smart::Comments::Any', Smart::Comments::Any, '###', '#####';
+use if $::MUD eq 'Smart::Comments', Smart::Comments, '###', '#####';
+
+#~ # Simulate use().
+#~ BEGIN {
+#~ 	require $::MUDX;			
+#~ 	import  $::MUDX;			# empty list supresses import or supply a list
+#~ }
 
 # NOTE (Camel): 
 # use() eq BEGIN { require MODULE; import MODULE LIST; }
 
 #----------------------------------------------------------------------------#
 
+### borkborkbork
+#### borkborkbork-bork
+##### borkborkbork-borkbork
+
 # Getting this far is a pass. 
 pass(  q[load-module] );
 diag( qq[Testing $::MUD ${"$::MUD\::VERSION"}] );	# comment out if more testing
+
 

@@ -188,3 +188,21 @@ It's coming clear to me -- dimly -- that a variable-type filehandle (e.g., $fh) 
 	Either Conway (also Filter:::Simple author) boldly advertised this feature without testing it or something broke it later. I don't see any exercise of this feature in its test suite. The test suite loads several test-only modules (source filter callers of F::S) and none specify a terminator. There are only 4 test scripts in the suite and only one tests source filtering termination in any way -- and it does it with a 'no Module;' line. 
 
 	Steffen Mueller is credited as the CPAN maintainer but it's not clear he actually maintains the module; POD says 'Filter::Simple is now maintained by the Perl5-Porters...'. I think it's time for a bug report. 
+	
+= Dual-run Test Scripts =
+
+	The reason for getting deeper into Filter::Simple is that I wanted a way to run the same test script foreach of Vanilla and ::Any. By running it for Vanilla, I can see what it's supposed to do, then adjust ::Any to fit -- perhaps adjust the test first. 
+	
+	Well, there are ways to load a choice of modules but if I want to terminate filtering at some point then I need to write both: 
+	
+		no Smart::Comments::Any;
+		no Smart::Comments;
+	
+	This messes up, since for whichever module wasn't used, the 'no' line actually loads the module in order to call its unimport(). This might be tolerated but it confuses matters; the confusion, I think, outweighs the benefit. 
+	
+	I had thought to make a minor hack of Vanilla, permitting a terminator shared with ::Any; one terminator in the test script would serve for either module. But that's just not going to work without fixing F::S, which is yet another digression from my main project. 
+	
+	A shorter, simpler digression is probably to write a simple script to duplicate a test, remove all occurances of '::Any', and change the test name by replacing 'sca' with 'scv' or some such. 
+	
+	
+	
