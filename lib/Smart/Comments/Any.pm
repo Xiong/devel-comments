@@ -26,7 +26,7 @@ use feature 'say';				# disable in production; debug only
 
 ######## / use ########
 
-say '---| Smart::Comments::Any at line ', __LINE__;
+#~ say '---| Smart::Comments::Any at line ', __LINE__;
 
 ######## pseudo-constants section ########
 
@@ -321,7 +321,7 @@ sub _init_state {
 # 
 sub _prefilter {
 	
-say '---| Smart::Comments::Any at line ', __LINE__;
+#~ say '---| Smart::Comments::Any at line ', __LINE__;
 	
 	shift;							# Don't need our own package name
 	s/\r\n/\n/g;  					# Handle win32 line endings
@@ -498,7 +498,7 @@ FILTER {
 	##### |--- Start of filter ---|
 	##### @_
 	##### $_
-say "---| Source to be filtered:\n", $_, '|--- END SOURCE CODE';
+#~ say "---| Source to be filtered:\n", $_, '|--- END SOURCE CODE';
 	
 	my $prefilter		= _prefilter(@_);		# Handle arguments to FILTER
 	return 0 if !$prefilter;	   				# i.e. if no filtering ABORT
@@ -513,7 +513,7 @@ say "---| Source to be filtered:\n", $_, '|--- END SOURCE CODE';
 		open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: $!";
 	}
 	
-say '---| Smart::Comments::Any at line ', __LINE__;
+#~ say '---| Smart::Comments::Any at line ', __LINE__;
 	
 	# Progress bar on a for loop...
 	# Calls _decode_for()
@@ -655,7 +655,7 @@ say '---| Smart::Comments::Any at line ', __LINE__;
 #	
 sub import {
 	
-say '---| Smart::Comments::Any at line ', __LINE__;
+#~ say '---| Smart::Comments::Any at line ', __LINE__;
 	
 };
 ######## /import ########
@@ -1417,7 +1417,7 @@ sub Dump_for {
 };
 ######## /Dump_for ########
 
-say '---| Smart::Comments::Any at line ', __LINE__;
+#~ say '---| Smart::Comments::Any at line ', __LINE__;
 
 #############################
 ######## END MODULE #########
