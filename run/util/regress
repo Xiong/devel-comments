@@ -1,0 +1,104 @@
+#!/run/bin/perl
+#       regress.pl
+#       =  Copyright 2010 Xiong Changnian <xiong@sf-id.com>  =
+#       = Free Software = Artistic License 2.0 = NO WARRANTY =
+
+use strict;
+use warnings;
+
+use Readonly;
+use feature qw(switch say state);
+use Perl6::Junction qw( all any none one );
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use File::Spec;
+use File::Spec::Functions qw(
+	catdir
+	catfile
+	catpath
+	splitpath
+	splitdir
+	curdir
+	rootdir
+	updir
+	canonpath
+);
+use Cwd;
+use Smart::Comments '###';
+
+
+#
+#~ 	say qq{----------------};
+#~ 	say qq{================};
+
+
+# File/folder names
+my $any_filerel			= $ARGV[0];
+my $van_dirrel			= 't/regress';
+
+# Contruct regression file_namerel
+my @pathparts			= splitpath( $any_filerel );
+### @pathparts
+my $van_filename		= pop @pathparts;
+my @dirparts			= splitdir ( pop @pathparts );
+### @dirparts
+# @dirparts may contain empty elements; get the last non-empty element, if any 
+my $van_dirname			;
+#~ 0 until ( $van_dirname = pop @dirparts or $#dirparts < 0 );
+$van_dirname = pop @dirparts until $van_dirname || !@dirparts;
+### $van_dirname
+my $van_filerel			= catfile( $van_dirrel, $van_dirname, $van_filename );
+### $van_filerel
+my $any_fh				;
+my $van_fh				;
+
+sub fail;				# forward
+	
+
+open $any_fh, '<', $any_filerel
+	or fail qq{Failed to open $any_filerel to read.};
+
+open $van_fh, '>', $van_filerel
+	or fail qq{Failed to open $van_filerel to write.};
+
+while (<$any_fh>) {
+	s{Smart::Comments::Any}
+	 {Smart::Comments}g;
+	 
+	s{name\s*=\s*'sc-any-}
+	 {name   =   'sc-van-}m;
+	
+	print {$van_fh} $_
+	or fail qq{Failed to print to $van_filerel.};
+	
+};
+
+close $van_fh
+	or fail qq{Failed to close $van_filerel.};
+	
+chmod 0755, $van_filerel;
+
+say $0, qq{: Executing $van_filerel now...};
+exec $van_filerel;
+# never returns
+
+
+
+sub fail {
+	my @message		= @_;
+	my $intro		= $0 . q{: };
+	my $pad			= q{ } x length $intro;
+	my $line		= shift @message;
+	say STDERR		$intro, $line;
+	while ($line = shift @message) {
+		say STDERR	$pad, $line;
+	};
+	print STDERR	$pad;
+						die($!);
+};
+
+__DATA__
+
+Output: 
+
+
+__END__
