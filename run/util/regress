@@ -23,7 +23,7 @@ use File::Spec::Functions qw(
 	canonpath
 );
 use Cwd;
-use Smart::Comments '###';
+#~ use Smart::Comments '###';
 
 
 #

@@ -70,6 +70,9 @@ my @progress_pats = (
    qr{^(\s*.*?) ()                         ()                      () \s*$ }x,
 );
 
+# for ::Any
+my $join_up				= qq{ };	# used to join replacement code strings
+
 ######## / pseudo-constants ########
 
 ######## pseudo-global variables section ########
@@ -520,95 +523,106 @@ FILTER {
 	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? for(?:each)? \s* (?:my)? \s* (?:\$ [^\W\d]\w*)? \s* ) \( ([^;\n]*?) \) \s* \{
 			[ \t]* $intro \s (.*) \s* $
 	 }
-	 { _decode_for($caller_id, $1, $2, $3) }xgem;
+	 { _decode_for($caller_id, $1, $2, $3) }egmx;
 
 	# Progress bar on a while loop...
 	# Calls _decode_while()
 	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? (?:while|until) \s* \( .*? \) \s* ) \{
 			[ \t]* $intro \s (.*) \s* $
 	 }
-	 { _decode_while($caller_id, $1, $2) }xgem;
+	 { _decode_while($caller_id, $1, $2) }egmx;
 
 	# Progress bar on a C-style for loop...
 	# Calls _decode_while()
 	s{ ^ $hws* ( (?: [^\W\d]\w*: \s*)? for \s* \( .*? ; .*? ; .*? \) \s* ) \{
 			$hws* $intro $hws (.*) $hws* $
 	 }
-	 { _decode_while($caller_id, $1, $2) }xgem;
+	 { _decode_while($caller_id, $1, $2) }egmx;
 
 	# Requirements...
 	# Calls _decode_assert()
 	s{ ^ $hws* $intro [ \t] $require : \s* (.*?) $optcolon $hws* $ }
-	 { _decode_assert($caller_id, $1,"fatal") }gemx;
+	 { _decode_assert($caller_id, $1,"fatal") }egmx;
 
 	# Assertions...
 	# Calls _decode_assert()
 	s{ ^ $hws* $intro [ \t] $check : \s* (.*?) $optcolon $hws* $ }
-	 { _decode_assert($caller_id, $1) }gemx;
+	 { _decode_assert($caller_id, $1) }egmx;
 
 	# Any other smart comment is a simple dump.
+	# The replacement code in each case consists mainly 
+	#	of a call to Dump_for(). 
+	# But WATCH OUT for subtle differences!
 	
 	# Dump a raw scalar (the varname is used as the label)...
-	# Inserts call to Dump_for()
 	s{ ^ $hws* $intro [ \t]+ (\$ [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::Dump_for(
-		-caller_id	=> $caller_id,
-		-prefix		=>  q{$1:},
-		-varref		=>   [$1],
-	   );$DBX}gmx;
+	 { join $join_up,
+		qq* Smart::Comments::Any::Dump_for(									*,
+		qq*    -caller_id	=> $caller_id,									*,
+		qq*    -prefix		=>  q{$1:},										*,
+		qq*    -varref		=>   [$1],										*,
+	    qq* );$DBX															*,
+	 }egmx;
 
 	# Dump a labelled scalar...
-	# Inserts call to Dump_for()
 	s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::Dump_for(
-		-caller_id	=> $caller_id,
-		-prefix		=>  q{$1},
-		-varref		=>   [$2],
-	  );$DBX}gmx;
+	 { join $join_up,
+		qq* Smart::Comments::Any::Dump_for(									*,
+		qq* 	-caller_id	=> $caller_id,									*,
+		qq* 	-prefix		=>  q{$1},										*,
+		qq* 	-varref		=>   [$2],										*,
+	    qq* );$DBX															*,
+	 }egmx;
 
 	# Dump a raw hash or array (the varname is used as the label)...
-	# Inserts call to Dump_for()
 	s{ ^ $hws* $intro [ \t]+ ([\@%] [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::Dump_for(
-		-caller_id	=> $caller_id,
-		-prefix		=>  q{$1:},
-		-varref		=>   [\\$1],
-	  );$DBX}gmx;
+	 { join $join_up,
+		qq* Smart::Comments::Any::Dump_for(									*,
+		qq*    -caller_id	=> $caller_id,									*,
+		qq*    -prefix		=>  q{$1:},										*,
+		qq*    -varref		=> [\\$1],										*,
+	    qq* );$DBX															*,
+	 }egmx;
 
 	# Dump a labelled hash or array...
-	# Inserts call to Dump_for()
 	s{ ^ $hws* $intro [ \t]+ (.+ :) [ \t]* ([\@%] [\w:]* \w) $optcolon $hws* $ }
-	 {Smart::Comments::Any::Dump_for(
-		-caller_id	=> $caller_id,
-		-prefix		=>  q{$1},
-		-varref		=>   [\\$2],
-	  );$DBX}gmx;
+	 { join $join_up,
+		qq* Smart::Comments::Any::Dump_for(									*,
+		qq*    -caller_id	=> $caller_id,									*,
+		qq*    -prefix		=>  q{$1},										*,
+		qq*    -varref		=> [\\$2],										*,
+	    qq* );$DBX															*,
+	 }egmx;
 
 	# Dump a labelled expression...
-	# Inserts call to Dump_for()
 	s{ ^ $hws* $intro [ \t]+ (.+ :) (.+) }
-	 {Smart::Comments::Any::Dump_for(
-		-caller_id	=> $caller_id,
-		-prefix		=>  q{$1},
-		-varref		=>   [$2],
-	  );$DBX}gmx;
+	 { join $join_up,
+		qq* Smart::Comments::Any::Dump_for(									*,
+		qq*    -caller_id	=> $caller_id,									*,
+		qq*    -prefix		=>  q{$1},										*,
+		qq*    -varref		=>   [$2],										*,
+	    qq* );$DBX															*,
+	 }egmx;
 
 	# Dump an 'in progress' message
-	# Inserts call to Dump_for()
 	s{ ^ $hws* $intro $hws* (.+ [.]{3}) $hws* $ }
-	 {Smart::Comments::Any::Dump_for(
-		-caller_id	=> $caller_id,
-		-prefix		=> qq{$1},
-	  );$DBX}gmx;
+	 { join $join_up,
+		qq* Smart::Comments::Any::Dump_for(									*,
+		qq*    -caller_id	=> $caller_id,									*,
+		qq*    -prefix		=> qq{$1},										*,
+	    qq* );$DBX															*,
+	 }egmx;
 
 	# Dump an unlabelled expression (the expression is used as the label)...
-	# Inserts call to Dump_for() and call to quiet_eval()
+	# Note inserted call to quiet_eval()
 	s{ ^ $hws* $intro $hws* (.*) $optcolon $hws* $ }
-	 {Smart::Comments::Any::Dump_for(
-		-caller_id	=> $caller_id,
-		-prefix		=>  q{$1:},
-		-varref		=> Smart::Comments::Any::quiet_eval( q{[$1]} ),
-	  );$DBX}gmx;
+	 { join $join_up,
+		qq* Smart::Comments::Any::Dump_for(									*,
+		qq*    -caller_id	=> $caller_id,									*,
+		qq*    -prefix		=>  q{$1:},										*,
+		qq*    -varref		=> Smart::Comments::Any::quiet_eval( q{[$1]} ),	*,
+	    qq* );$DBX															*,
+	 }egmx;
 
 # This doesn't work as expected, don't know why
 # It can't help to warn instead of print
@@ -627,15 +641,9 @@ FILTER {
 	##### |--- End of filter ---|
 	##### @_
 	##### $_
+#~ say "---| Source after filtering:\n", $_, '|--- END SOURCE CODE';
 
-}
-#~ qr/STOP/
-; 
-#~ { terminator => qr/no\s*Smart::Comments::.*;/ }		# terminate filtering on this source line
-#~ { terminator => qr/STOP/}
-#~  [2,3,4]
-#~ qr/no\s*Smart::Comments::.*;/
-;
+};
 ######## /FILTER ########
 
 ######## IMPORT ROUTINE ########
@@ -730,41 +738,48 @@ sub _decode_assert {
 	# 	after Warn_for()...
 	my $signal_code 
 		= $signal_flag 
-		?  q< die "\n"							> 	# ...then real die
-		: qq< $Print_for( $caller_id, "\n" )	>	# ...then newline
+		?  q* die "\n"							* 	# ...then real die
+		: qq* $Print_for( $caller_id, "\n" )	*	# ...then newline
 		;
 
 	# Extract variables from assertion and enreference any arrays or hashes...
 	my @vardump_code_lines 
 		= map { 
 			  /^$hws*[%\@]/ 					# sigil found
-			? qq[ $Dump_for(
-					-caller_id	=> $caller_id,
-					-prefix		=> q{    $_ was:},
-					-varref		=> [\\$_], 		# enreference
-					-no_newline=>1
-			  ); ]
-			: qq[ $Dump_for(
-					-caller_id	=> $caller_id,
-					-prefix		=> q{    $_ was:},
-					-varref		=> [$_],		# don't enreference
-					-no_newline=>1
-			  ); ]
-		}
-		_uniq extract_multiple($assertion, [\&extract_variable], undef, 1);
-
+			? 	join $join_up,
+					qq* $Dump_for(							*,
+					qq* 	-caller_id	=> $caller_id,		*,
+					qq* 	-prefix		=> q{    $_ was:},	*,
+					qq* 	-varref		=> [\\$_], 			*,	# enreference
+					qq* 	-no_newline	=> 1				*,
+					qq* );									*,
+			: 	join $join_up,
+					qq* $Dump_for(							*,
+					qq* 	-caller_id	=> $caller_id,		*,
+					qq* 	-prefix		=> q{    $_ was:},	*,
+					qq* 	-varref		=> [$_], 			*,	# don't enref
+					qq* 	-no_newline	=> 1				*,
+					qq* );									*,
+			;	
+		}	
+		_uniq extract_multiple($assertion, [\&extract_variable], undef, 1)
+		## end of map expression
+	;
+	## end of assignment
+	
 	# Generate the test-and-report code...
-	my $report_code		= join qq{\n},
-		qq< unless($assertion) {								>,
-		qq< 	$Warn_for( 										>,
-		qq<			$caller_id, 								>,
-		qq< 		"\\n", 										>,
-		qq<			q{### $assertion was not true} 				>,
-		qq<		);												>,
-		qq< 	@vardump_code_lines;							>,
-		qq< 	$signal_code									>,
-		qq< }													>,
-		;
+	my $report_code		= join $join_up,
+		qq* unless($assertion) {								*,
+		qq* 	$Warn_for( 										*,
+		qq*			$caller_id, 								*,
+		qq* 		"\\n", 										*,
+		qq*			q{### $assertion was not true} 				*,
+		qq*		);												*,
+		qq* 	@vardump_code_lines;							*,
+		qq* 	$signal_code									*,
+		qq* }													*,
+	;
+	## end of assignment
 	
 	return $report_code;
 };
@@ -795,15 +810,17 @@ sub _decode_for {
 
 	# Rewrite the loop with a progress bar as its first statement...
 	my $report_code		= join qq{\n},
-		qq< my \$not_first__$ID;									>,
-		qq< $for (my \@SmartComments__range__$ID = $range) {		>,
-		qq<		Smart::Comments::Any::for_progress(	$caller_id,		>,
-		qq<			qq{$mesg},										>,
-		qq<			\$not_first__$ID,								>,
-		qq<			\\\@SmartComments__range__$ID					>,
-		qq< 	);													>,
+		qq* my \$not_first__$ID;									*,
+		qq* $for (my \@SmartComments__range__$ID = $range) {		*,
+		qq*		Smart::Comments::Any::for_progress(	$caller_id,		*,
+		qq*			qq{$mesg},										*,
+		qq*			\$not_first__$ID,								*,
+		qq*			\\\@SmartComments__range__$ID					*,
+		qq* 	);													*,
 			# closing brace found somewhere in client code
-		;
+	;
+	## end of assignment
+
 ### _decode_for code : $report_code	
 	return $report_code;
 };
@@ -832,14 +849,16 @@ sub _decode_while {
 
 	# Rewrite the loop with a progress bar as its first statement...
 	my $report_code		= join qq{\n},
-		qq< my \$not_first__$ID;									>,
-		qq< $while {												>,
-		qq< 	Smart::Comments::Any::while_progress( $caller_id,	>,
-		qq< 		qq{$mesg},										>,
-		qq< 		\\\$not_first__$ID								>,
-		qq< 	);													>,
+		qq* my \$not_first__$ID;									*,
+		qq* $while {												*,
+		qq* 	Smart::Comments::Any::while_progress( $caller_id,	*,
+		qq* 		qq{$mesg},										*,
+		qq* 		\\\$not_first__$ID								*,
+		qq* 	);													*,
 			# closing brace found somewhere in client code
-		;
+	;
+	## end of assignment
+	
 ### _decode_while code : $report_code	
 	return $report_code;
 };
@@ -1167,7 +1186,7 @@ sub Print_for {
 	print {$outfh} @_
 		or die   q{Smart::Comments::Any: }	# print failure
 			,	 q{Filesystem IO error: }
-			,	 q{Failed to print to output filehandle for $caller_id }
+			,	qq{Failed to print to output filehandle for $caller_id }
 			,	 $!
 			;
 	
@@ -1308,13 +1327,16 @@ sub _spacer_required {
 	
 	# newline if $outfh has been printed to
 	$flag		||= $prev_tell_outfh	!= tell $outfh;
+### 1311 : $flag
 	
 	# newline if $caller_file has changed (???)
 	$flag		||= $prev_caller_file	ne $caller_file;
+### 1315 : $flag
 	
 	# TODO: if $tighten do not...
 	# newline if $caller_line has changed by more or less than 1
 	$flag		||= $prev_caller_line	!= $caller_line -1;
+### 1320 : $flag
 		
 # 	say 'Doing the newline.' if $flag;
 # 	return 0;			# never do the newline 

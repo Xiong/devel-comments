@@ -204,5 +204,24 @@ It's coming clear to me -- dimly -- that a variable-type filehandle (e.g., $fh) 
 	
 	A shorter, simpler digression is probably to write a simple script to duplicate a test, remove all occurances of '::Any', and change the test name by replacing 'sca' with 'scv' or some such. 
 	
+	2010-06-28 07:34:11 -- DONE. The new script is run/util/regress.
 	
+= Multiline Replacement Code = 2010-06-28 07:38:54
 	
+	Vanilla (and perforce, ::Any) inserts rather large chunks of code into caller's source. I naively reformatted these into multiline strings, annoyed that they were jammed all into single lines in Vanilla. 
+	
+	This thought-to-be-small change broke just about every test. Since spacer_required() tests to see if a given smart comment immediately follows a previous one, and outputs a gratuitous newline if not, these multiline insertions screw it up, and force un-Vanilla newlines in smart output. 
+	
+	My clumsy reformatting took two forms: join qq{\n}, @lines and literal newlines. When the filtered source is dumped, these both look equally good; the latter, of course, looks better in ::Any source. Both equally screw up the caller line numbering. 
+	
+	The solution is the #line directive (Camel 24.5.2). By setting the caller line number explicitly after replacement code insertion, original line numbering can be preserved. 
+	
+	A difficulty here is that FILTER is currently written as a few global s///g statements. The #line directive must be inserted with the correct literal line number but how do we get the original at filter time?
+	
+	2010-06-30 23:39:29
+	
+	After noding on PerlMonks, decide to stick with join. May use perltidy or Perl::Tidy to format code dumps, dunno. 
+	
+	If using join() in substitution, must use /e flag. 
+
+
