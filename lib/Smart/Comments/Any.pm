@@ -1,6 +1,6 @@
 package Smart::Comments::Any;
 
-######## use section ########
+######## use section #######~
 use 5.008;
 use strict;
 use warnings;
@@ -19,16 +19,16 @@ use Data::Dumper 'Dumper';
 
 # debug only
 
-$DB::single=1;
-use feature 'say';              # disable in production; debug only
-#~ use Smart::Comments '###';       # playing with fire;     debug only
-#~ use Smart::Comments '#####';     # playing with fire;     debug only
+$DB::single=1;                                                           #~
+use feature 'say';                  # disable in production              #~
+#~ use Smart::Comments '###';       # playing with fire;     debug only     #~
+#~ use Smart::Comments '#####';     # playing with fire;     debug only     #~
 
-######## / use ########
+######## / use #######~
 
-#~ say '---| Smart::Comments::Any at line ', __LINE__;
+#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
 
-######## pseudo-constants section ########
+######## pseudo-constants section #######~
 
 # time and space constants
 my $maxwidth            = 69;   # Maximum width of display
@@ -73,9 +73,9 @@ my @progress_pats = (
 # for ::Any
 my $join_up             = qq{ };    # used to join replacement code strings
 
-######## / pseudo-constants ########
+######## / pseudo-constants #######~
 
-######## pseudo-global variables section ########
+######## pseudo-global variables section #######~
 
 ## original S::C stuff
 
@@ -127,12 +127,12 @@ my %state_of            ;
 #   },
 #   AnotherCaller...
 
-######## / pseudo-global variables ########
+######## / pseudo-global variables #######~
 
 #----------------------------------------------------------------------------#
 
 
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   my $caller_id   = _get_new_caller_id();     # unique per-use
 #       
@@ -156,50 +156,9 @@ my %state_of            ;
 sub _get_new_caller_id {
     return $new_caller_id++;
 };
-######## /_get_new_caller_id ########
+######## /_get_new_caller_id #######~
 
-
-#= ######## INTERNAL ROUTINE ########
-#= #
-#= #    _set_filter_caller();       # set %filter_caller to "outside" caller
-#= #        
-#= # Purpose  : Set @filter_caller consistently
-#= # Parms    : none
-#= # Reads    : caller()
-#= # Returns  : 1
-#= # Writes   : %filter_caller
-#= # Throws   : never
-#= # See also : _prefilter()
-#= # 
-#= # Because builtin caller() sees the stack starting at its previous call, 
-#= #    _set_filter_caller() should only be called once, 
-#= #    from _prefilter, and not again. 
-#= # Note that old S::C code hits caller() directly, 
-#= #    which may be best when its call is from within replacement code. (???)
-#= # 
-#= sub _set_filter_caller {
-#=  # frame
-#=  #   0       _prefilter
-#=  #   1       FILTER
-#=  #   2       Filter::Simple
-#=  #   3       actual use-line caller
-#=  my $frame                       = 3;    
-#=  my @caller_info                         = caller($frame);
-#=  @filter_caller{ -name, -file, -line }   = @caller_info;
-#=  
-#=  for $frame (0..4) {
-#=      @caller_info        = caller $frame;
-#=      no warnings;
-#=      say "($frame): ", join "\t\n", 
-#=          $caller_info[0], $caller_info[1], $caller_info[2], ;
-#=      use warnings;
-#=  };
-#=  
-#=  return 1;
-#= };
-#= ######## /_set_filter_caller ########
-
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   my $outfh       = _get_outfh($caller_id);   # retrieve from %state_of
 #       
@@ -237,9 +196,9 @@ sub _get_outfh {
     return $state_of{$caller_id}{-outfh};
     
 };
-######## /_do_ ########
+######## /_do_ #######~
 
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   _init_state({               # initialize $state_of this caller
 #       -outfh          => $outfh,
@@ -298,14 +257,14 @@ sub _init_state {
     $state_of{$caller_id}{-caller}{-file}   = $caller_file;
     $state_of{$caller_id}{-caller}{-line}   = $caller_line;
     
-#~ ### ...Leaving _init_state()...
-#~ ### %state_of
+#~ ### ...Leaving _init_state()...                                          #~
+#~ ### %state_of                                                            #~
     
     return 1;
 };
-######## /_init_state ########
+######## /_init_state #######~
 
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   $prefilter      = _prefilter(@_);       # Handle arguments to FILTER
 #       
@@ -324,7 +283,7 @@ sub _init_state {
 # 
 sub _prefilter {
     
-#~ say '---| Smart::Comments::Any at line ', __LINE__;
+#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
     
     shift;                          # Don't need our own package name
     s/\r\n/\n/g;                    # Handle win32 line endings
@@ -356,7 +315,7 @@ sub _prefilter {
                     $out_filename   = $packed_args{-file};
                 };  # else if undef, use default
                 splice @_, $i;          # remove the parsed arg
-#say '$out_filename: ', $out_filename;      
+#~ say '$out_filename: ', $out_filename;                                    ~#      
                 open $outfh, '>', $out_filename
                     or die "Smart::Comments::Any: " 
                         ,  "Can't open $out_filename to write."
@@ -369,12 +328,12 @@ sub _prefilter {
 
                 
                 
-#say $outfh '... Just after opening $outfh ...';
-#say $outfh '$outfh: ', $outfh; 
+#~ say $outfh '... Just after opening $outfh ...';                          #~
+#~ say $outfh '$outfh: ', $outfh;                                           #~
             };
         };
     
-#return 0;  
+#~ return 0;                                                                #~
     };      # /GETHREF
     
     # Dig through the args to see if one is a filehandle
@@ -386,7 +345,7 @@ sub _prefilter {
         if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
             next SETFH;             # not ::Any arg, keep looking
         };
-#       print 'Mine: >', $arg, "<\n";
+#~        print 'Mine: >', $arg, "<\n";                                     #~
         
         # Vanilla doesn't want to see it, so remove from @_
         splice @_, $i;
@@ -408,8 +367,8 @@ sub _prefilter {
         $outfh          = *STDERR;      # default
     };
     
-#~ say STDERR '... About to _init_state() ...';
-#~ say STDERR '$outfh: ', $outfh;   
+#~ say STDERR '... About to _init_state() ...';                             #~
+#~ say STDERR '$outfh: ', $outfh;                                           #~
     _init_state({               # initialize $state_of this caller
         -outfh          => $outfh,
         -caller_id      => $caller_id, 
@@ -451,17 +410,17 @@ sub _prefilter {
         $intro = '(?-x:'.join('|',@intros).')(?!\#)';
     }
 
-#say $outfh '... Leaving _prefilter() ...';
+#~ say $outfh '... Leaving _prefilter() ...';                               #~
     return { 
         -intro          => $intro,
         -caller_id      => $caller_id,
     };
 };
-######## /_prefilter ########
+######## /_prefilter #######~
 
 sub import;     # FORWARD
 
-######## EXTERNAL SUB CALL ########
+######## EXTERNAL SUB CALL #######~
 #
 # Purpose  : Rewrite caller's smart comments into code
 # Parms    : @_     : The split use line, with $_[0] being *this* package
@@ -501,8 +460,8 @@ FILTER {
     ##### |--- Start of filter ---|
     ##### @_
     ##### $_
-#~ say "---| Source to be filtered:\n", $_, '|--- END SOURCE CODE';
-    
+#~ say "---| Source to be filtered:\n", $_, '|--- END SOURCE CODE';         #~
+
     my $prefilter       = _prefilter(@_);       # Handle arguments to FILTER
     return 0 if !$prefilter;                    # i.e. if no filtering ABORT
     
@@ -516,7 +475,7 @@ FILTER {
         open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: $!";
     }
     
-#~ say '---| Smart::Comments::Any at line ', __LINE__;
+#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
     
     # Progress bar on a for loop...
     # Calls _decode_for()
@@ -641,12 +600,12 @@ FILTER {
     ##### |--- End of filter ---|
     ##### @_
     ##### $_
-#~ say "---| Source after filtering:\n", $_, '|--- END SOURCE CODE';
+#~ say "---| Source after filtering:\n", $_, '|--- END SOURCE CODE';        #~
 
 };
-######## /FILTER ########
+######## /FILTER #######~
 
-######## IMPORT ROUTINE ########
+######## IMPORT ROUTINE #######~
 #       
 # Purpose  : dummy for now
 # Parms    : ____
@@ -663,14 +622,14 @@ FILTER {
 #   
 sub import {
     
-#~ say '---| Smart::Comments::Any at line ', __LINE__;
-    
+#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
+
 };
-######## /import ########
+######## /import #######~
 
 #============================================================================#
 
-######## EXTERNAL ROUTINE ########
+######## EXTERNAL ROUTINE #######~
 #
 #   $return     = quiet_eval($codestring);      # string eval, no errors
 #       
@@ -684,9 +643,9 @@ sub quiet_eval {
     local $SIG{__WARN__} = sub{};
     return scalar eval shift;
 };
-######## /quiet_eval ########
+######## /quiet_eval #######~
 
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   $quantity   = _uniq(@list);     # short
 #       
@@ -703,9 +662,9 @@ sub _uniq {
     my %seen; 
     grep { !$seen{$_}++ } @_ 
 };
-######## /_uniq ########
+######## /_uniq #######~
 
-######## REPLACEMENT CODE GENERATOR ########
+######## REPLACEMENT CODE GENERATOR #######~
 #
 #   $codestring     = _decode_assert( $caller_id, $assertion, $signal_flag);
 #       
@@ -783,12 +742,12 @@ sub _decode_assert {
         qq* }                                       *,
     ;
     ## end of assignment
- $DB::single=1;   
+#~ $DB::single=1;                                                           #~
     return $report_code;
 };
-######## /_decode_assert ########
+######## /_decode_assert #######~
 
-######## REPLACEMENT CODE GENERATOR ########
+######## REPLACEMENT CODE GENERATOR #######~
 #
 #   $codestring     = _decode_for($for, $range, $mesg);
 #       
@@ -827,9 +786,9 @@ sub _decode_for {
 ### _decode_for code : $report_code 
     return $report_code;
 };
-######## /_decode_for ########
+######## /_decode_for #######~
 
-######## REPLACEMENT CODE GENERATOR ########
+######## REPLACEMENT CODE GENERATOR #######~
 #
 #   _decode_while($while, $mesg);       # short
 #       
@@ -865,9 +824,9 @@ sub _decode_while {
 ### _decode_while code : $report_code   
     return $report_code;
 };
-######## /_decode_while ########
+######## /_decode_while #######~
 
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   _desc_time();       # short
 #       
@@ -912,9 +871,9 @@ sub _desc_time {
     }
     return $remaining;
 };
-######## /_desc_time ########
+######## /_desc_time #######~
 
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   _moving_average();      # short
 #       
@@ -937,9 +896,9 @@ sub _moving_average {
     }
     return sum(@$moving)/@$moving;
 };
-######## /_moving_average ########
+######## /_moving_average #######~
 
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   _prog_pat();        # short
 #       
@@ -960,9 +919,9 @@ sub _prog_pat {
     }
     return;
 };
-######## /_prog_pat ########
+######## /_prog_pat #######~
 
-######## EXTERNAL ROUTINE ########
+######## EXTERNAL ROUTINE #######~
 #
 #   for_progress();     # short
 #       
@@ -1093,9 +1052,9 @@ sub for_progress {
             ) if $at >= $max;
     }
 };
-######## /for_progress ########
+######## /for_progress #######~
 
-######## EXTERNAL ROUTINE ########
+######## EXTERNAL ROUTINE #######~
 #
 #   while_progress();       # short
 #       
@@ -1164,10 +1123,9 @@ sub while_progress {
         );
     }
 };
-######## /while_progress ########
+######## /while_progress #######~
 
-
-######## EXTERNAL ROUTINE ########
+######## EXTERNAL ROUTINE #######~
 #
 #   Print_for( $caller_id, @args );     # short
 #       
@@ -1197,9 +1155,9 @@ sub Print_for {
     
     return 1;
 };
-######## /Print_for ########
+######## /Print_for #######~
 
-######## EXTERNAL ROUTINE ########
+######## EXTERNAL ROUTINE #######~
 #
 #   Warn_for( $caller_id, $frame, @args );      # short
 #       
@@ -1229,9 +1187,9 @@ sub Warn_for {
     Print_for( $caller_id, @_, " at $caller_file line $caller_line.\n" );
     return 1;
 };
-######## /Warn_for ########
+######## /Warn_for #######~
 
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   _put_state( $caller_id, @caller );      # short
 #       
@@ -1268,9 +1226,9 @@ sub _put_state {
     return 1;
     
 };
-######## /_put_state ########
+######## /_put_state #######~
 
-######## INTERNAL ROUTINE ########
+######## INTERNAL ROUTINE #######~
 #
 #   $flag       = _spacer_required( $caller_id, @caller );  # newline before?
 #       
@@ -1336,24 +1294,21 @@ sub _spacer_required {
     
     # newline if $outfh has been printed to
     $flag       ||= $prev_tell_outfh    != tell $outfh;
-### 1311 : $flag
     
     # newline if $caller_file has changed (???)
     $flag       ||= $prev_caller_file   ne $caller_file;
-### 1315 : $flag
     
     # TODO: if $tighten do not...
     # newline if $caller_line has changed by more or less than 1
     $flag       ||= $prev_caller_line   != $caller_line -1;
-### 1320 : $flag
         
-#   say 'Doing the newline.' if $flag;
-#   return 0;           # never do the newline 
+#~    say 'Doing the newline.' if $flag;                                    #~
+#~    return 0;           # never do the newline                            #~
     return $flag;
 };
-######## /_spacer_required ########
+######## /_spacer_required #######~
 
-######## EXTERNAL ROUTINE ########
+######## EXTERNAL ROUTINE #######~
 #
 #   Dump_for();     # short
 #       
@@ -1390,9 +1345,9 @@ sub Dump_for {
 
     my $spacer_required ;               # TRUE to prepend a newline to output
     
-#~ say $outfh '... Entering Dump_for() ...';
-#~ ### ... Entering Dump_for()
-#~ ### %state_of
+#~ say $outfh '... Entering Dump_for() ...';                                #~
+#~ ### ... Entering Dump_for()                                              #~
+#~ ### %state_of                                                            #~
     
     # Handle timestamps...
     $prefix =~ s/<(?:now|time|when)>/scalar localtime()/ge;
@@ -1405,7 +1360,7 @@ sub Dump_for {
     else {
         $spacer_required    = _spacer_required( $caller_id, @caller );
     };
-#~ ### $spacer_required 
+#~ ### $spacer_required                                                     #~
     # Handle a prefix with no actual variable...
     if ($prefix && !$defined_varref) {
         $prefix =~ s/:$//;
@@ -1446,12 +1401,12 @@ sub Dump_for {
 
     return 1;
 };
-######## /Dump_for ########
+######## /Dump_for #######~
 
-#~ say '---| Smart::Comments::Any at line ', __LINE__;
+#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
 
-#############################
-######## END MODULE #########
+############################~
+######## END MODULE ########~
 1;
 __END__
 
