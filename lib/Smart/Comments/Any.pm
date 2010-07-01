@@ -967,19 +967,19 @@ sub _prog_pat {
 # Parms    : ____
 # Reads    : ____
 # Returns  : ____
-# Writes   : ____
+# Writes   : $_[2] ($not_first__$ID in caller's code
 # Throws   : ____
-# See also : ____
+# See also : _decode_for
 # 
 # Animate the progress bar of a for loop...
 #	
 sub for_progress {
 ### ...In for_progress...
 	
-	my $caller_id		= shift;	# per-use id of this caller
-	my $mesg			= shift;	# 
-	my $not_first		= shift;	# 
-	my $data			= shift;	# 
+	my $caller_id		= $_[0];	# per-use id of this caller
+	my $mesg			= $_[1];	# 
+	my $not_first		= $_[2];	# will be altered so don't shift it off
+	my $data			= $_[3];	# 
 	
 	my $at				;			# 
 	my $max				;			# 
@@ -1028,7 +1028,7 @@ sub for_progress {
 		$fraction = 0;
 
 		# After which, it will no longer be the first iteration.
-		$_[1] = 1;  # $not_first
+		$_[2] = 1;  # $not_first
 	}
 
 	# Remember the previous increment fraction...
@@ -1058,9 +1058,9 @@ sub for_progress {
 
 		# Now draw the bar, using carriage returns to overwrite it...
 		Print_for( $caller_id,  
-#~ 			qq{\r}, 
-#~ 			 q{ } x $maxwidth,
-#~ 			qq{\r}, 
+			qq{\r}, 
+			 q{ } x $maxwidth,
+			qq{\r}, 
 			$left,
 			sprintf("%-${fillwidth}s",
 				   substr($totalfill, 0, $fillend)
@@ -1084,9 +1084,9 @@ sub for_progress {
 
 		# Close off the line, if we're finished...
 		Print_for( $caller_id,
-#~ 			qq{\r}, 
-#~ 			 q{ } x $maxwidth,
-#~ 			qq{\r}, 
+			qq{\r}, 
+			 q{ } x $maxwidth,
+			qq{\n}, 
 			) if $at >= $max;
 	}
 };
@@ -1150,9 +1150,9 @@ sub while_progress {
 
 		# And print the bar...
 		Print_for( $caller_id,  
-#~ 			qq{\r}, 
-#~ 			 q{ } x $maxwidth,
-#~ 			qq{\r}, 
+			qq{\r}, 
+			 q{ } x $maxwidth,
+			qq{\r}, 
 			$left,
 			sprintf("%-${fillwidth}s",
 				   substr($fill x $fillwidth, 0, $length)
@@ -1236,7 +1236,7 @@ sub Warn_for {
 # See also  : _spacer_required(), Dump_for()
 # 
 # This stores not $outfh itself 
-#	but the current state of output to it, sort of. 
+#	but the initial state of output to it, sort of. 
 # 
 sub _put_state {
 	my $caller_id		= shift;

@@ -1,0 +1,24 @@
+-stdout Got:      --||--
+-stdout Lenth Got:      --|0|--
+-stdout Expected: --||--
+-stdout Length Expected: --|0|--
+-stderr Got:      --|#-1
+#-2
+                                                                     Simple for loop:|              done
+                                                                     Simple for loop:======|        done
+                                                                     Simple for loop:===============|done
+                                                                     
+
+#-3
+|--
+-stderr Lenth Got:      --|406|--
+-stderr Expected: --|#-1
+#-2
+                                                                     Simple for loop:|              done
+                                                                     Simple for loop:======|        done
+                                                                     Simple for loop:===============|done
+                                                                     
+
+#-3
+|--
+-stderr Length Expected: --|406|--

@@ -35,7 +35,7 @@ my $expected		;
 my $subname			;
 
 # setup Test::Hump-ish
-my $name			= 'sc-any-load-deep';
+my $name   =   'sc-van-simple-for';
 
 my $self	= {
 	
@@ -71,6 +71,23 @@ $self->{-capture}{-stderr}->start();		# STDERR captured
 $self->{-capture}{-stdout}->stop();			# not captured
 $self->{-capture}{-stderr}->stop();			# not captured
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# DEBUG ONLY CODE
+
+#~ use Smart::Comments;
+#~ 
+#~ my $dump		= $self->{-capture}{-stderr};
+### Actual capture: $dump
+
+#~ exit(0);
+
+my $deb_filename	= '/home/xiong/projects/smartlog/file/simple-for-compare/LOG';
+open my $deb_fh, '>', $deb_filename
+	or die qq{Couldn't open $deb_filename to write }, $!;
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
 # Account for tests run inside the box
 $test_counter	+= 3;		# (1..3)
 
@@ -86,37 +103,59 @@ my $do_cap_string	= sub {				# exact string eq STD*
 	$got			= $self->{-got}{$stdwhat}{-string}
 					= join q{}, $self->{-capture}{$stdwhat}->read;
 	$expected		= $self->{-want}{$stdwhat}{-string};
+say {$deb_fh} "$stdwhat Got:      --|", $got, '|--';
+say {$deb_fh} "$stdwhat Lenth Got:      --|", length $got, '|--';
+say {$deb_fh} "$stdwhat Expected: --|", $expected, '|--';
+say {$deb_fh} "$stdwhat Length Expected: --|", length $expected, '|--';
 	$subname		= join q{}, $name, $stdwhat, q{-string};
 	$test_counter++;
 	is( $got, $expected, $subname );
 };
-	
+
+# Simulate erase bar
+my $maxwidth		  	= 69;  	# Maximum width of display
+my $erase_bar = join q{},
+			qq{\r}, 
+			 q{ } x $maxwidth,
+			qq{\r}, 
+;
+my $close_bar = join q{},
+			qq{\r}, 
+			 q{ } x $maxwidth,
+			qq{\n}, 
+;
+
 
 # do subtests
 my $subwhat			;
 
-$subwhat			= q{-stderr};
+$subwhat			= q{-stdout};
 $self->{-want}{$subwhat}{-string}	
 	= q{};			# exactly empty, thank you
 
 &$do_cap_string($subwhat);
 
-$subwhat			= q{-stdout};
+$subwhat			= q{-stderr};
 $self->{-want}{$subwhat}{-string}	
 	= q{#-1}		. qq{\n}
 										# use
 	. q{#-2}		. qq{\n}
 										# for loop
-	. qq{\n}. qq{\n}
-	. q{### ?some progress bar?}	. qq{\n}
+	. $erase_bar 
+	. q{Simple for loop:|              done}
+		. qq{\n}
+	. $erase_bar 
+	. q{Simple for loop:======|        done}
+		. qq{\n}
+	. $erase_bar 
+	. q{Simple for loop:===============|done}
+		. qq{\n}
+	. $close_bar 
 	. qq{\n}
 	. q{#-3}		. qq{\n}
 										# no
-	. q{#-4}		. qq{\n}
-										# foobar
-	. q{#-5}		. qq{\n}
-	
 	;
+
 
 &$do_cap_string($subwhat);
 
