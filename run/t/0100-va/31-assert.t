@@ -37,7 +37,7 @@ ok $@ eq "\n"                    => 'False assertion is deadly silent';
 #	but not the unstable line number. 
 # For ::Any, we fudge both. 
 #~ $STDERR =~ s/ at \S+ line / at FILE line /;
-$STDERR =~ s/ at \S+ line \d\d/ at FILE line 00/;
+$STDERR =~ s/ at \S+ line \d[\d]*/ at FILE line 00/;
 
 ok length $STDERR != 0           => 'False assertion is loud';
 is $STDERR, $ASSERTION           => 'False assertion is loudly correct';

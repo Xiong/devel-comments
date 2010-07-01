@@ -1,25 +1,25 @@
 # form parameters
 
-#	my @formparms		= qw( u_name u_number );
+#   my @formparms       = qw( u_name u_number );
 
 
 # deal with any submitted form
 
-	#my @inparms 		= $cgi->param();
-	#my $numinparms		= @inparms;
-	
-	#my $invalue			;
+    #my @inparms        = $cgi->param();
+    #my $numinparms     = @inparms;
+    
+    #my $invalue            ;
 
-	#print "Number of inparms: $numinparms <br>";
-	#foreach ( @inparms ) {
-		#print "Parameter: $_ <br>";
-		#$invalue 		= $cgi->param("$_");
-		#print "Value:*$invalue* <br>";
-		
-	#};
+    #print "Number of inparms: $numinparms <br>";
+    #foreach ( @inparms ) {
+        #print "Parameter: $_ <br>";
+        #$invalue       = $cgi->param("$_");
+        #print "Value:*$invalue* <br>";
+        
+    #};
 
 
-	#print <<ENDHTML;
+    #print <<ENDHTML;
 #<form action="test.pl" method="POST">
 
 #Name:
@@ -35,9 +35,9 @@
 
 #ENDHTML
 
-## generate a blank form	(2)
+## generate a blank form    (2)
 
-	#print <<ENDHTML;
+    #print <<ENDHTML;
 #<form action="test.pl" method="POST">
 
 #Dog:
@@ -88,57 +88,57 @@ use lib __DIR__ . "/lib";
 
 package IncludeEmAll; 
 sub import { my $caller_class = caller(); 
-	eval "package $caller_class; 
-		use Class1; 
-		use Class2;
-	"; 
-	die $@ if $@; 
+    eval "package $caller_class; 
+        use Class1; 
+        use Class2;
+    "; 
+    die $@ if $@; 
 } 1;
 
 ######## OBJECT METHOD ########
 #
-#	$obj->method( '-parm' => $value, );		# short
-#		
+#   $obj->method( '-parm' => $value, );     # short
+#       
 # comment
-#	
+#   
 sub method {
-	
-	
-	
+    
+    
+    
 };
 ######## / ########
 
 ######## UTILITY ########
 #
-#	$return = routine( '-parm' => $value, );		# short
-#		
+#   $return = routine( '-parm' => $value, );        # short
+#       
 # comment
-#	
+#   
 sub routine :Export( :ALL ) {
-	
-	
-	
+    
+    
+    
 };
 ######## / ########
 
 ######## INTERNAL ROUTINE ########
 #
-#	_do_();		# short
-#		
+#   _do_();     # short
+#       
 # comment
-#	
+#   
 sub _do_ {
-	
-	
-	
+    
+    
+    
 };
 ######## /_do_ ########
 
 
 ######## INTERNAL ROUTINE ########
 #
-#	_do_();		# short
-#		
+#   _do_();     # short
+#       
 # Purpose   : ____
 # Parms     : ____
 # Reads     : ____
@@ -150,11 +150,15 @@ sub _do_ {
 # ____
 # 
 sub _do_ {
-	
-	
-	
+    
+    
+    
 };
 ######## /_do_ ########
+
+# TAB STOPS                             1   1   1   1   1   1   1   1   1   1
+#   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9
+#   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
 
 
 
@@ -165,57 +169,57 @@ sub _do_ {
 #============================================================================#
 
 
-my $prev_fh			= select $outfh;
-local $/			= undef;			# slurp
+my $prev_fh         = select $outfh;
+local $/            = undef;            # slurp
 select $prev_fh;
 
-my $prev_fh			= select $outfh;
-local $|			= 1;				# autoflush
+my $prev_fh         = select $outfh;
+local $|            = 1;                # autoflush
 select $prev_fh;
 
 
 # selectively catch warnings
 BEGIN { 
-	$DOWARN		= 1;
-	$SIG{'__WARN__'} = sub { 
-		if ($DOWARN) {
-			warn 		  $_[0];
-		} 
-		else {
-			$WARNING	= $_[0];
-		};
-	} 
+    $DOWARN     = 1;
+    $SIG{'__WARN__'} = sub { 
+        if ($DOWARN) {
+            warn          $_[0];
+        } 
+        else {
+            $WARNING    = $_[0];
+        };
+    } 
 }
 #### /warnings trap ####
 
 
 
 
-	for ( my $i = 0; $i < 8; $i++ ) {
-		
-		
-	};
-	
-	
-	
-	
-	
-	# dispatch tree
-	if    ( 0 ) {
-		
-	} 
-	elsif ( 0 ) {
-		
-	} 
-	else {
-		
-	};
-	
-	
-	
+    for ( my $i = 0; $i < 8; $i++ ) {
+        
+        
+    };
+    
+    
+    
+    
+    
+    # dispatch tree
+    if    ( 0 ) {
+        
+    } 
+    elsif ( 0 ) {
+        
+    } 
+    else {
+        
+    };
+    
+    
+    
 
-#	shell metacharacter list: 
-#	&;`'\"|*?~<>^()[]{}$\n\r
+#   shell metacharacter list: 
+#   &;`'\"|*?~<>^()[]{}$\n\r
 
 putting the . back in PATH:
 
@@ -233,5 +237,5 @@ putting the . back in PATH:
     return 0;
   }
 
-	
-$out = ( $in +1 ) %2;		# 1 for 0, 0 for 1
+    
+$out = ( $in +1 ) %2;       # 1 for 0, 0 for 1
