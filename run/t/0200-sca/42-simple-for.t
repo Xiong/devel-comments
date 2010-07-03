@@ -71,21 +71,14 @@ $self->{-capture}{-stderr}->start();        # STDERR captured
 $self->{-capture}{-stdout}->stop();         # not captured
 $self->{-capture}{-stderr}->stop();         # not captured
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# DEBUG ONLY CODE
-
-#~ use Smart::Comments;
+#~ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#~ # DEBUG ONLY CODE
 #~ 
-#~ my $dump     = $self->{-capture}{-stderr};
-### Actual capture: $dump
-
-#~ exit(0);
-
-my $deb_filename    = '/home/xiong/projects/smartlog/file/simple-for-compare/LOG';
-open my $deb_fh, '>', $deb_filename
-    or die qq{Couldn't open $deb_filename to write }, $!;
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#~ my $deb_filename    = '/home/xiong/projects/smartlog/file/simple-for-compare/LOG';
+#~ open my $deb_fh, '>', $deb_filename
+#~     or die qq{Couldn't open $deb_filename to write }, $!;
+#~ 
+#~ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 # Account for tests run inside the box
@@ -103,10 +96,10 @@ my $do_cap_string   = sub {             # exact string eq STD*
     $got            = $self->{-got}{$stdwhat}{-string}
                     = join q{}, $self->{-capture}{$stdwhat}->read;
     $expected       = $self->{-want}{$stdwhat}{-string};
-say {$deb_fh} "$stdwhat Got:      --|", $got, '|--';
-say {$deb_fh} "$stdwhat Lenth Got:      --|", length $got, '|--';
-say {$deb_fh} "$stdwhat Expected: --|", $expected, '|--';
-say {$deb_fh} "$stdwhat Length Expected: --|", length $expected, '|--';
+#~ say {$deb_fh} "$stdwhat Got:      --|", $got, '|--';
+#~ say {$deb_fh} "$stdwhat Lenth Got:      --|", length $got, '|--';
+#~ say {$deb_fh} "$stdwhat Expected: --|", $expected, '|--';
+#~ say {$deb_fh} "$stdwhat Length Expected: --|", length $expected, '|--';
     $subname        = join q{}, $name, $stdwhat, q{-string};
     $test_counter++;
     is( $got, $expected, $subname );
