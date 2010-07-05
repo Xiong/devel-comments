@@ -1,6 +1,6 @@
 package Smart::Comments::Any;
 
-######## use section #######~
+######## use section ########
 use 5.008;
 use strict;
 use warnings;
@@ -24,11 +24,11 @@ use feature 'say';                  # disable in production              #~
 #~ use Smart::Comments '###';       # playing with fire;     debug only     #~
 #~ use Smart::Comments '#####';     # playing with fire;     debug only     #~
 
-######## / use #######~
+######## / use ########
 
 #~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
 
-######## pseudo-constants section #######~
+######## pseudo-constants section ########
 
 # time and space constants
 my $maxwidth            = 69;   # Maximum width of display
@@ -73,9 +73,9 @@ my @progress_pats = (
 # for ::Any
 my $join_up             = qq{ };    # used to join replacement code strings
 
-######## / pseudo-constants #######~
+######## / pseudo-constants ########
 
-######## pseudo-global variables section #######~
+######## pseudo-global variables section ########
 
 ## original S::C stuff
 
@@ -127,12 +127,12 @@ my %state_of            ;
 #   },
 #   AnotherCaller...
 
-######## / pseudo-global variables #######~
+######## / pseudo-global variables ########
 
 #----------------------------------------------------------------------------#
 
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   my $caller_id   = _get_new_caller_id();     # unique per-use
 #       
@@ -156,9 +156,9 @@ my %state_of            ;
 sub _get_new_caller_id {
     return $new_caller_id++;
 };
-######## /_get_new_caller_id #######~
+######## /_get_new_caller_id ########
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   my $outfh       = _get_outfh($caller_id);   # retrieve from %state_of
 #       
@@ -196,9 +196,9 @@ sub _get_outfh {
     return $state_of{$caller_id}{-outfh};
     
 };
-######## /_do_ #######~
+######## /_do_ ########
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   _init_state({               # initialize $state_of this caller
 #       -outfh          => $outfh,
@@ -262,9 +262,9 @@ sub _init_state {
     
     return 1;
 };
-######## /_init_state #######~
+######## /_init_state ########
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   $prefilter      = _prefilter(@_);       # Handle arguments to FILTER
 #       
@@ -416,11 +416,11 @@ sub _prefilter {
         -caller_id      => $caller_id,
     };
 };
-######## /_prefilter #######~
+######## /_prefilter ########
 
 sub import;     # FORWARD
 
-######## EXTERNAL SUB CALL #######~
+######## EXTERNAL SUB CALL ########
 #
 # Purpose  : Rewrite caller's smart comments into code
 # Parms    : @_     : The split use line, with $_[0] being *this* package
@@ -603,9 +603,9 @@ FILTER {
 #~ say "---| Source after filtering:\n", $_, '|--- END SOURCE CODE';        #~
 
 };
-######## /FILTER #######~
+######## /FILTER ########
 
-######## IMPORT ROUTINE #######~
+######## IMPORT ROUTINE ########
 #       
 # Purpose  : dummy for now
 # Parms    : ____
@@ -625,11 +625,11 @@ sub import {
 #~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
 
 };
-######## /import #######~
+######## /import ########
 
 #============================================================================#
 
-######## EXTERNAL ROUTINE #######~
+######## EXTERNAL ROUTINE ########
 #
 #   $return     = quiet_eval($codestring);      # string eval, no errors
 #       
@@ -643,9 +643,9 @@ sub quiet_eval {
     local $SIG{__WARN__} = sub{};
     return scalar eval shift;
 };
-######## /quiet_eval #######~
+######## /quiet_eval ########
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   $quantity   = _uniq(@list);     # short
 #       
@@ -662,9 +662,9 @@ sub _uniq {
     my %seen; 
     grep { !$seen{$_}++ } @_ 
 };
-######## /_uniq #######~
+######## /_uniq ########
 
-######## REPLACEMENT CODE GENERATOR #######~
+######## REPLACEMENT CODE GENERATOR ########
 #
 #   $codestring     = _decode_assert( $caller_id, $assertion, $signal_flag);
 #       
@@ -745,9 +745,9 @@ sub _decode_assert {
 #~ $DB::single=1;                                                           #~
     return $report_code;
 };
-######## /_decode_assert #######~
+######## /_decode_assert ########
 
-######## REPLACEMENT CODE GENERATOR #######~
+######## REPLACEMENT CODE GENERATOR ########
 #
 #   $codestring     = _decode_for($for, $range, $mesg);
 #       
@@ -786,9 +786,9 @@ sub _decode_for {
 ### _decode_for code : $report_code 
     return $report_code;
 };
-######## /_decode_for #######~
+######## /_decode_for ########
 
-######## REPLACEMENT CODE GENERATOR #######~
+######## REPLACEMENT CODE GENERATOR ########
 #
 #   _decode_while($while, $mesg);       # short
 #       
@@ -824,9 +824,9 @@ sub _decode_while {
 ### _decode_while code : $report_code   
     return $report_code;
 };
-######## /_decode_while #######~
+######## /_decode_while ########
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   _desc_time();       # short
 #       
@@ -871,9 +871,9 @@ sub _desc_time {
     }
     return $remaining;
 };
-######## /_desc_time #######~
+######## /_desc_time ########
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   _moving_average();      # short
 #       
@@ -896,9 +896,9 @@ sub _moving_average {
     }
     return sum(@$moving)/@$moving;
 };
-######## /_moving_average #######~
+######## /_moving_average ########
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   _prog_pat();        # short
 #       
@@ -919,9 +919,9 @@ sub _prog_pat {
     }
     return;
 };
-######## /_prog_pat #######~
+######## /_prog_pat ########
 
-######## EXTERNAL ROUTINE #######~
+######## EXTERNAL ROUTINE ########
 #
 #   for_progress();     # short
 #       
@@ -1052,9 +1052,9 @@ sub for_progress {
             ) if $at >= $max;
     }
 };
-######## /for_progress #######~
+######## /for_progress ########
 
-######## EXTERNAL ROUTINE #######~
+######## EXTERNAL ROUTINE ########
 #
 #   while_progress();       # short
 #       
@@ -1123,9 +1123,9 @@ sub while_progress {
         );
     }
 };
-######## /while_progress #######~
+######## /while_progress ########
 
-######## EXTERNAL ROUTINE #######~
+######## EXTERNAL ROUTINE ########
 #
 #   Print_for( $caller_id, @args );     # short
 #       
@@ -1155,9 +1155,9 @@ sub Print_for {
     
     return 1;
 };
-######## /Print_for #######~
+######## /Print_for ########
 
-######## EXTERNAL ROUTINE #######~
+######## EXTERNAL ROUTINE ########
 #
 #   Warn_for( $caller_id, $frame, @args );      # short
 #       
@@ -1187,9 +1187,9 @@ sub Warn_for {
     Print_for( $caller_id, @_, " at $caller_file line $caller_line.\n" );
     return 1;
 };
-######## /Warn_for #######~
+######## /Warn_for ########
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   _put_state( $caller_id, @caller );      # short
 #       
@@ -1226,9 +1226,9 @@ sub _put_state {
     return 1;
     
 };
-######## /_put_state #######~
+######## /_put_state ########
 
-######## INTERNAL ROUTINE #######~
+######## INTERNAL ROUTINE ########
 #
 #   $flag       = _spacer_required( $caller_id, @caller );  # newline before?
 #       
@@ -1306,9 +1306,9 @@ sub _spacer_required {
 #~    return 0;           # never do the newline                            #~
     return $flag;
 };
-######## /_spacer_required #######~
+######## /_spacer_required ########
 
-######## EXTERNAL ROUTINE #######~
+######## EXTERNAL ROUTINE ########
 #
 #   Dump_for();     # short
 #       
@@ -1401,12 +1401,12 @@ sub Dump_for {
 
     return 1;
 };
-######## /Dump_for #######~
+######## /Dump_for ########
 
 #~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
 
-############################~
-######## END MODULE ########~
+#############################
+######## END MODULE #########
 1;
 __END__
 
