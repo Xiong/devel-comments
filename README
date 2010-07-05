@@ -4,63 +4,46 @@ Smart::Comments is good but it writes all its output to STDERR.
 This conflicts with testing frameworks that capture STDERR for testing. 
 It probably also doesn't work well with, say, a CGI script. 
 
-The intent of Smart::Comments::Log is to write to a disk file instead. 
+The intent of Smart::Comments::Any is to allow output 
+    to any file or filehandle, especially to a disk file. 
 
-The plan is: 
+If *STDERR is passed in on the use line or no filehandle at all, 
+        then ::Any behaves exactly like vanilla Smart::Comments. 
 
-* Write Smart::Comments::Any, 
-	which writes to any arbitrary filehandle 
-		passed in on the use line. 
-	If *STDERR is passed in or no filehandle at all, 
-		then behave exactly like vanilla Smart::Comments. 
+Previous plan involved a future module Smart::Comments::Log. 
+    This is no longer planned. ::Any will do it all. 
 
-* Write Smart::Comments::Log 
-	to use Log::StdLog and call
-	use Smart::Comments::Any *STDLOG.
+2010-07-05:
 
+Per-call state info is stored in $state_of{$caller_id}, 
+    where $caller_id is assigned arbitrarily at time of use(). 
+    
+    This is nearly fully implemented. Vanilla stores some state info
+        for progress bars in caller's namespace. TODO: Fix. 
 
-2010-05-30: 
+All tests originally packaged with Vanilla now pass ::Any, 
+    with the note that these tests originally were a bit too finicky when
+    checking smart output in case of a failed assertion. 
+    
+    See e.g., t/0100-va/31-assert.t for explanation. 
 
-::Any basically works, although it's not yet fully implemented. 
-	TODO: Change all 'print STDERR' and 'warn' to 'print $outfh'.
+Tests pass in which an opened filehandle is given in the use line. 
 
-The current hangup is the question of whether 
-	to print a newline before smart output. 
-	
-	Vanilla tests both STDOUT and STDERR 
-	to see if anything's been written to screen since 
-	the last smart output; if so, it prints a newline. 
-		(I suppose for cleanliness, since the last print may not
-			have terminated in a newline.)
-	
-	Perhaps ::Any should do the same, 
-		since caller passes a filehandle opened for writing, 
-		and might write to it himself. 
-	
-	But clearly the test shouldn't be a test of STDOUT || STDERR
-		if smart output is going to some file. 
-		
-	To complicate things, Vanilla seems to make other tests 
-		to decide about the preliminary newline. 
-	
-Related is the question of how Vanilla stores state info in general. 
+TODO: 
 
-	I fear that much is stored globally, 
-		in such a way as to confuse issues
-		if two modules use S::C at the same time. 
-	
-	My position is that ::Any should be reentrant, 
-		with different callers possibly supplying 
-		the same or different filehandles. 
-	
-	Each filehandle must have its own state info 
-		if ::Any is going to treat it properly. 
-		
-	I already have the filehandle itself stashed in caller's namespace. 
-	A similar approach may be required, 
-		in which a whole hash of state info is stashed. 
+    * Publish new git workflow plan more or less 
+        per http://nvie.com/git-model
+        and restage github repo to match. 
+    
+    * Rewrite prefilter() to consolidate argument parsing
+        and deal with opening files when a filename is passed in
+        and deal with args passed in, in a hashref. 
+    
+    * Time for docs cleanup. Check all block comments, POD, loose notes files. 
+    
+    * Prepare release. Decide on version numbering system. 
 
--Xiong Changnian 2010-05-30 15:21:10
+-Xiong Changnian 2010-07-05 16:12:07
 
 
 
