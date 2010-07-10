@@ -1,0 +1,49 @@
+README
+
+Smart::Comments is good but it writes all its output to STDERR. 
+This conflicts with testing frameworks that capture STDERR for testing. 
+It probably also doesn't work well with, say, a CGI script. 
+
+The intent of Smart::Comments::Any is to allow output 
+    to any file or filehandle, especially to a disk file. 
+
+If *STDERR is passed in on the use line or no filehandle at all, 
+        then ::Any behaves exactly like vanilla Smart::Comments. 
+
+Previous plan involved a future module Smart::Comments::Log. 
+    This is no longer planned. ::Any will do it all. 
+
+2010-07-05:
+
+Per-call state info is stored in $state_of{$caller_id}, 
+    where $caller_id is assigned arbitrarily at time of use(). 
+    
+    This is nearly fully implemented. Vanilla stores some state info
+        for progress bars in caller's namespace. TODO: Fix. 
+
+All tests originally packaged with Vanilla now pass ::Any, 
+    with the note that these tests originally were a bit too finicky when
+    checking smart output in case of a failed assertion. 
+    
+    See e.g., t/0100-va/31-assert.t for explanation. 
+
+Tests pass in which an opened filehandle is given in the use line. 
+
+TODO: 
+
+    * Publish new git workflow plan more or less 
+        per http://nvie.com/git-model
+        and restage github repo to match. 
+    
+    * Rewrite prefilter() to consolidate argument parsing
+        and deal with opening files when a filename is passed in
+        and deal with args passed in, in a hashref. 
+    
+    * Time for docs cleanup. Check all block comments, POD, loose notes files. 
+    
+    * Prepare release. Decide on version numbering system. 
+
+-Xiong Changnian 2010-07-05 16:12:07
+
+
+
