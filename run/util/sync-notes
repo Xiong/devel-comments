@@ -38,7 +38,9 @@ my $perm_dirabs     = $base_dirabs . $perm_dirrel;
 my $rsync_cmd       = q{rsync};
 #~ my $rsync_opts      = q{-nrutv};        # dry run
 my $rsync_opts      = q{-rutv};         # recursive; update; keep times; verbose
-my $bash_allfiles  = q{/*};             # plain dir1 dir2 makes a new dir2/dir1 
+my $bash_allfiles   = q{/*};            # plain dir1 dir2 makes a new dir2/dir1 
+my $top_fnrel       = q{/TOP};          # only files listed in this file
+my $top_fnabs       = $main_dirabs . $top_fnrel;
 
 my $perm_to_main    = join q{ }, 
     $rsync_cmd, 
@@ -58,12 +60,29 @@ my $main_to_perm    = join q{ },
 ### $main_to_perm
 
 say qq{$0: Synching now...};
+
 say q{--------------------------------------------------------};
 say qq{$0: perm_to_main};
 say      `$perm_to_main`;
+
 say q{--------------------------------------------------------};
 say qq{$0: main_to_perm};
 say      `$main_to_perm`;
+
+my $main_to_base    = join q{ }, 
+    $rsync_cmd, 
+    $rsync_opts,
+    qq{ --files-from=$top_fnabs},       # only these files
+    $main_dirabs,
+    $base_dirabs,
+    ;
+
+### $main_to_base
+
+say q{--------------------------------------------------------};
+say qq{$0: main_to_base};
+say      `$main_to_base`;
+
 say q{};
 
 __DATA__
