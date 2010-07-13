@@ -1,0 +1,54 @@
+criticism of Smart::Comments
+
+This is a debugging tool, useful enough that I have and will spend considerable time overhauling it into Smart::Comments::Any and perhaps Smart::Comments::Log. But there are things I don't like about it, particularly about the way the code itself is written. 
+
+= Comments =
+
+I speak of plain old dumb comments in the body of S::C. Conway exhorts his PBP readers to comment well but S::C is very sparsely commented. 
+
+I've inserted comment blocks and tried to fill them in as I gain understanding of Conway's purposes. 
+
+= Indentation, etc. =
+
+Conway tells readers to follow many commonsense practices, such as K&R indenting, one statement per line, end each statement with a semi, limit lines to 78 columns. He then violates each of these strictures in S::C. 
+
+I've cautiously reformatted much code but I'm wary, lest I get confused about some tricky intention. This is much worse in the case of the various blocks of replacement code. 
+
+= Scope =
+
+I've struggled to understand the scope of some variables. I'm particularly disturbed by things such as:
+
+175:	my $ID = 0;
+364:	my $prev_length = -1;
+
+These are inline code, executed only once, when S::C is loaded by the first use line scanned by the interpreter. $ID seems harmless; it's incremented each time a new loop is encountered. 
+
+But $prev_length is used to test whether to refresh a while progress bar, then used to store the current state of the bar. Experiment shows that this variable must be initialized, lest a warning be issued: 
+
+Use of uninitialized value $prev_length in numeric eq (==)...
+
+... but initializing it to 0 causes while_num.t to fail. Yet nowhere does Conway reset the variable -- not when the loop is done, not (explicitly) when a new loop is started. Experiment shows that a second loop is content to start with the variable set to a previous value of 4. Apparently, any initial value is okay except 0. 
+
+BTW: Exercise shows that nested loops don't produce multiple progress bars; only the innermost is shown. Examination of Conway's test suite implies that he's unconcerned with nested loop progress bars. Well and good; they might get ugly. 
+
+= Overall Approach =
+
+"...almost every maintainability issue is, by itself, marginal. It’s only collectively that subtleties, clevernesses, and esoterica begin to sabotage comprehensibility."		--PBP p165
+
+I feel S::C is awash in "subtleties, clevernesses, and esoterica". Each taken alone may be simple enough and, it can be argued easily, very simple to an experienced Perler, which I'm not. Taken together, they make the code tough. 
+
+"Don’t be clever."			--PBP p453
+
+Conway is clever; I don't imagine myself a spot of tar on his shoe. One might wish, though, he had taken his own prescription, so lesser mortals could work more easily with his code. 
+
+Xiong Changnian		2010-06-10 00:49:02
+
+= Regexes =
+
+Actual source filtering is done by means of regexs binding to $_ of form: 
+
+	s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
+     {Smart::Comments::_Dump(pref=>q{$1},var=>[$2]);$DBX}gmx;
+
+When did we start being so thrifty with source code bytes? I sense a state of mind like "It's replacement code, it will never be seen; for efficiency, let's eliminate all unnecessary whitespace." But it *is* code and it *is* seen, right there in the module. All of the reasons why we write clean code apply. 
+

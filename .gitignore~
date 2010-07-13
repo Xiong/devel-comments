@@ -1,0 +1,11 @@
+# .gitignore
+#
+# This file tells git which folders and files not to track. 
+# See also $ man git-ignore
+
+# Rule 1: These folder contents will not be tracked
+old/
+lab/
+sym/
+sym
+download/
