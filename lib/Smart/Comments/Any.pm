@@ -655,7 +655,7 @@ sub quiet_eval {
 # Returns  : scalar quantity of unique elements
 # Writes   : none
 # Throws   : never
-# See also : _decode_assert
+# See also : _decode_assert()
 # 
 #   
 sub _uniq { 
