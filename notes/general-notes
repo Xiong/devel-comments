@@ -224,4 +224,27 @@ It's coming clear to me -- dimly -- that a variable-type filehandle (e.g., $fh) 
 	
 	If using join() in substitution, must use /e flag. 
 
+= Feature Requests = 2010-07-27 04:40:51
 
+Progress bars: 
+
+[planetscape] as visually fun (and would probably get old quickly) as a sideways histogram might be... what I would probably most want is a single bar that gives as accurate a representation of how long a process is likely to take as possible
+
+[planetscape] possibly the outermost (loop); but if some subprocess if going to hog most of the time, then some adjustment should be made - a single bar should display as consistently as possible, the cumulative sub-processes
+
+[planetscape] yeah, better if it suddenly speeds up, and completes sooner than expected... like the contractor's rule: under-promise and over-deliver
+
+[herveus] If I could have given it a width to use and/or a rough upper bound, it might have been more useful
+
+= Formerly Known As = 2010-07-27 04:43:19
+
+The name issue has been dragging on for two weeks. 
+
+2010-07-28 16:47:48
+
+I'm tired of the discussion. Consensus supports Devel::Comments. 
+
+Module name:                    Devel::Comments
+File name:                      Devel/Comments.pm
+Local project folder:           comments
+Remote GitHub repo:             devel-comments
