@@ -25,7 +25,7 @@ use Cwd;
 #~ use Smart::Comments '###', '####';
 
 #
-my $base_dirabs     = q{/home/xiong/projects/smartlog/};
+my $base_dirabs     = q{/home/xiong/projects/comments/};
 my $main_dirrel     = q{run/util};
 my $perm_dirname    = q{util};
 my $perm_prefix     = q{.};

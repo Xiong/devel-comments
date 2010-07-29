@@ -1,0 +1,19 @@
+pack-for-cpan       2010-07-15 09:39:51
+
+How to pack up this module for release via CPAN, step-by-step
+
+1.  Download Smart::Comments from CPAN: 
+
+        http://search.cpan.org/CPAN/authors/id/C/CH/CHORNY/Smart-Comments-1.0.4.tar.gz
+        
+        $ mkdir ~/projects/smartlog/pack
+        $ cd pack
+        
+        Extract the tarball into pack/.
+        
+2.  Create a skeleton using module-starter: 
+        
+        $ module-starter --module=Smart::Comments::Any
+        $ mv Smart-Comments-Any Smart-Comments-Any-1.1.0
+        
+3.  
