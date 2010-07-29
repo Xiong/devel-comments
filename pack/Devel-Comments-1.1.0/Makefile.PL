@@ -3,15 +3,15 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME                => 'Smart::Comments::Any',
+    NAME                => 'Devel::Comments',
     AUTHOR              => 'Xiong Changnian <xiong@sf-id.com>',
-    VERSION_FROM        => 'lib/Smart/Comments/Any.pm',
-    ABSTRACT_FROM       => 'lib/Smart/Comments/Any.pm',
+    VERSION_FROM        => 'lib/Devel/Comments.pm',
+    ABSTRACT_FROM       => 'lib/Devel/Comments.pm',
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
         'version'    => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'Smart-Comments-Any-*' },
+    clean               => { FILES => 'Devel-Comments-*' },
 );

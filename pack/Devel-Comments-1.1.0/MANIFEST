@@ -3,7 +3,7 @@ Changes
 MANIFEST
 Makefile.PL
 README
-lib/Smart/Comments/Any.pm
+lib/Devel/Comments.pm
 t/00.load.t
 t/perlcritic.t
 t/pod-coverage.t

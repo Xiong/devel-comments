@@ -1,7 +1,7 @@
 use Test::More tests => 1;
 
 BEGIN {
-use_ok( 'Smart::Comments::Any' );
+use_ok( 'Devel::Comments' );
 }
 
-diag( "Testing Smart::Comments::Any $Smart::Comments::Any::VERSION" );
+diag( "Testing Devel::Comments $Devel::Comments::VERSION" );

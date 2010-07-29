@@ -1,4 +1,4 @@
-package Smart::Comments::Any;
+package Devel::Comments;
 
 ######## use section ########
 use 5.008;
@@ -26,7 +26,7 @@ use feature 'say';                  # disable in production              #~
 
 ######## / use ########
 
-#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                      #~
 
 ######## pseudo-constants section ########
 
@@ -70,7 +70,7 @@ my @progress_pats = (
    qr{^(\s*.*?) ()                         ()                      () \s*$ }x,
 );
 
-# for ::Any
+# new with DC
 my $join_up             = qq{ };    # used to join replacement code strings
 
 ######## / pseudo-constants ########
@@ -97,13 +97,13 @@ my (%count, %max, %prev_elapsed, %prev_fraction, %showing);
 my $prev_length = -1;
 
 
-## ::Any stuff
+## new with DC
 
-# Unique ID assigned to each use of S::C::Any
+# Unique ID assigned to each use of DC
 #   (strictly, per-import)
 #
 # Note that since source filtering is applied from use line down to EOF 
-#   or (perhaps) no S::C::Any, a given filter application is neither
+#   or (perhaps) 'no Devel::Comments;', a given filtering action is neither
 #   strictly per-package nor per-file.
 #
 # See _get_new_caller_id()
@@ -149,8 +149,8 @@ my %state_of            ;
 # Strictly, $caller_id is unique neither to calling package nor file;
 #   it is assigned whenever Filter::Simple::FILTER calls _prefilter(), 
 #   which should happen once per use. So, its scope within client code is: 
-#       from: use Smart::Comments::Any
-#         to:  no Smart::Comments::Any
+#       from: use Devel::Comments
+#         to:  no Devel::Comments
 #   ...possibly crossing package boundaries.
 # 
 sub _get_new_caller_id {
@@ -172,13 +172,13 @@ sub _get_new_caller_id {
 # 
 sub _get_outfh {
     my $caller_id       = shift 
-        or die   q{Smart::Comments::Any: }  # called with no arg
+        or die   q{Devel::Comments: }  # called with no arg
             ,    q{Internal error: }
             ,    q{_get_outfh called with no or false arg. }
             ,    $!
             ;
     defined $state_of{$caller_id}
-        or die   q{Smart::Comments::Any: }  # called with bad id
+        or die   q{Devel::Comments: }  # called with bad id
             ,    q{Internal error: }
             ,   qq{$caller_id not defined in }
             ,    q{%state_of. }
@@ -186,7 +186,7 @@ sub _get_outfh {
             ;
     
     defined $state_of{$caller_id}{-outfh}
-        or die   q{Smart::Comments::Any: }  # no $outfh found
+        or die   q{Devel::Comments: }  # no $outfh found
             ,    q{Internal error: }
             ,    q{No output filehandle found in %state_of }
             ,   qq{for $caller_id. }
@@ -222,14 +222,14 @@ sub _init_state {
     my $href        = shift;
     
     my $caller_id       = $href->{-caller_id}
-        or die   q{Smart::Comments::Any: }  # called with no -caller_id
+        or die   q{Devel::Comments: }  # called with no -caller_id
             ,    q{Internal error: }
             ,    q{-caller_id not passed in call to _init_state(). }
             ,    $!
             ;
     
     my $outfh           = $href->{-outfh}
-        or die   q{Smart::Comments::Any: }  # called with no -outfh
+        or die   q{Devel::Comments: }  # called with no -outfh
             ,    q{Internal error: }
             ,    q{-outfh not passed in call to _init_state(). }
             ,    $!
@@ -283,7 +283,7 @@ sub _init_state {
 # 
 sub _prefilter {
     
-#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                      #~
     
     shift;                          # Don't need our own package name
     s/\r\n/\n/g;                    # Handle win32 line endings
@@ -294,7 +294,7 @@ sub _prefilter {
     my $intro       = qr/#{3,}/;
     my @intros      ;
     
-    ## Handle the ::Any setup
+    # Get filehandle
     
     my $fh_seen         = 0;            # no filehandle seen yet
     my $outfh           = undef;        # don't assign it first; see open()
@@ -317,7 +317,7 @@ sub _prefilter {
                 splice @_, $i;          # remove the parsed arg
 #~ say '$out_filename: ', $out_filename;                                    ~#      
                 open $outfh, '>', $out_filename
-                    or die "Smart::Comments::Any: " 
+                    or die "Devel::Comments: " 
                         ,  "Can't open $out_filename to write."
                         , $!
                         ;
@@ -343,7 +343,7 @@ sub _prefilter {
         
         # Is $arg defined by vanilla Smart::Comments?
         if ( $arg eq '-ENV' || (substr $arg, 0, 1) eq '#' ) {
-            next SETFH;             # not ::Any arg, keep looking
+            next SETFH;             # no, keep looking
         };
 #~        print 'Mine: >', $arg, "<\n";                                     #~
         
@@ -354,7 +354,7 @@ sub _prefilter {
         if ( not -w $arg ) {
             carp   q{Not a writable filehandle: }
                 . qq{$arg} 
-                .  q{ in call to 'use Smart::Comments::Any'.}
+                .  q{ in call to 'use Devel::Comments'.}
                 ;
         }                           # and keep looking
         else {
@@ -377,7 +377,7 @@ sub _prefilter {
 #### ...In prefilter()...
 #### %state_of
     
-    ## done with the ::Any setup
+    ## done with the new-for-DC setup
     
     
     # Handle intros and env args...
@@ -402,7 +402,7 @@ sub _prefilter {
 
     if (my @unknowns = grep {!/$intro/} @intros) {
         croak "Incomprehensible arguments: @unknowns\n",
-              "in call to 'use Smart::Comments::Any'";
+              "in call to 'use Devel::Comments'";
     }
 
     # Make non-default introducer pattern...
@@ -475,7 +475,7 @@ FILTER {
         open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: $!";
     }
     
-#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                      #~
     
     # Progress bar on a for loop...
     # Calls _decode_for()
@@ -516,7 +516,7 @@ FILTER {
     # Dump a raw scalar (the varname is used as the label)...
     s{ ^ $hws* $intro [ \t]+ (\$ [\w:]* \w) $optcolon $hws* $ }
      { join $join_up,
-        qq* Smart::Comments::Any::Dump_for(                                 *,
+        qq* Devel::Comments::Dump_for(                                 *,
         qq*    -caller_id   => $caller_id,                                  *,
         qq*    -prefix      =>  q{$1:},                                     *,
         qq*    -varref      =>   [$1],                                      *,
@@ -526,7 +526,7 @@ FILTER {
     # Dump a labelled scalar...
     s{ ^ $hws* $intro [ \t] (.+ :) [ \t]* (\$ [\w:]* \w) $optcolon $hws* $ }
      { join $join_up,
-        qq* Smart::Comments::Any::Dump_for(                                 *,
+        qq* Devel::Comments::Dump_for(                                 *,
         qq*     -caller_id  => $caller_id,                                  *,
         qq*     -prefix     =>  q{$1},                                      *,
         qq*     -varref     =>   [$2],                                      *,
@@ -536,7 +536,7 @@ FILTER {
     # Dump a raw hash or array (the varname is used as the label)...
     s{ ^ $hws* $intro [ \t]+ ([\@%] [\w:]* \w) $optcolon $hws* $ }
      { join $join_up,
-        qq* Smart::Comments::Any::Dump_for(                                 *,
+        qq* Devel::Comments::Dump_for(                                 *,
         qq*    -caller_id   => $caller_id,                                  *,
         qq*    -prefix      =>  q{$1:},                                     *,
         qq*    -varref      => [\\$1],                                      *,
@@ -546,7 +546,7 @@ FILTER {
     # Dump a labelled hash or array...
     s{ ^ $hws* $intro [ \t]+ (.+ :) [ \t]* ([\@%] [\w:]* \w) $optcolon $hws* $ }
      { join $join_up,
-        qq* Smart::Comments::Any::Dump_for(                                 *,
+        qq* Devel::Comments::Dump_for(                                 *,
         qq*    -caller_id   => $caller_id,                                  *,
         qq*    -prefix      =>  q{$1},                                      *,
         qq*    -varref      => [\\$2],                                      *,
@@ -556,7 +556,7 @@ FILTER {
     # Dump a labelled expression...
     s{ ^ $hws* $intro [ \t]+ (.+ :) (.+) }
      { join $join_up,
-        qq* Smart::Comments::Any::Dump_for(                                 *,
+        qq* Devel::Comments::Dump_for(                                 *,
         qq*    -caller_id   => $caller_id,                                  *,
         qq*    -prefix      =>  q{$1},                                      *,
         qq*    -varref      =>   [$2],                                      *,
@@ -566,7 +566,7 @@ FILTER {
     # Dump an 'in progress' message
     s{ ^ $hws* $intro $hws* (.+ [.]{3}) $hws* $ }
      { join $join_up,
-        qq* Smart::Comments::Any::Dump_for(                                 *,
+        qq* Devel::Comments::Dump_for(                                 *,
         qq*    -caller_id   => $caller_id,                                  *,
         qq*    -prefix      => qq{$1},                                      *,
         qq* );$DBX                                                          *,
@@ -576,10 +576,10 @@ FILTER {
     # Note inserted call to quiet_eval()
     s{ ^ $hws* $intro $hws* (.*) $optcolon $hws* $ }
      { join $join_up,
-        qq* Smart::Comments::Any::Dump_for(                                 *,
+        qq* Devel::Comments::Dump_for(                                 *,
         qq*    -caller_id   => $caller_id,                                  *,
         qq*    -prefix      =>  q{$1:},                                     *,
-        qq*    -varref      => Smart::Comments::Any::quiet_eval( q{[$1]} ), *,
+        qq*    -varref      => Devel::Comments::quiet_eval( q{[$1]} ), *,
         qq* );$DBX                                                          *,
      }egmx;
 
@@ -595,7 +595,7 @@ FILTER {
 #   # Anything else is a literal string to be printed...
 #   # Inserts call to Dump_for()
 #   s{ ^ $hws* $intro $hws* (.*) }
-#    {Smart::Comments::Any::Dump_for(-prefix=>q{$1});$DBX}gmx;
+#    {Devel::Comments::Dump_for(-prefix=>q{$1});$DBX}gmx;
 
     ##### |--- End of filter ---|
     ##### @_
@@ -622,7 +622,7 @@ FILTER {
 #   
 sub import {
     
-#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                      #~
 
 };
 ######## /import ########
@@ -691,9 +691,9 @@ sub _decode_assert {
     
     my $frame           = 1;
     
-    my $Dump_for    = 'Smart::Comments::Any::Dump_for';
-    my $Print_for   = 'Smart::Comments::Any::Print_for';
-    my $Warn_for    = 'Smart::Comments::Any::Warn_for';
+    my $Dump_for    = 'Devel::Comments::Dump_for';
+    my $Print_for   = 'Devel::Comments::Print_for';
+    my $Warn_for    = 'Devel::Comments::Warn_for';
 
     # Choose the right signalling mechanism
     #   after Warn_for()...
@@ -774,7 +774,7 @@ sub _decode_for {
     my $report_code     = join qq{\n},
         qq* my \$not_first__$ID;                                    *,
         qq* $for (my \@SmartComments__range__$ID = $range) {        *,
-        qq*     Smart::Comments::Any::for_progress( $caller_id,     *,
+        qq*     Devel::Comments::for_progress( $caller_id,     *,
         qq*         qq{$mesg},                                      *,
         qq*         \$not_first__$ID,                               *,
         qq*         \\\@SmartComments__range__$ID                   *,
@@ -813,7 +813,7 @@ sub _decode_while {
     my $report_code     = join qq{\n},
         qq* my \$not_first__$ID;                                    *,
         qq* $while {                                                *,
-        qq*     Smart::Comments::Any::while_progress( $caller_id,   *,
+        qq*     Devel::Comments::while_progress( $caller_id,   *,
         qq*         qq{$mesg},                                      *,
         qq*         \\\$not_first__$ID                              *,
         qq*     );                                                  *,
@@ -1147,7 +1147,7 @@ sub Print_for {
     my $outfh           = _get_outfh($caller_id);   # get from %state_of
     
     print {$outfh} @_
-        or die   q{Smart::Comments::Any: }  # print failure
+        or die   q{Devel::Comments: }  # print failure
             ,    q{Filesystem IO error: }
             ,   qq{Failed to print to output filehandle for $caller_id }
             ,    $!
@@ -1212,7 +1212,7 @@ sub _put_state {
     my $caller_file     = $caller[1];
     my $caller_line     = $caller[2];
     
-    die "Smart::Comments::Any: Fatal Error (_put_state): ",
+    die "Devel::Comments: Fatal Error (_put_state): ",
         "No state_of $caller_id.", 
         $!      if ( !defined $state_of{$caller_id} );
     
@@ -1278,7 +1278,7 @@ sub _spacer_required {
 # Intent was to preserve Vanilla behavior by requiring newline
 #   if tell STDOUT had changed when printing to STDERR. 
 # But with this paragraph disabled, Vanilla is preserved 
-#   and also 'use Smart::Comments::Any *STDOUT' yields the same output.
+#   and also 'use Devel::Comments *STDOUT' yields the same output.
 # Yet when given a hard disk $fh, fewer gratuitous newlines are output, 
 #   which is desired. 
 # I cannot figure out why. Let us consider this a blessing. 
@@ -1326,7 +1326,7 @@ sub Dump_for {
     
     my %hash        = @_;
     my $caller_id       = $hash{-caller_id}
-        or die   q{Smart::Comments::Any: }  # called with no -caller_id
+        or die   q{Devel::Comments: }  # called with no -caller_id
             ,    q{Replacement code error: }
             ,    q{-caller_id not passed in call to Dump(). }
             ,    $!
@@ -1403,7 +1403,7 @@ sub Dump_for {
 };
 ######## /Dump_for ########
 
-#~ say '---| Smart::Comments::Any at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                      #~
 
 #############################
 ######## END MODULE #########
@@ -1412,35 +1412,35 @@ __END__
 
 =head1 NAME
 
-Smart::Comments::Any - Smart Comments that print anywhere
+Devel::Comments - Smart Comments that print anywhere
 
 
 =head1 VERSION
 
-This document describes Smart::Comments::Any version 1.0.4
+This document describes Devel::Comments version 1.0.4
 
 
 =head1 SYNOPSIS
 
-    use Smart::Comments::Any LOG, '###';        # recommended
+    use Devel::Comments LOG, '###';        # recommended
 
-    use Smart::Comments::Any ({                 # if you want the filehandle
+    use Devel::Comments ({                 # if you want the filehandle
         -fh             => $::outfh,            # undefined package scalar
         -log            => 1,                   # appends to "$0.log"
         -level          => 3,                   # same as '###'
     });     
 
-    use Smart::Comments::Any;                   # acts just like Smart::Comments
-    use Smart::Comments::Any '###';             # acts just like Smart::Comments
-    use Smart::Comments::Any *STDERR, '###';    # same thing
+    use Devel::Comments;                   # acts just like Smart::Comments
+    use Devel::Comments '###';             # acts just like Smart::Comments
+    use Devel::Comments *STDERR, '###';    # same thing
     
-    use Smart::Comments::Any $fh;               # prints to $fh instead
-    use Smart::Comments::Any *FH;               # prints to FH instead
+    use Devel::Comments $fh;               # prints to $fh instead
+    use Devel::Comments *FH;               # prints to FH instead
 
-    use Smart::Comments::Any 'my/log.txt';      # opens file and prints to it
-    use Smart::Comments::Any LOG;               # appends to "$0.log"
+    use Devel::Comments 'my/log.txt';      # opens file and prints to it
+    use Devel::Comments LOG;               # appends to "$0.log"
     
-    use Smart::Comments::Any ({                 # hashref call
+    use Devel::Comments ({                 # hashref call
         -fh             => *STDERR,             # filehandle
         -file           => 'my/log',            # filename
         -log            => 1,                   # appends to "$0.log"
@@ -1458,11 +1458,11 @@ However, it always prints to STDERR. This doesn't work so well when STDERR
 is being captured and tested. Besides, you might want a more permanent log of 
 smart output. 
 
-Smart::Comments::Any acts like Smart::Comments, except that 
+Devel::Comments acts like Smart::Comments, except that 
 output can be sent to other destinations. 
 
 Please see L<Smart::Comments> for major documentation. 
-Smart::Comments::Any version 1.0.4 is a modification 
+Devel::Comments version 1.0.4 is a modification 
 of the same version of Smart::Comments. 
 
 =head1 INTERFACE 
@@ -1470,10 +1470,10 @@ of the same version of Smart::Comments.
 =head2 The C<use> Line Flat List
 
 Because this is a source filter, most work is done at the time the module is
-loaded via use C<Smart::Comments::Any>. If called with vanilla Smart::Comments 
-arguments, ::Any will behave the same; it's a drop-in replacement. 
+loaded via use C<Devel::Comments>. If called with vanilla Smart::Comments 
+arguments, DC will behave the same; it's a drop-in replacement. 
 
-Besides the vanilla C<'###'>, etc. and C<-ENV> arguments, ::Any accepts 
+Besides the vanilla C<'###'>, etc. and C<-ENV> arguments, DC accepts 
 filehandles, filenames, and a hashref supplying any or all argument values. 
 
 =head3 $fh, *FH
@@ -1497,7 +1497,7 @@ The filehandle must be opened, obviously, in some writable mode.
         my $filename    = 'mylog.txt';
         open my $fh, '>', $filename
             or die "Couldn't open $filename to write", $!;
-        use Smart::Comments::Any $fh;
+        use Devel::Comments $fh;
     }
       
     BEGIN {                             # or store $::fh for later use
@@ -1505,7 +1505,7 @@ The filehandle must be opened, obviously, in some writable mode.
         open my $::fh, '>', $filename
             or die "Couldn't open $filename to write", $!;
     }
-    use Smart::Comments::Any $::fh;
+    use Devel::Comments $::fh;
     {...}   # do some work
     ### $some_variable
     print {$::fh} 'Some message...';
@@ -1515,7 +1515,7 @@ The filehandle must be opened, obviously, in some writable mode.
 
 I<see -file>
 
-You can pass a filename as an argument. Smart::Comments::Any will open the 
+You can pass a filename as an argument. Devel::Comments will open the 
 file for you and direct smart output to it. There's an issue here in that
 a filename might be just about any string; so we assume any 
 otherwise-unrecognized argument to be a filename. Also, if you've 
@@ -1550,7 +1550,7 @@ be created if it doesn't exist, truncated by default, opened for writing,
 and set to autoflush. All directory components must exist. 
 
 Until your entire program ends, there's no way to be sure that caller won't 
-come into scope (say, a sub called from some other script or module). So ::Any 
+come into scope (say, a sub called from some other script or module). So DC 
 can't do an explicit close(). That shouldn't be a problem, since Perl will 
 close the filehandle when program terminates. If you need to do something 
 differently, supply a filehandle and manage it yourself. 
@@ -1579,7 +1579,7 @@ Value must be acceptable as a filehandle:
     "FH"        # please don't do this; probably won't work as expected.
 
 Except for C<*STDOUT> you should probably avoid the typeglob notation. 
-(No need to specify STDERR explicitly.) ::Any will try to work with a typeglob 
+(No need to specify STDERR explicitly.) DC will try to work with a typeglob 
 but there are risks. You'd better localize the typeglob; a lexical may not work. 
 (See L<Perl Cookbook Recipie 7.16>.) Passing a string will probably fail. 
 
@@ -1590,12 +1590,12 @@ You don't need to load IO::file to open an indirect filehandle; this is fine:
 
 So long as $fh is undefined beforehand, it will contain afterward a reference 
 to an anonymous filehandle. It's okay to use a lexical variable for this; 
-just be sure it's opened and in scope when the C<use Smart::Comments::Any> 
+just be sure it's opened and in scope when the C<use Devel::Comments> 
 line comes around (at "compile time"), 
 which probably means to do this in a BEGIN block. 
 
 If no filename is also supplied, then the filehandle must be opened for writing. 
-::Any will not do anything special to the filehandle 
+DC will not do anything special to the filehandle 
 but will print all smart output to it. 
 
 If a filename is supplied as well as a filehandle, then the supplied filehandle
@@ -1604,7 +1604,7 @@ will be associated with the file, so you can do stuff yourself with the filehand
     BEGIN {                             # "exports"
         my $filename    = 'mylog.txt';
         my $::fh;
-        use Smart::Comments::Any ({
+        use Devel::Comments ({
             -file   => $filename,
             -fh     => $::fh;
         });
@@ -1620,14 +1620,14 @@ Vanilla accepts arguments like '###', '####', and so forth. If none are given,
 then all comments introduced with 3 or more octothorpes are considered smart. 
 Otherwise, only those comments introduced with a matching quantity are smart: 
 
-    use Smart::Comments::Any '###', '#####'; 
+    use Devel::Comments '###', '#####'; 
     ### This is smart.
     #### This is dumb.
     ##### This is also smart. 
 
-::Any will do this too. Or, you can pass an integer or a list of integers: 
+DC will do this too. Or, you can pass an integer or a list of integers: 
     
-    use Smart::Comments::Any ({-level => [3, 5] }); 
+    use Devel::Comments ({-level => [3, 5] }); 
     ### This is smart.
     #### This is dumb.
     ##### This is also smart. 
@@ -1676,23 +1676,23 @@ will be smart (logical OR).
 
 =head1 SCOPE, STATE, OUTPUT REGIMES
 
-::Any may be called more than once in the same program, e.g., from two 
-different loaded modules. As does Vanilla, ::Any has effect until the end of 
-the file or a C<no Smart::Comments::Any> line (which must be the first thing 
-on its line). If used again, ::Any will parse the new use line and apply it to 
+DC may be called more than once in the same program, e.g., from two 
+different loaded modules. As does Vanilla, DC has effect until the end of 
+the file or a C<no Devel::Comments> line (which must be the first thing 
+on its line). If used again, DC will parse the new use line and apply it to 
 your source code from there on out. 
 
 This required no special logic in Vanilla; the filter is applied once per use 
 and although multiple modules might call S::C routines from within filtered 
-code, all output went to STDERR. But multiple uses of ::Any may choose 
+code, all output went to STDERR. But multiple uses of DC may choose 
 different output regimes. So state information is stored for each caller. 
 
 If you supply a filehandle (other than STDOUT or STDERR), your (filtered) 
 code will need that later to print smart output where you want it to go. If you 
 supply a package variable as an indirect filehandle (such as C<$My::Module::fh>), 
-then all is well. If you supply a lexical (C<my>) variable, ::Any will still 
+then all is well. If you supply a lexical (C<my>) variable, DC will still 
 work, even after it goes out of scope in your package, because a reference is 
-stored in ::Any's namespace. But by the same token, don't expect it to be 
+stored in DC's namespace. But by the same token, don't expect it to be 
 garbage-collected. You may as well use a package "global" variable, since 
 source filtering is pretty much a global operation anyway. 
 
@@ -1707,15 +1707,15 @@ which you can use, if you choose, to print directly from within your script.
 
 You might well reuse the same file for smart output from several modules; if so, 
 you probably want to preserve it from use to use. 
-So C<use Smart::Comments::Any ({-file => 'my/log', -append => 1});> in each,
-or simply C<use Smart::Comments::Any LOG>. 
+So C<use Devel::Comments ({-file => 'my/log', -append => 1});> in each,
+or simply C<use Devel::Comments LOG>. 
 
 =head1 ASSERTIONS
 
 Assertions defined with one of the words C<[require|assert|ensure|insist]> 
-will C<die()> under both Vanilla and ::Any. Assertions defined with 
+will C<die()> under both Vanilla and DC. Assertions defined with 
 C<[check|confirm|verify]> raise a warning in Vanilla, which of course prints 
-to STDERR. In ::Any, these print to whatever's been chosen for smart output 
+to STDERR. In DC, these print to whatever's been chosen for smart output 
 and the C<warn()> is simulated. 
 
 =head1 PROGRESS BARS
@@ -1723,12 +1723,12 @@ and the C<warn()> is simulated.
 Progress bars can be generated by putting certain types of smart comment 
 trailing the first line of some loops: 
 
-    use Smart::Comments::Any;    ### praying...       done
+    use Devel::Comments;    ### praying...       done
     foreach (@monk) {
         pray($_);
     };
 
-Both Vanilla and ::Any animate the progress bar by printing the C<"\r"> 
+Both Vanilla and DC animate the progress bar by printing the C<"\r"> 
 character and wiping the line with spaces. This is unchanged when smart output
 goes to a disk file. Depending on your method of reading that file, you may see
 multiple lines or nothing at all. But if, for some reason, the loop aborts, you 
@@ -1738,11 +1738,11 @@ may see how far along it got.
 
 =over
 
-=item C<< Bad filehandle: %s in call to 'use Smart::Comments::Any', defaulting to STDERR >>
+=item C<< Bad filehandle: %s in call to 'use Devel::Comments', defaulting to STDERR >>
 
 You loaded the module and passed it a filehandle that couldn't be written to. 
 Note that you'd better open the filehandle for writing in a BEGIN block
-before loading Smart::Comments::Any. 
+before loading Devel::Comments. 
 
 =back
 
@@ -1794,7 +1794,7 @@ credit goes to Damian Conway. If it fails when Smart::Comments works,
 blame me. 
 
 Before reporting any bug, please be sure it's specific to 
-Smart::Comments::Any by testing with vanilla Smart::Comments. 
+Devel::Comments by testing with vanilla Smart::Comments. 
 
 Please report any bugs or feature requests to
 C<< <xiong@xuefang.com> >>.
