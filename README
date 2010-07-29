@@ -4,7 +4,7 @@ Smart::Comments is good but it writes all its output to STDERR.
 This conflicts with testing frameworks that capture STDERR for testing. 
 It probably also doesn't work well with, say, a CGI script. 
 
-The intent of Smart::Comments::Any is to allow output 
+The intent of Devel::Comments is to allow output 
     to any file or filehandle, especially to a disk file. 
 
 If *STDERR is passed in on the use line or no filehandle at all, 
