@@ -4,7 +4,9 @@ package Devel::Comments;
 use 5.008;
 use strict;
 use warnings;
-use version; our $VERSION = qv('1.0.4');
+
+# Please see the file VERSIONS.
+use version 0.77; our $VERSION = qv('1.1.0');
 
 # original S::C (originally used here)
 use Carp;
@@ -1417,7 +1419,7 @@ Devel::Comments - Smart Comments that print anywhere
 
 =head1 VERSION
 
-This document describes Devel::Comments version 1.0.4
+This document describes Devel::Comments version 1.1.0
 
 
 =head1 SYNOPSIS
@@ -1462,7 +1464,7 @@ Devel::Comments acts like Smart::Comments, except that
 output can be sent to other destinations. 
 
 Please see L<Smart::Comments> for major documentation. 
-Devel::Comments version 1.0.4 is a modification 
+Devel::Comments version 1.1.0 is a modification 
 of the same version of Smart::Comments. 
 
 =head1 INTERFACE 
