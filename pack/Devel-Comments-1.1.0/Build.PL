@@ -9,12 +9,12 @@ my $builder = Module::Build->new(
     dist_author         => 'Xiong Changnian <XIONG@cpan.org>',
     dist_version_from   => 'lib/Devel/Comments.pm',
     requires => {
+        'perl'           => 5.008,
         'version'        => 0.77,
         'Text::Balanced' => 2.0,
         'Data::Dumper'   => 0,
         'Filter::Simple' => 0.80,
         'List::Util'     => 0,
-        'perl'           => 5.008,
     },
     build_requires => {
         'Test::More'     => 0.94,
