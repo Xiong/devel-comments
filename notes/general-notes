@@ -248,3 +248,19 @@ Module name:                    Devel::Comments
 File name:                      Devel/Comments.pm
 Local project folder:           comments
 Remote GitHub repo:             devel-comments
+
+= build_recommends = 2010-08-04 17:15:13
+
+Module::Build supports 'requires', 'build_requires', and 'recommends' for prerequisites. But it does not support 'build_recommends'. This, I imagine as a list of modules required to run the full test suite. 
+
+I don't see it strictly necessary to ship the full test suite with a module. Most users want to install quickly; they're uninterested in lengthy tests. They may be unwilling to install additional modules only required for testing. 
+
+Under a TDD regime, author creates a very large number of tests. Only a small subset of these may be necessary to prove good installation on user's platform. Other tests are only likely to fail if the module itself is edited. Some users, however (especially developer-users), may demand the entire test suite. They will be more likely to have additional prerequisites already installed and also to be more willing to install them if necessary. 
+
+I compose a small test suite that runs on 'Build test'. This is stored in the conventional 't/' folder. I include the full test suite in 't-full'. 
+
+I list modules required only for the minimum test suite as 'build_requires' and those required to run the full suite as 'recommends'. 
+
+
+
+

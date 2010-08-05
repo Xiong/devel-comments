@@ -17,7 +17,17 @@ my $builder = Module::Build->new(
         'List::Util'     => 0,
     },
     build_requires => {
+        'Test::More'     => 0,
+    },
+    recommends => {
         'Test::More'     => 0.94,
+        'Test::Deep'     => 0,
+        'Try::Tiny'      => 0,
+
+        'IO::Capture::Stdout::Extended'     => 0,
+        'IO::Capture::Stderr::Extended'     => 0,
+        'IO::Capture::Sayfix'               => 0,
+        'IO::Capture::Tellfix'              => 0,
     },
     add_to_cleanup      => [ 'Devel-Comments-*' ],
     meta_merge => {
