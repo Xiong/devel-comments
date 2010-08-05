@@ -38,7 +38,7 @@ my $builder = Module::Build->new(
             'source filter', 
             'smart comments',
             'perl debugging',
-            'development'
+            'development',
         ],
     },
 );
