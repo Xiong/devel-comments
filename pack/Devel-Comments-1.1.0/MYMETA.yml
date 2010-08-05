@@ -18,6 +18,14 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: Devel-Comments
+provides:
+  Devel::Comments:
+    file: lib/Devel/Comments.pm
+    version: v1.1.0
+  IO::Capture::Sayfix:
+    file: lib/IO/Capture/Sayfix.pm
+  IO::Capture::Tellfix:
+    file: lib/IO/Capture/Tellfix.pm
 recommends:
   IO::Capture::Sayfix: 0
   IO::Capture::Stderr::Extended: 0
