@@ -169,7 +169,7 @@ sub _do_ {
 #============================================================================#
 
 
-my $prev_fh         = select $outfh;
+my $prev_fh         = select $infh;
 local $/            = undef;            # slurp
 select $prev_fh;
 
