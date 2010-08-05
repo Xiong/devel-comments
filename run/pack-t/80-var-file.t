@@ -57,3 +57,6 @@ select $prev_fh;
 my $log_slurp   = <$log_fh>;
 
 is $log_slurp, $expected      => 'Simple variables to filename work';
+
+close $log_fh;
+
