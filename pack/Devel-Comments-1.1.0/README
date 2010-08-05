@@ -1,30 +1,28 @@
-Devel-Comments version 0.0.1
+Devel-Comments version 1.1.0
 
-[ REPLACE THIS...
+"I get the feeling that the computer just skips over all the comments."
+    -- a grad student
 
-  The README is used to introduce the module and provide instructions on
-  how to install the module, any machine dependencies it may have (for
-  example C compilers and installed libraries) and any other information
-  that should be understood before the module is installed.
+Devel::Comments is a source filter for your Perl code, intended to be used 
+only during development. Specially-formatted 'smart' comments are replaced by 
+executable code to dump variables to screen or to file, display loop 
+progress bars, or enforce conditions. These smart comments can all be 
+disabled at once by commenting out the 'use Devel::Comments' line, whereupon
+they return to being simple, dumb comments. Your debugging code can remain in 
+place, guaranteed harmless, ready for the next development cycle. 
 
-  A README file is required for CPAN modules since CPAN extracts the
-  README file from a module distribution so that people browsing the
-  archive can use it get an idea of the modules uses. It is usually a
-  good idea to provide version information here so that people can
-  decide whether fixes for the module are worth downloading.
-]
+Devel::Comments is a fork of Smart::Comments; the intention is to add new 
+features without breaking backward compatibility. Version 1.1.0 implements the
+'any filehandle' feature, allowing smart output to go to any filehandle 
+opened for writing. Next up is the ability to pass in a filename, which DC 
+will open for you. Future plans include extended calling syntax, numerical 
+level enabling, improved progress bars, dump method callback, and execution of 
+arbitrary code. Bugs raised against Smart::Comments 1.0.4 will be fixed in DC. 
 
 
 INSTALLATION
 
 To install this module, run the following commands:
-
-	perl Makefile.PL
-	make
-	make test
-	make install
-
-Alternatively, to install with Module::Build, you can use the following commands:
 
 	perl Build.PL
 	./Build
@@ -33,8 +31,27 @@ Alternatively, to install with Module::Build, you can use the following commands
 
 
 DEPENDENCIES
+    
+    # 'requires'
+    perl                5.008
+    version             0.77
+    Text::Balanced      2.0
+    Data::Dumper        
+    Filter::Simple      0.80
+    List::Util          
+    
+    # 'build_requires'; only for 'Build test'
+    Test::More
+    
+    # 'recommends'; only for full test suite
+    Test::More          0.94        
+    Test::Deep    
+    Try::Tiny    
 
-None.
+    IO::Capture::Stdout::Extended    
+    IO::Capture::Stderr::Extended    
+    IO::Capture::Sayfix    
+    IO::Capture::Tellfix    
 
 
 COPYRIGHT AND LICENCE
