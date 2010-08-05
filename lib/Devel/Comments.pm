@@ -1414,7 +1414,7 @@ __END__
 
 =head1 NAME
 
-Devel::Comments - Smart Comments that print anywhere
+Devel::Comments - Debug with executable smart comments to logs
 
 
 =head1 VERSION
