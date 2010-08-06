@@ -131,7 +131,7 @@ $self->{-want}{$subwhat}{-string}
     . q{#-2}        . qq{\n}
         . qq{\n}
                                         # check
-    . q{### 0 == 1 was not true at /rad/perl/lib/cpan/Try/Tiny.pm line 76.}
+    . q{### 0 == 1 was not true at t/0200-dcr/31-check-th.t line 58.}
         . qq{\n}
         . qq{\n}
         . qq{\n}

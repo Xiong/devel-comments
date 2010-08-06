@@ -24,6 +24,7 @@ use Data::Dumper 'Dumper';
 $DB::single=1;                                                           #~
 use feature 'say';                  # disable in production              #~
 #~ use Smart::Comments '###';       # playing with fire;     debug only     #~
+#~ use Smart::Comments '####';      # playing with fire;     debug only     #~
 #~ use Smart::Comments '#####';     # playing with fire;     debug only     #~
 
 ######## / use ########
@@ -691,7 +692,8 @@ sub _decode_assert {
     my $assertion       = shift;
     my $signal_flag     = shift;
     
-    my $frame           = 1;
+#~     my $frame           = 1;
+    my $frame           = 0;
     
     my $Dump_for    = 'Devel::Comments::Dump_for';
     my $Print_for   = 'Devel::Comments::Print_for';
@@ -1180,7 +1182,12 @@ sub Warn_for {
     my $caller_id       = shift;
     my $frame           = shift;
     
+    ### In Warn_for():
+    ### $caller_id
+    ### $frame
+    
     my @caller          = caller($frame);
+    ### @caller
     
 #   my $caller_name     = $caller[0];
     my $caller_file     = $caller[1];

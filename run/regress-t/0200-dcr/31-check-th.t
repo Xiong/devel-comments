@@ -35,7 +35,7 @@ my $expected        ;
 my $subname         ;
 
 # setup Test::Hump-ish
-my $name            = 'dc-check-th';
+my $name   =   'sc-check-th';
 
 my $self    = {
     
@@ -53,11 +53,11 @@ $self->{-capture}{-stderr}->start();        # STDERR captured
     try {
         my $outfh   = *STDERR;
         say $outfh '#-1';
-        use Devel::Comments;
+        use Smart::Comments;
         say $outfh '#-2';
         ### check: 0 == 1
         say $outfh '#-3';
-        no Devel::Comments;
+        no Smart::Comments;
     }
     catch {
         $self->{-got}{-evalerr} = $_;
@@ -131,7 +131,7 @@ $self->{-want}{$subwhat}{-string}
     . q{#-2}        . qq{\n}
         . qq{\n}
                                         # check
-    . q{### 0 == 1 was not true at /rad/perl/lib/cpan/Try/Tiny.pm line 76.}
+    . q{### 0 == 1 was not true at t/0200-dcr/31-check-th.t line 58.}
         . qq{\n}
         . qq{\n}
         . qq{\n}
