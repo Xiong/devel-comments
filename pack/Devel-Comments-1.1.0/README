@@ -14,10 +14,10 @@ place, guaranteed harmless, ready for the next development cycle.
 Devel::Comments is a fork of Smart::Comments; the intention is to add new 
 features without breaking backward compatibility. Version 1.1.0 implements the
 'any filehandle' feature, allowing smart output to go to any filehandle 
-opened for writing. Next up is the ability to pass in a filename, which DC 
-will open for you. Future plans include extended calling syntax, numerical 
-level enabling, improved progress bars, dump method callback, and execution of 
-arbitrary code. Bugs raised against Smart::Comments 1.0.4 will be fixed in DC. 
+opened for writing. You may instead pass in a filename, which DC will open for 
+you. Future plans include extended calling syntax, numerical level enabling, 
+improved progress bars, dump method callback, and execution of arbitrary code. 
+Bugs raised against Smart::Comments 1.0.4 will be fixed in DC. 
 
 
 INSTALLATION
@@ -33,7 +33,7 @@ To install this module, run the following commands:
 DEPENDENCIES
     
     # 'requires'
-    perl                5.008
+    perl                5.6.0
     version             0.77
     Text::Balanced      2.0
     Data::Dumper        
@@ -44,6 +44,7 @@ DEPENDENCIES
     Test::More
     
     # 'recommends'; only for full test suite
+    perl                5.10.1
     Test::More          0.94        
     Test::Deep    
     Try::Tiny    
