@@ -13,9 +13,9 @@ use lib qw{
     ../../run/t
 };
 
-#~ use Devel::Comments '###';
-#~ 
-use Smart::Comments '###';   # Enable special comments for debugging
+use Devel::Comments '###';
+
+#~ use Smart::Comments '###';   # Enable special comments for debugging
 #~ use Smart::Comments '####';   # Enable special comments for debugging
 #~ use Smart::Comments ;        # Enable special comments for debugging
 #~ use Smart::Comments::Any;    
@@ -89,7 +89,7 @@ $very{long}{thing}[$index] = 'ratass';
 #### __LINE__
 
 #~ ### check: 0 == 0
-### check: 1 == 0
+### check: 0 == 1
 #~ ### I check it: 0 == 0
 #~ ### I check it: 2 == 0
 
