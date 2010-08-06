@@ -1,10 +1,3 @@
-#!/run/bin/perl
-
-use lib qw{
-	      lib
-	   ../lib
-	../../lib
-};
 
 use Devel::Comments;
 use Test::More 'no_plan';

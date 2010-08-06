@@ -1,10 +1,3 @@
-#!/run/bin/perl
-
-use lib qw{
-	      lib
-	   ../lib
-	../../lib
-};
 
 BEGIN { 
     $::log_filename		= 'devel-comments-test.log';
