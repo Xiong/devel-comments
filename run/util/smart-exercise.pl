@@ -13,7 +13,10 @@ use lib qw{
     ../../run/t
 };
 
-#~ use Smart::Comments '###';   # Enable special comments for debugging
+#~ use Devel::Comments '###';
+#~ 
+use Smart::Comments '###';   # Enable special comments for debugging
+#~ use Smart::Comments '####';   # Enable special comments for debugging
 #~ use Smart::Comments ;        # Enable special comments for debugging
 #~ use Smart::Comments::Any;    
 #~ use Smart::Comments::Any *STDOUT;    
@@ -40,16 +43,58 @@ my $data_structure  = {
     a => [ 1, 2, 3 ],
 };
 my $scalar          = 42;   ### $scalar
+#~ my @array           = ( 1, 2, 3 );
+
 
 my %very            ;
 my $index           = 18;
-#~ $very{long}{thing}[$index] = 'ratass';
-$very{long}{thing}[$index] = 99;
+$very{long}{thing}[$index] = 'ratass';
+#~ $very{long}{thing}[$index] = 99;
 #~ ### verylongthing : $very{long}{thing}[18]
 #~ ### $very{long}{thing}[18]
 #~ ### '' . $very{long}{thing}[18]
 #~ ### 0 + $very{long}{thing}[18]
 #~ ### 2 + 3
+#~ ### $index
+#~ ### $index + 5
+#~ ### Add 5: $index + 5
+#~ ### This is: $data_structure->{a}
+#~ ### $data_structure->{a}
+
+#~ my @array   = ( 1, 2, 3 );
+#~ say @array;
+#~ ### Pop: pop @array
+#~ say @array;
+
+
+
+#~ ### Here: <here>
+#~ ###    <here>
+#~ ### Here <here>
+#~ ### Now <now>
+#~ ### <here>      <now>
+
+#### <now>   
+#### It's <time>
+#### <when>
+
+#### At <here>
+#### At: <line>
+#### At <line> say hey
+#### At <loc>
+#### At <place>
+#### At <where>
+
+#### At line: __LINE__
+#### __LINE__
+
+#~ ### check: 0 == 0
+### check: 1 == 0
+#~ ### I check it: 0 == 0
+#~ ### I check it: 2 == 0
+
+### check: "foobar"
+#~ ### check: ''
 
 #~ ### foo
 #~ ### 
@@ -82,19 +127,19 @@ $very{long}{thing}[$index] = 99;
 #my $max        = 2**4;
 my $max     = 2**16;
 
-        my $outfh   = *STDERR;
-        use Smart::Comments;
+#~         my $outfh   = *STDERR;
+#~         use Smart::Comments;
 #~         use Smart::Comments::Any;
-        say $outfh '#-2';
-        my $count = 0;
-        while ($count < 99) {    ### Simple while loop:===|   done
-            $count++;
-            for (0..$max) {         
-                sleep(0);               ### I'm not really sleeping.
-            };
-        }
-        say $outfh '#-3';
-        no Smart::Comments;
+#~         say $outfh '#-2';
+#~         my $count = 0;
+#~         while ($count < 99) {    ### Simple while loop:===|   done
+#~             $count++;
+#~             for (0..$max) {         
+#~                 sleep(0);               ### I'm not really sleeping.
+#~             };
+#~         }
+#~         say $outfh '#-3';
+#~         no Smart::Comments;
 #~         no Smart::Comments::Any;
 
 
