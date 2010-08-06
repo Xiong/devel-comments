@@ -33,7 +33,7 @@ use Cwd;
 
 # File/folder names
 my $any_filerel			= $ARGV[0];
-my $van_dirrel			= 't/regress';
+my $van_dirrel			= 't/regress-t';
 
 # Contruct regression file_namerel
 my @pathparts			= splitpath( $any_filerel );
