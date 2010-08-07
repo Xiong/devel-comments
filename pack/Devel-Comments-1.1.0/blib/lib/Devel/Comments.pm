@@ -24,7 +24,6 @@ use Data::Dumper 'Dumper';
 $DB::single=1;                                                           #~
 use feature 'say';                  # disable in production              #~
 #~ use Smart::Comments '###';       # playing with fire;     debug only     #~
-#~ use Smart::Comments '####';      # playing with fire;     debug only     #~
 #~ use Smart::Comments '#####';     # playing with fire;     debug only     #~
 
 ######## / use ########
@@ -692,8 +691,7 @@ sub _decode_assert {
     my $assertion       = shift;
     my $signal_flag     = shift;
     
-#~     my $frame           = 1;
-    my $frame           = 0;
+    my $frame           = 1;
     
     my $Dump_for    = 'Devel::Comments::Dump_for';
     my $Print_for   = 'Devel::Comments::Print_for';
@@ -1182,12 +1180,7 @@ sub Warn_for {
     my $caller_id       = shift;
     my $frame           = shift;
     
-    ### In Warn_for():
-    ### $caller_id
-    ### $frame
-    
     my @caller          = caller($frame);
-    ### @caller
     
 #   my $caller_name     = $caller[0];
     my $caller_file     = $caller[1];
@@ -1431,108 +1424,154 @@ This document describes Devel::Comments version 1.1.0
 
 =head1 SYNOPSIS
 
-    use Devel::Comments;                    # acts just like Smart::Comments
-    
-    # Dumps...
-    my $scalar      = 42;
-    ### $scalar                             # prints to STDERR:    ### $my_scalar: 42
-    
-    ### @array                              # dumps more complex 
-    ### $HoHoA                              #   data structures, too
-    
-    ### Just in the neighborhood            # prints literal message
-    
-    # Level control...
-    use Devel::Comments '###';              # only activate level 3
-    
-    ### $scalar                             # this prints
-    #### $scalar                            # this doesn't
-    
-    # Output control...
-    use Devel::Comments *STDOUT;            # prints to STDOUT instead
-    use Devel::Comments \*FH;               # prints to some FH
-    use Devel::Comments $fh;                # prints to some $fh
+    use Devel::Comments LOG, '###';        # recommended
 
-    use Devel::Comments ({                  # hashref calling syntax
-        -file           => 'my.log',            # opens my.log and prints to it
+    use Devel::Comments ({                 # if you want the filehandle
+        -fh             => $::outfh,            # undefined package scalar
+        -log            => 1,                   # appends to "$0.log"
+        -level          => 3,                   # same as '###'
+    });     
+
+    use Devel::Comments;                   # acts just like Smart::Comments
+    use Devel::Comments '###';             # acts just like Smart::Comments
+    use Devel::Comments *STDERR, '###';    # same thing
+    
+    use Devel::Comments $fh;               # prints to $fh instead
+    use Devel::Comments *FH;               # prints to FH instead
+
+    use Devel::Comments 'my/log.txt';      # opens file and prints to it
+    use Devel::Comments LOG;               # appends to "$0.log"
+    
+    use Devel::Comments ({                 # hashref call
+        -fh             => *STDERR,             # filehandle
+        -file           => 'my/log',            # filename
+        -log            => 1,                   # appends to "$0.log"
+        -env            => 1,                   # heed $ENV{Smart_Comments}
+        -level          => 3,                   # same as '###'
+        -level          => [3, 5],              # same as '###', '#####'
+        -append         => 1,                   # appends instead of truncating
     }); 
     
-    # Assertions...
-    my ($x, $y)     = 1, 0;
-    ### check  $x == $y                     # simulates warning and dumps info
-    ### insist $x == $y                     # dumps and dies
-    
-    # Progress bars...
-    for my $i (0..1e6) {   ### Working===[%]     done
-        do_something_expensive_with($i);
-    }
-    
-
+      
 =head1 DESCRIPTION
 
-I<I get the feeling that the computer just skips over all the comments.>
-    -- a grad student
+L<Smart::Comments> works well for those who debug with print statements. 
+However, it always prints to STDERR. This doesn't work so well when STDERR 
+is being captured and tested. Besides, you might want a more permanent log of 
+smart output. 
 
-B<Devel::Comments> is a source filter for your Perl code, intended to be used 
-only during development. Specially-formatted 'smart' comments are replaced by 
-executable code to dump variables to screen or to file, display loop 
-progress bars, or enforce conditions. These smart comments can all be 
-disabled at once by commenting out the C<use Devel::Comments> line, whereupon
-they return to being simple, dumb comments. Your debugging code can remain in 
-place, guaranteed harmless, ready for the next development cycle. 
+Devel::Comments acts like Smart::Comments, except that 
+output can be sent to other destinations. 
 
-Devel::Comments is a fork of L<Smart::Comments>; the intention is to add new 
-features without breaking backward compatibility. Version 1.1.0 implements the
-'any filehandle' feature, allowing smart output to go to any filehandle 
-opened for writing. You may instead pass in a filename, which DC will open for 
-you. Future plans include extended calling syntax, numerical level enabling, 
-improved progress bars, dump method callback, and execution of arbitrary code. 
-Bugs raised against Smart::Comments 1.0.4 will be fixed in DC. 
+Please see L<Smart::Comments> for major documentation. 
+Devel::Comments version 1.1.0 is a modification 
+of the same version of Smart::Comments. 
 
 =head1 INTERFACE 
 
-There are two main parts to the DC interface: arguments passed on the C<use>
-line; and 'smart' comments, which are specially-formatted comments introduced 
-by three or more octothorpes, such as '###', '####', or even '########'. 
-Use-line arguments may also be passed in an environment variable. 
+=head2 The C<use> Line Flat List
 
-DC provides no run-time public variables, functions, routines, or methods. 
-DC is a source filter and does its work at "compile-time". (Some DC routines 
-are called at run-time from within replacement code previously filtered in.)
+Because this is a source filter, most work is done at the time the module is
+loaded via use C<Devel::Comments>. If called with vanilla Smart::Comments 
+arguments, DC will behave the same; it's a drop-in replacement. 
 
-=head2 The Use Line 
+Besides the vanilla C<'###'>, etc. and C<-ENV> arguments, DC accepts 
+filehandles, filenames, and a hashref supplying any or all argument values. 
 
-Most setup is done when the module is loaded via C<use Devel::Comments>. 
-If called with vanilla Smart::Comments arguments, DC will behave the same; 
-it's a drop-in replacement. Backwards compatibility to Smart::Comments 1.0.4 
-is promised through DC 1.x.x. 
+=head3 $fh, *FH
 
-Smart::Comments required arguments to be passed, in any order, as one flat 
-list. While this is convenient for a small number of restricted-value 
-arguments, it may "getcha" when attempted with many arguments whose values 
-are unrestricted. This "free-form" calling syntax does not even have the 
-security of positional parameters. 
+I<see -fh>
 
-While every attempt will be made to interpret a flat list correctly, we will 
-make a transition to named parameters as elements of a hash reference. 
-Devel::Comments users are encouraged to use this newer calling syntax. 
+The use statement accepts an open, writable filehandle as an argument. 
+Caller must do whatever is needed to manage that filehandle, 
+such as opening and perhaps closing it. 
 
-Following sections are headed by the appropriate hashref key, which begins 
-always with a leading dash. NOTE: This early version 1.1.0 does not yet 
-implement hashref calling syntax for parameters other than C<-filename>. 
-Other sections are headed by the hashref keys that I<will> name their 
-parameters. If the named parameter is unimplemented, you can still pass 
-the argument in the flat list. 
+Note that modules are used, effectively, within a BEGIN block. 
+Therefore, your filehandle must be opened within a BEGIN block prior to 
+(or including) the use line. If caller needs 
+to do anything else with that filehandle, it might as well be stored 
+in a package variable (since source filtering is global anyway). Otherwise, 
+you can enclose the open and the use line in the same BEGIN block. 
+
+The filehandle must be opened, obviously, in some writable mode.  
+
+    BEGIN {                             # one way to get $fh open early enough
+        my $filename    = 'mylog.txt';
+        open my $fh, '>', $filename
+            or die "Couldn't open $filename to write", $!;
+        use Devel::Comments $fh;
+    }
+      
+    BEGIN {                             # or store $::fh for later use
+        my $filename    = 'mylog.txt';
+        open my $::fh, '>', $filename
+            or die "Couldn't open $filename to write", $!;
+    }
+    use Devel::Comments $::fh;
+    {...}   # do some work
+    ### $some_variable
+    print {$::fh} 'Some message...';
+    close $::fh;                        # only after the last smart comment
+
+=head3 $filename
+
+I<see -file>
+
+You can pass a filename as an argument. Devel::Comments will open the 
+file for you and direct smart output to it. There's an issue here in that
+a filename might be just about any string; so we assume any 
+otherwise-unrecognized argument to be a filename. Also, if you've 
+chosen a peculiar filename such as '###' or '-ENV', there's going to be confusion. 
+
+=head3 ###, ####, #####, etc.
+
+I<see -level>
+
+As they do in vanilla Smart::Comments, these arguments set the number of 
+octothorpes that may precede a smart comment. If no octothorpes appear on the 
+use line and C<-level> is undefined, then B<all> initial sequences of 3 or more
+octothorpes will introduce a smart comment. 
+
+=head3 LOG
+
+I<see -log>
+
+Pass this in the flat list to print smart output to a file named C<"$0.log">, 
+where C<$0> (might be) is the name of your script.  
+
+=head2 The C<use> Line Hashref
+
+Alternatively, you can pass in a reference to a hash, with keys literal 
+and values corresponding to various arguments. Hash keys are introduced 
+by a single dash: 
+
+=head3 -file
+
+Value can be any filename or path, relative or fully qualified. The file will 
+be created if it doesn't exist, truncated by default, opened for writing, 
+and set to autoflush. All directory components must exist. 
+
+Until your entire program ends, there's no way to be sure that caller won't 
+come into scope (say, a sub called from some other script or module). So DC 
+can't do an explicit close(). That shouldn't be a problem, since Perl will 
+close the filehandle when program terminates. If you need to do something 
+differently, supply a filehandle and manage it yourself. 
+
+=head3 -append
+
+Flag; if true, the smart output file will be opened in append mode ('>>') 
+instead of being truncated. Use this with a supplied filename. Ignored if only 
+a filehandle is passed. Reset to a false value to open the file in 
+truncate-then-write mode ('>'); this is the default except when C<-log> is set. 
+
+=head3 -log
+
+Flag; if true, equivalent to C<{file => $0.log, -append => 1}>. You might want 
+to do this in conjunction with, somewhere early in your script: 
+
+    ### <now><here>
 
 =head3 -fh
-
-I<named parameter syntax unimplemented>
-
-Example arguments: C<*STDOUT>, C<\*FH>, C<$fh> 
-
-Accepts an open, writable filehandle (typeglob or object) as an argument. 
-Caller must do whatever is needed to manage that filehandle, 
-such as opening (but probably not closing) it. 
 
 Value must be acceptable as a filehandle: 
 
@@ -1542,275 +1581,100 @@ Value must be acceptable as a filehandle:
     "FH"        # please don't do this; probably won't work as expected.
 
 Except for C<*STDOUT> you should probably avoid the typeglob notation. 
-(No need to specify STDERR explicitly; it's the default.) 
-DC will try to work with a typeglob but there are risks. You'd better localize 
-the typeglob; a lexical may not work. (See L<Perl Cookbook Recipie 7.16>.) 
-Passing a string will probably fail. 
+(No need to specify STDERR explicitly.) DC will try to work with a typeglob 
+but there are risks. You'd better localize the typeglob; a lexical may not work. 
+(See L<Perl Cookbook Recipie 7.16>.) Passing a string will probably fail. 
 
-See also L<perldoc perlopentut>.
+You don't need to load IO::file to open an indirect filehandle; this is fine: 
 
-Note that, effectively, modules are used within a BEGIN block. Therefore, your 
-filehandle must be opened within a BEGIN block B<prior to> the use line. If 
-caller needs to do anything else with that filehandle, you might as well store 
-it in a package variable (since source filtering is global anyway). 
-Do not enclose the open and the use line in the same BEGIN block. 
+    open my $fh, '>', $filename
+        or die "Couldn't open $filename to write", $!;
 
-The filehandle must be opened, obviously, in some writable mode.  
+So long as $fh is undefined beforehand, it will contain afterward a reference 
+to an anonymous filehandle. It's okay to use a lexical variable for this; 
+just be sure it's opened and in scope when the C<use Devel::Comments> 
+line comes around (at "compile time"), 
+which probably means to do this in a BEGIN block. 
 
-    BEGIN {                             # get $::fh open early enough
-        my $filename    = 'my.log';
-        open my $::fh, '>', $filename
-            or die "Couldn't open $filename to write", $!;
+If no filename is also supplied, then the filehandle must be opened for writing. 
+DC will not do anything special to the filehandle 
+but will print all smart output to it. 
+
+If a filename is supplied as well as a filehandle, then the supplied filehandle
+will be associated with the file, so you can do stuff yourself with the filehandle: 
+
+    BEGIN {                             # "exports"
+        my $filename    = 'mylog.txt';
+        my $::fh;
+        use Devel::Comments ({
+            -file   => $filename,
+            -fh     => $::fh;
+        });
     }
-    use Devel::Comments $::fh;
     {...}   # do some work
     ### $some_variable
-    print {$::fh} 'Some message...';    # do something else with $::fh
+    print {$::fh} 'Some message...';
     close $::fh;                        # only after the last smart comment
-
-=head3 -file
-
-I<flat list parameter syntax unimplemented>
-
-Example arguments: C<'/var/my.log'>, C<"$0.log">, C<'ziggy.txt'> 
-
-Value can be any filename or path, relative or fully qualified. The file will 
-be created if it doesn't exist, truncated by default, opened for writing, 
-and set to autoflush. All directory components must exist. 
-
-Until your entire program ends, there's no way to be sure that caller won't 
-come into scope (say, a sub called from some other script or module). So DC 
-can't do an explicit C<close()>. That shouldn't be a problem, since perl will 
-close the filehandle when program terminates. If you need to do something 
-differently, supply a filehandle and manage it yourself. 
-
-You may, in an upcoming version, pass a filename as an argument. 
-There's an issue here in that a filename might be just about any string; 
-if you've chosen a peculiar filename such as '###' or '-ENV', 
-there's going to be confusion. For now, this is unimplemented. 
 
 =head3 -level
 
-I<named parameter syntax unimplemented>
-
-I<numerical levels unimplemented>
-
-Devel::Comments accepts arguments like '###', '####', and so forth. If none 
-are given, then B<all> comments introduced with 3 or more octothorpes are 
-considered smart. Otherwise, only those comments introduced with a matching 
-quantity are smart: 
+Vanilla accepts arguments like '###', '####', and so forth. If none are given, 
+then all comments introduced with 3 or more octothorpes are considered smart. 
+Otherwise, only those comments introduced with a matching quantity are smart: 
 
     use Devel::Comments '###', '#####'; 
     ### This is smart.
     #### This is dumb.
     ##### This is also smart. 
 
-Soon, you will be able to pass an integer or a list of integers: 
+DC will do this too. Or, you can pass an integer or a list of integers: 
     
     use Devel::Comments ({-level => [3, 5] }); 
     ### This is smart.
     #### This is dumb.
     ##### This is also smart. 
     
-But not quite yet. 
-    
+If you define C<-level => 0>, to C<[0]>, or to C<[]>, then all comments will 
+be dumb. But if C<-level => undef> or doesn't exist at all, then all comments 
+(introduced by 3 or more) will be smart. Remember, though, that multiple level 
+specifications are cummulative. 
+
 A level of 1 or 2 simply doesn't work. So don't do that. 
 
 =head3 -env
 
-I<named parameter syntax unimplemented>
-
-Example: C<use Devel::Comments -ENV;>
-
 Yet another way of specifying arguments (besides as a list or hashref 
 in the use line) is to pass them in the environment variable 
-C<$ENV{Devel_Comments}>. But to enable this, you must pass C<-ENV> in the use 
-line or define C<-env> in a hashref passed in the use line. 
-
-See L<"CONFIGURATION AND ENVIRONMENT">.
+C<$ENV{Smart_Comments}>. But to enable this, you must pass C<-ENV> in the use line 
+or define C<-env> in a hashref passed in the use line. 
 
 Don't try to pass a hashref inside of the environment variable; 
 you won't like the result.
 
-=head2 Smart Comments Format
+=head2 Mixed and Redefined Calling
 
-In some small way, smart comments comprise an alternate language embedded 
-within Perl. If you don't have any smart comments in your code, Devel::Comments, 
-like Smart::Comments before it, will do essentially nothing. If you disable 
-Devel::Comments (see L<"DISABLING">), then smart comments are guaranteed to 
-do nothing at all, since they are then interpreted by perl as plain old dumb 
-comments. 
+If you manage to pass different values for the same thing more than once, 
+the last of these will override: 
 
-All smart comments, without exception, are introduced by a series of three or 
-more octothorpes: '###' at a minimum. This is not likely to change; the '##' 
-sequence is used by L<Perl::Tidy> to signal the end of lengthy constructs. 
+=over
 
-Aspects of this miniature language-within-a-language now include introducers, 
-messages, dumps, assertions, and progress bars. Extensions are planned. 
+=item *
 
-=head3 Introducers
+Passed in a hashref value
 
-A basic smart comment is any line beginning with '###': 
+=item *
 
-    ### This comment is smart at debug level 3.
+Passed in the use line flat list (overrides hashref)
 
-This also is considered a level 3 comment; it will only be active if level 3 
-is enabled by one means or another. More octothorpes increase the debug level: 
+=item *
 
-    ##### This comment is smart at debug level 5. 
+Passed in the environment variable (overrides hashref and flat list)
 
-The number of debugging levels is essentially unlimited; so introducers 
-may be of any length. However, this rapidly becomes unwieldy. 
+=back
 
-I<unimplemented:> An alternate means of specifying the debug level is: 
-
-    ###4 This comment is smart at debug level 4. 
-
-Every introducer ends with a space or tab (C<m/[ \t]/>); anything before the 
-first white character is considered part of the introducer. 
-
-I<unimplemented:> An introducer ending in an ampersand (C<&>) marks raw Perl
-code; in effect, the introducer is simply stripped off if it is at an enabled 
-debug level: 
-
-    ###& push @zoo, $monkey     # Put the monkey in the zoo at debug level 3.
-
-Note that, with the exception of progress bars, a smart comment must 
-B<begin> its line; that is, only whitespace can intervene between an introducer 
-and the preceeding newline. Trailing smart comments I<may> be a future feature. 
-
-=head3 Messages
-
-Any smart comment not matching other patterns will be dumped as is: 
-
-    ### Hello, World!
-
-In a message, C<< <now> >>, C<< <time> >>, or C<< <when> >> is replaced by a
-timestamp (same timestamp for all three). 
-Also, C<< <here> >>, C<< <place> >>, or C<< <where> >> is replaced by what 
-Damian Conway calls a "spacestamp" similar to what you see by default in 
-C<die()> or C<warn()>: 
-
-    ### Here <here>
-    ### Now <now>
-
-prints something like: 
-
-    ### Here "util/demo.pl", line 71
-    ### Now Fri Aug  6 07:50:51 2010
-
-Note that no colon follows 'Here' or 'Now'. Any text would do as well but 
-no text at all -- the C<< <now> >> alone -- gets confused. This is considered 
-a bug. 
-
-    ### <here>      <now>
-
-... works fine and is an excellent way to start off a logging session. 
-
-Original SC documentation required that such plain text messages 
-be terminated with a simulated elipsis: 
-
-    ### This text is printed...
-
-This was not actually enforced and is not required in DC. 
-
-=head3 Dumps
-
-Any scalar, array, hash; reference to any of these, or for that matter, 
-more complex structure can be dumped just by typing the variable: 
-
-    ### $dump_me
-
-The dump will be labeled with the variable name, including sigil. 
-You can supply your own label if you like: 
-
-    ### Working tree: $tree
-
-The automatic labeling is the real driving force behind DC, though. 
-Even dark magiks involving L<Pad::Walker> and rooting around in symbol tables 
-has trouble getting the right name for a variable I<and> its value. The only 
-place it is convenient to do this is in the same scope as the variable itself; 
-hence, a source filter. 
-
-You can dump an arbitrary expression: 
-
-    my $index   = 8;
-    ### Add five: $index + 5
-
-prints: 
-
-    ### Add five: 13
-
-However, this will I<not> work if you don't supply your own label. 
-
-Beware side effects: 
-
-    my @array   = ( 1, 2, 3 );
-    say @array;
-    ### Pop: pop @array
-    say @array;
-
-prints: 
-
-    123
-
-    ### Pop: 3
-    12
-
-If you don't want the verbosity of C<< <here> >>, try: 
-
-    #### At: __LINE__
-
-=head3 Assertions
-
-Seven keywords cannot be used as labels. If one of them is used to label an 
-expression, it is evaluated in boolean context and, if the expression is true, 
-nothing is output. If the expression is false, a message announcing the 
-failure is output, similar to C<warn()>: 
-
-    ### check:      1 == 0
-
-prints something like: 
-
-    ### 1 == 0 was not true at util/demo.pl line 92.
-
-The assertions: 
-
-    ### check:      BOOL
-    ### confirm:    BOOL
-    ### verify:     BOOL
-
-... simulate C<warn()> on failure, although the smart output goes to 
-the chosen output file or filehandle, not necessarily STDERR.  
-    
-    ### assert:     BOOL
-    ### ensure:     BOOL
-    ### insist:     BOOL
-    ### require:    BOOL
-
-... print the same message on failure, then call C<die()>. 
-
-Note that these seven keywords are supported in the current version of DC 
-but all except C<check> and C<assert> are deprecated. 
-
-
-
-
-
-
-=head1 HOW IT WORKS
-
-Technically, arguments present on the C<use> line are presented to a module's
-C<import()> method. 
-
-
-
-
-
-
-
-
-
+The overriding will be complete, except in the case that the output level is 
+set more than once ('###' or -level syntax); then all of the levels specified 
+will be smart (logical OR). 
 
 =head1 SCOPE, STATE, OUTPUT REGIMES
 
@@ -1872,8 +1736,6 @@ goes to a disk file. Depending on your method of reading that file, you may see
 multiple lines or nothing at all. But if, for some reason, the loop aborts, you 
 may see how far along it got. 
 
-
-
 =head1 DIAGNOSTICS
 
 =over
@@ -1888,31 +1750,7 @@ before loading Devel::Comments.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
-Devel::Comments can make use of an environment variable from your shell:
-C<Devel_Comments>. This variable can be specified either with a
-true/false value (i.e. 1 or 0) or with the same arguments as may be
-passed on the C<use> line when loading the module (see L<"INTERFACE">).
-The following table summarizes the behaviour:
 
-         Value of
-    $ENV{Devel_Comments}          Equivalent Perl
-
-            1                     use Smart::Comments;
-            0                      no Smart::Comments;
-        '###:####'                use Smart::Comments qw(### ####);
-        '### ####'                use Smart::Comments qw(### ####);
-
-To enable the C<Devel_Comments> environment variable, you need to load the
-module with the C<-ENV> flag:
-
-    use Devel::Comments -ENV;
-
-Note that you can still specify other arguments in the C<use> statement:
-
-    use Devel::Comments -ENV, qw(### #####);
-
-In this case, the contents of the environment variable replace the C<-ENV> in
-the argument list.
 
 =head1 DEPENDENCIES
 
@@ -1961,16 +1799,16 @@ Before reporting any bug, please be sure it's specific to
 Devel::Comments by testing with vanilla Smart::Comments. 
 
 Please report any bugs or feature requests to
-C<< <XIONG@cpan.org> >>.
+C<< <xiong@xuefang.com> >>.
 
 
 =head1 AUTHOR
 
-Xiong Changnian  C<< <XIONG@cpan.org> >>
+Xiong Changnian  C<< <xiong@xuefang.com> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2010, Xiong Changnian  C<< <XIONG@cpan.org> >>. All rights reserved.
+Copyright (c) 2010, Xiong Changnian  C<< <xiong@xuefang.com> >>. All rights reserved.
 
 Based almost entirely on Smart::Comments, 
 Copyright (c) 2005, Damian Conway C<< <DCONWAY@cpan.org> >>. All rights reserved.
@@ -2001,5 +1839,3 @@ RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
 FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
 SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGES.
-
-=cut

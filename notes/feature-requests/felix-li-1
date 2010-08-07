@@ -1,0 +1,71 @@
+From li.hansen.inc@gmail.com Wed Aug  4 08:59:42 2010
+Return-path: <li.hansen.inc@gmail.com>
+Envelope-to: xiong-cpan@xuefang.com
+Delivery-date: Wed, 04 Aug 2010 08:59:54 -0400
+Received: from mail-qy0-f177.google.com ([209.85.216.177]) by
+ explorer.x10premium.com with esmtp (Exim 4.69) (envelope-from
+ <li.hansen.inc@gmail.com>) id 1OgdZO-0004GL-4d for xiong-cpan@xuefang.com;
+ Wed, 04 Aug 2010 08:59:42 -0400
+Received: by qyk1 with SMTP id 1so2319192qyk.1 for
+ <xiong-cpan@xuefang.com>; Wed, 04 Aug 2010 05:59:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+ h=domainkey-signature:mime-version:received:received:date:message-id
+ :subject:from:to:content-type;
+ bh=B25NIYAIFSi+/iaHsjxb7zpPy9MhapmG/6WVE3tff5g=;
+ b=bu/wwvd908WclZnlsrgbHZWMC6XZX+5jvzae3bWgJuA02qkGQkebskoqiaJBajNbpr
+ zyHpQOv5Cc0t7LdOrrGN2xpho/hHAiqKqwN4dNHAic9hb8eCiesF6X6SFT1sYEirTuv6
+ NOemZuSuIpXCmJI2acMx38BgX3aQbsQE7HO/g=
+DomainKey-Signature: a=rsa-sha1; c=nofws; d=gmail.com; s=gamma;
+ h=mime-version:date:message-id:subject:from:to:content-type;
+ b=c9ziUGfjJyzIwfDyTavMpQXv/J/vt/KCH1uXxtm6dhAoONXf4rBMhmqxXLC6Obe8Eb
+ GZpO/mgJMqSvhooFEUQ6t0DfYjhOBxQvQg19Is82mnzZFft659hyOMY9wh1Tn70t2MJk
+ rQjbtLM5qkdZ0JpFhp/qe4XwW+7VIu03LN0T0=
+MIME-Version: 1.0
+Received: by 10.224.28.76 with SMTP id l12mr3487940qac.132.1280926762456;
+ Wed,  04 Aug 2010 05:59:22 -0700 (PDT)
+Received: by 10.224.67.201 with HTTP; Wed, 4 Aug 2010 05:59:22 -0700 (PDT)
+Date: Wed, 4 Aug 2010 08:59:22 -0400
+Message-ID: <AANLkTimFgg6XrPvf-r35m1sg0Xb_KoEVwkkNki8mh613@mail.gmail.com>
+Subject: Smart::Comments
+From: "F. Li" <li.hansen.inc@gmail.com>
+To: xiong-cpan@xuefang.com
+Content-Type: text/plain; charset=ISO-8859-1
+X-x10premium-MailScanner-Information: Please contact the ISP for more
+ information
+X-x10premium-MailScanner-ID: 1OgdZO-0004GL-4d
+X-x10premium-MailScanner: Found to be clean
+X-x10premium-MailScanner-SpamCheck: not spam, SpamAssassin (not cached,
+ score=-0.001, required 5, SPF_PASS -0.00)
+X-x10premium-MailScanner-From: li.hansen.inc@gmail.com
+X-Spam-Status: No
+X-Evolution-Source: pop://xiong-cpan+xuefang.com@explorer.x10premium.com/
+Content-Transfer-Encoding: 8bit
+
+Hi, Xiong,
+
+I've been forced to play around with "Smart::Comments" because I see
+them as a code for solving more complex problems. In my case I want
+those comments to be conditional "smartened" -- ie the module is in a
+"smartable" directory, the module is used (directly or indirectly) by
+something requesting "smartening". There are the normal inhibition ---
+can't smarten something that used before the "smarten".
+
+What I've found is (1) mod_perl doesn't Filter::Simple (or
+Filter::Util::Call) so I've been forced to play with @INC
+("unshift(@INC,sub {...}) and do the filtering in the sub. The gotcha
+there is versions lower than 5.8.9 didn't implement this correctly so
+it's problematic.
+
+What results is something that
+1) implements a subset of Smart::Comments,
+2) traps the writes to STDERR and save the "message", context
+(callbacks), source,
+3) "smartens" modules () on the fly (version 5.8.9 or better)
+4) "smartens" remaining code of the caller.
+5) returns the output as HTML/CSS/Javascript so as to reduce the
+"visual" clutter.
+
+So I'm looking forward to your Devel::Comments!
+
+Felix Li
+
