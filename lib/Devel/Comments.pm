@@ -475,7 +475,7 @@ FILTER {
     if (s{ ^ __DATA__ \s* $ (.*) \z }{}xms) {
         no strict qw< refs >;
         my $DATA = $1;
-        open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: $!";
+        open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: DATA. $!";
     }
     
 #~ say '---| Devel::Comments at line ', __LINE__;                      #~
@@ -1422,11 +1422,9 @@ __END__
 
 Devel::Comments - Debug with executable smart comments to logs
 
-
 =head1 VERSION
 
 This document describes Devel::Comments version 1.1.0
-
 
 =head1 SYNOPSIS
 
@@ -1466,7 +1464,6 @@ This document describes Devel::Comments version 1.1.0
         do_something_expensive_with($i);
     }
     
-
 =head1 DESCRIPTION
 
 I<I get the feeling that the computer just skips over all the comments.>
@@ -1933,15 +1930,37 @@ recommended to open the file again within your script, although that might work.
 
 =head1 DIAGNOSTICS
 
-=over
+    Internal error: _get_outfh called with no or false arg. $!
+    Internal error: $caller_id not defined in %state_of. $!
+    Internal error: No output filehandle found in %state_of for $caller_id. $!
+    Internal error: -caller_id not passed in call to _init_state(). $!
+    Internal error: -outfh not passed in call to _init_state(). $!
 
-=item C<< Bad filehandle: %s in call to 'use Devel::Comments', defaulting to STDERR >>
+You should never see any of these errors involving state maintenance. 
+If you do, please contact the author with as much information as possible. 
 
-You loaded the module and passed it a filehandle that couldn't be written to. 
-Note that you'd better open the filehandle for writing in a BEGIN block
-before loading Devel::Comments. 
+    Can't open $out_filename to write.
 
-=back
+You passed in a filename that couldn't be written to. Check to see that all 
+directory components of the path exist and that you have permission to write to 
+the target file. 
+
+    Filesystem IO error: Failed to print to output filehandle for $caller_id 
+
+Gee, that's funny. But if DC can't write to a filehandle you supplied, 
+it's probably not something I can do anything about. 
+Perhaps the disk is full or the socket is closed?
+Be sure you have opened the filehandle for writing in a BEGIN block 
+prior to the C<use Devel::Comments;> line. Check to see you can write to it. 
+
+    Internal error: DATA. $!
+
+You should never see this error either. 
+If you do, please contact the author with as much information as possible. 
+
+    ### $assertion was not true
+
+This is not a module error but smart output you generated. See L<"ASSERTIONS">
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
@@ -2006,12 +2025,15 @@ implement a C<TELL()> method. This causes trouble if smart output is directed
 to a captured filehandle. Workaround is to install IO::Capture::Tellfix, 
 included with this distribution. 
 
+Not recommended to use DC is combination with other source filters. 
+
 =head1 BUGS AND LIMITATIONS
 
 No bugs have been reported on DC 1.1.0. 
 Bugs outstanding against SC 1.0.4 can be found at 
 L<https://rt.cpan.org/Dist/Display.html?Queue=Smart-Comments> and they are 
-probably all present in this version of DC. 
+probably all present in this version of DC. You are welcome to relist against 
+DC any that you find; but I will be working off that list, too. 
 
 Please report any bugs or feature requests to 
 L<https://rt.cpan.org/Public/Bug/Report.html?Queue=Devel-Comments>
