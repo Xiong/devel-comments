@@ -33,7 +33,7 @@ use Cwd;
 
 # File/folder names
 my $any_filerel			= $ARGV[0];
-my $van_dirrel			= 't/regress';
+my $van_dirrel			= 'regress-t';
 
 # Contruct regression file_namerel
 my @pathparts			= splitpath( $any_filerel );
@@ -61,11 +61,11 @@ open $van_fh, '>', $van_filerel
 	or fail qq{Failed to open $van_filerel to write.};
 
 while (<$any_fh>) {
-	s{Smart::Comments::Any}
+	s{Devel::Comments}
 	 {Smart::Comments}g;
 	 
-	s{name\s*=\s*'sc-any-}
-	 {name   =   'sc-van-}m;
+	s{name\s*=\s*'dc-}
+	 {name   =   'sc-}m;
 	
 	print {$van_fh} $_
 	or fail qq{Failed to print to $van_filerel.};
