@@ -23,8 +23,10 @@ provides:
     version: v1.1.0
   IO::Capture::Sayfix:
     file: lib/IO/Capture/Sayfix.pm
+    version: 0.05
   IO::Capture::Tellfix:
     file: lib/IO/Capture/Tellfix.pm
+    version: 0.05
 recommends:
   IO::Capture::Sayfix: 0
   IO::Capture::Stderr::Extended: 0
