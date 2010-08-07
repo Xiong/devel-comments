@@ -1,6 +1,5 @@
 Build.PL
 Changes
-devel-comments-test.log
 ignore.txt
 lib/Devel/Comments.pm
 lib/IO/Capture/Sayfix.pm

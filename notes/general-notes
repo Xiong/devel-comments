@@ -261,6 +261,77 @@ I compose a small test suite that runs on 'Build test'. This is stored in the co
 
 I list modules required only for the minimum test suite as 'build_requires' and those required to run the full suite as 'recommends'. 
 
+= hotfix-Warn_for = 2010-08-07 04:04:41
 
+An interesting failure of my testing methods to catch a small bug. 
 
+An assertion of the form: 
+
+    ### check: 0 == 1
+
+... should raise a simulated warning. Directly exercising this feature showed it didn't work correctly; it raised a real warning: 
+
+    Use of uninitialized value $caller_file in concatenation (.) or string at ../lib/Devel/Comments.pm line 1195.
+
+The simulated warning (of the failure of the assertion) was: 
+
+    ### 0 == 1 was not true at  line .
+
+The code that generates that simulated warning is in Warn_for(): 
+
+        Print_for( $caller_id, @_, " at $caller_file line $caller_line.\n" );
+
+... and depends on $frame to figure out how far back to go in the stack with caller() to get that info. Note that there is no point looking in %state_of for this info; this depends on the exact line where the assertion failed. So, Warn_for() is called with the appropriate $frame. Well, in the case of an assertion, Warn_for() is called directly by replacement code in client's context, so the appropriate $frame is 0, meaning the direct, immediate caller of Warn_for(). I had written (in _decode_assert, which inserts the replacement code): 
+
+    my $frame           = 1;
+
+Setting this to 0 corrected the issue. Why didn't my tests find this bug? 
+
+I had not yet written a TH-ish test of the feature; I was relying on the modified Vanilla test 31-assert.t and Conway's primitive technique, which has at least the advantage of not having so many build_requires. That technique just regexes STDOUT for what's expected and doesn't emit a test failure when STDOUT *doesn't* contain what's *not* expected. Also, it's excessively brittle in the original, failing if the test comes from a different code line than expected, making it hard to edit the code in any way. Here's (part of) Conway's test, after my modification: 
+
+    $ASSERTION = << 'END_ASSERT';
+
+    # $x < 0 was not true at FILE line 00.
+    #     $x was: 0
+    END_ASSERT
+
+    $ASSERTION =~ s/#/###/g;
+
+    eval {
+    ### assert: $x < 0
+    };
+
+    ok $@                            => 'False assertion is deadly';
+    ok $@ eq "\n"                    => 'False assertion is deadly silent';
+
+    # Conway fudges the relatively stable file name 
+    #	but not the unstable line number. 
+    # For ::Any, we fudge both. 
+    #~ $STDERR =~ s/ at \S+ line / at FILE line /;
+    $STDERR =~ s/ at \S+ line \d[\d]*/ at FILE line 00/;
+
+    ok length $STDERR != 0           => 'False assertion is loud';
+    is $STDERR, $ASSERTION           => 'False assertion is loudly correct';
+
+Obviously, the actual stream going to STDERR passed this test, wrongly. I knew immediately that it would and why. So I wrote a TH-ish test to catch the bug *before* attempting to fix it, per TDD. But I built on: 
+
+    is( $self->{-got}{-stderr}{-string},
+        $self->{-want}{-stderr}{-string},
+        $subname
+    );
+
+... approach that I used in other DC tests. TH is not complete -- indeed, 
+my experiences have led me to think I need to build it in a different direction. It was too much effort to hand-roll the length/regex/matches test approach. 
+
+The trouble with the exact match approach is that it's too brittle. If, say, the script name or the line number at which the smart output is generated changes, then the test fails. Also, it's a bit hard to predict exactly what the smart output should be. How many newlines should be output between this and that? 
+
+So, I used util/regress to convert 31-check-th.t to load Smart::Comments instead and just fudged the wanted output to match. After all, in DC 1.1.0, SC 1.0.4 is the authority; by definition, whatever it does is right. 
+
+Yet my new test didn't catch the bug, either! 
+
+Turns out that util/regress had gone sour, somehow, and wasn't converting the test script properly to load SC instead. I had been pasting the wrong expectations. 
+
+The moral of this story, if there is one, is that I was right: Errors in tests are difficult to find and easy to introduce. Therefore, it's important to have a robust test framework that itself can be well-tested. It's important that tests themselves (.t) be clean as possible, since they're essentially impossible to test. 
+
+In this case, the expectations themselves were wrong; you might say a better framework wouldn't have helped. But lacking the framework, I took the easy way and copy-paste-edited an existing test. The falsely lazy approach is what bit me. 
 
