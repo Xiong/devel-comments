@@ -1,0 +1,24 @@
+do{ my $x = {
+       'build_requires' => {
+                             'Test::More' => 0
+                           },
+       'conflicts' => {},
+       'requires' => {
+                       'List::Util' => 0,
+                       'perl' => '5.008',
+                       'Filter::Simple' => '0.8',
+                       'Data::Dumper' => 0,
+                       'Text::Balanced' => '2',
+                       'version' => '0.77'
+                     },
+       'recommends' => {
+                         'Try::Tiny' => 0,
+                         'Test::More' => '0.94',
+                         'IO::Capture::Sayfix' => 0,
+                         'IO::Capture::Stdout::Extended' => 0,
+                         'IO::Capture::Stderr::Extended' => 0,
+                         'Test::Deep' => 0,
+                         'IO::Capture::Tellfix' => 0
+                       }
+     };
+$x; }
