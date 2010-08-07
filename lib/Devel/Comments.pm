@@ -1480,7 +1480,7 @@ disabled at once by commenting out the C<use Devel::Comments> line, whereupon
 they return to being simple, dumb comments. Your debugging code can remain in 
 place, guaranteed harmless, ready for the next development cycle. 
 
-Devel::Comments is a fork of L<Smart::Comments>; the intention is to add new 
+Devel::Comments is a fork of L<Smart::Comments>; current intention is to add new 
 features without breaking backward compatibility. Version 1.1.0 implements the
 'any filehandle' feature, allowing smart output to go to any filehandle 
 opened for writing. You may instead pass in a filename, which DC will open for 
@@ -1541,7 +1541,7 @@ Value must be acceptable as a filehandle:
     "FH"        # please don't do this; probably won't work as expected.
 
 Except for C<*STDOUT> you should probably avoid the typeglob notation. 
-(No need to specify STDERR explicitly; it's the default.) 
+(No need to specify C<*STDERR> explicitly; it's the default.) 
 DC will try to work with a typeglob but there are risks. You'd better localize 
 the typeglob; a lexical may not work. (See L<Perl Cookbook Recipie 7.16>.) 
 Passing a string will probably fail. 
@@ -1565,7 +1565,6 @@ The filehandle must be opened, obviously, in some writable mode.
     {...}   # do some work
     ### $some_variable
     print {$::fh} 'Some message...';    # do something else with $::fh
-    close $::fh;                        # only after the last smart comment
 
 =head3 -file
 
@@ -1583,7 +1582,7 @@ can't do an explicit C<close()>. That shouldn't be a problem, since perl will
 close the filehandle when program terminates. If you need to do something 
 differently, supply a filehandle and manage it yourself. 
 
-You may, in an upcoming version, pass a filename as an argument. 
+You may, in an upcoming version, pass a filename as a flat list argument. 
 There's an issue here in that a filename might be just about any string; 
 if you've chosen a peculiar filename such as '###' or '-ENV', 
 there's going to be confusion. For now, this is unimplemented. 
@@ -1653,7 +1652,7 @@ A basic smart comment is any line beginning with '###':
 
     ### This comment is smart at debug level 3.
 
-This also is considered a level 3 comment; it will only be active if level 3 
+This is considered a level 3 comment; it will only be active if level 3 
 is enabled by one means or another. More octothorpes increase the debug level: 
 
     ##### This comment is smart at debug level 5. 
@@ -1792,29 +1791,124 @@ the chosen output file or filehandle, not necessarily STDERR.
 Note that these seven keywords are supported in the current version of DC 
 but all except C<check> and C<assert> are deprecated. 
 
+=head3 Progress Bars
 
+Only in these can a smart comment appear on the same line with Perl code: 
 
+    for (@candidates) {       ### Evaluating |===[%]    |
 
+prints, in succession: 
 
+    Evaluating |[0%]                       |
+    Evaluating |=[25%]                     |
+    Evaluating |========[50%]              |
+    Evaluating |===============[75%]       |
+    Evaluating |===========================|
+
+At each step, the previous bar is erased and overwritten by the next; 
+when the loop completes, the last bar is erased, too. 
+
+There are a great number of possible progress bar formats and they are 
+very clever indeed. There is, however, among developers polled, almost 
+no interest in them; and they are difficult to support. It's not clear 
+that they're truly useful in debugging. So, although they are supported in 
+the current DC release, they likely will be deprecated or replaced by a 
+different loop reporting function. 
+
+Both Vanilla and DC animate the progress bar by printing the C<"\r"> 
+character and wiping the line with spaces. This is unchanged when smart output
+goes to a disk file. Depending on your method of reading that file, you may see
+multiple lines or nothing at all. But if, for some reason, the loop aborts, you 
+may see how far along it got. 
+
+If you want to experiment with progress bars, you may want to look at the 
+Smart::Comments documentation. If you like them, please be sure to indicate 
+your support. 
+
+=head1 DISABLING
+
+Source filters are a bit dicey; the saving grace of DC (and its parent) 
+is that it can be disabled easily and completely; all specially-formatted 
+smart comments return to being plain old dumb comments, guaranteed not to 
+interfere with normal execution: 
+
+    #use Devel::Comments;       # disable in production
+    ### assert 0 == 1           # does nothing at all
+
+There are other methods of disabling DC. 
+
+If you write: 
+
+    use Devel::Comments -ENV;   # heed environment variable
+
+... then DC will only be active if C<$ENV{Devel_Comments}> is set, 
+possibly to some other DC use-line arguments or mererly to 1. 
+If it is set to 0 or deleted, then DC is disabled. 
+
+DC can be restricted to a certain span of code. If you write: 
+
+    ### Hello, Andy!
+    use Devel::Comments;
+    ### Hello, Bob!
+    no  Devel::Comments;
+    ### Hello, Cindy!
+
+then Bob will be greeted but not Andy or Cindy. Note that docs for 
+Filter::Simple suggest other possible text for the statement that terminates 
+filtering; these others don't seem to work, so don't do that. 
+
+You might load DC in the shell invocation: 
+
+    $ perl -d:Comments myscript.pl
+
+Next time, don't do that and DC won't load, of course. This loading method 
+is untested but if there are requests for it, I'll work it up. 
+
+Any given smart comment can be disabled by changing the introducer to a level 
+that's disabled in the use line, or to an invalid introducer: 
+
+    use Devel::Comments '###';
+    ### grin
+    #### and
+    # ### bear
+    # ## it
+
+prints: 
+
+    ### grin
 
 =head1 HOW IT WORKS
 
-Technically, arguments present on the C<use> line are presented to a module's
-C<import()> method. 
+Technically, arguments present on any C<use> line are presented to a module's
+C<import()> method. Devel::Comments uses Filter::Simple to do 
+the heavy lifting; FS converts a call to Filter::Simple::FILTER 
+into Devel::Comments::import(). 
 
+All of the following code, to end of file or any C<no Devel::Comments> line, 
+is filtered. All smart comments (with correct introducers) are replaced by 
+executable Perl code. 
 
+If you write something funky, like: 
 
+    my $string = q{
+        bobby says
+        ### think
+    };
 
+... then you are asking for trouble and will likely get it. 
 
+    my $string = q{\n    bobby says\n    ### think\n};
 
+... is perfectly safe and will be ignored by DC. 
 
+Dumps of complex structures are done by the venerable L<Data::Dumper>. 
+The output is cleaned up a bit before being printed; the all-important 
+variable identifier is inserted. 
 
-
-
-=head1 SCOPE, STATE, OUTPUT REGIMES
+=head2 Scope, State, Output Regimes
 
 DC may be called more than once in the same program, e.g., from two 
-different loaded modules. As does Vanilla, DC has effect until the end of 
+different loaded modules. As does vanilla SC, DC has effect until the end of 
 the file or a C<no Devel::Comments> line (which must be the first thing 
 on its line). If used again, DC will parse the new use line and apply it to 
 your source code from there on out. 
@@ -1836,42 +1930,6 @@ source filtering is pretty much a global operation anyway.
 If you pass a filename but no filehandle, you'll get smart output but you won't
 have any way to write directly to the file (should you take that notion). Not 
 recommended to open the file again within your script, although that might work. 
-
-If you supply a filename I<and> a filehandle, then your filehandle will be 
-associated with the file. Peculiar things may happen if that filehandle is 
-previously defined; you were warned. Recommended to pass an undefined scalar, 
-which you can use, if you choose, to print directly from within your script. 
-
-You might well reuse the same file for smart output from several modules; if so, 
-you probably want to preserve it from use to use. 
-So C<use Devel::Comments ({-file => 'my/log', -append => 1});> in each,
-or simply C<use Devel::Comments LOG>. 
-
-=head1 ASSERTIONS
-
-Assertions defined with one of the words C<[require|assert|ensure|insist]> 
-will C<die()> under both Vanilla and DC. Assertions defined with 
-C<[check|confirm|verify]> raise a warning in Vanilla, which of course prints 
-to STDERR. In DC, these print to whatever's been chosen for smart output 
-and the C<warn()> is simulated. 
-
-=head1 PROGRESS BARS
-
-Progress bars can be generated by putting certain types of smart comment 
-trailing the first line of some loops: 
-
-    use Devel::Comments;    ### praying...       done
-    foreach (@monk) {
-        pray($_);
-    };
-
-Both Vanilla and DC animate the progress bar by printing the C<"\r"> 
-character and wiping the line with spaces. This is unchanged when smart output
-goes to a disk file. Depending on your method of reading that file, you may see
-multiple lines or nothing at all. But if, for some reason, the loop aborts, you 
-may see how far along it got. 
-
-
 
 =head1 DIAGNOSTICS
 
@@ -1943,25 +2001,35 @@ Text::Balanced
 
 =head1 INCOMPATIBILITIES
 
-None reported. This module is probably even relatively safe with other
-Filter::Simple modules since it is very specific and limited in what
-it filters.
-
+It is known that IO::Capture::Tie_STDx 0.05 does not 
+implement a C<TELL()> method. This causes trouble if smart output is directed 
+to a captured filehandle. Workaround is to install IO::Capture::Tellfix, 
+included with this distribution. 
 
 =head1 BUGS AND LIMITATIONS
 
-No bugs have been reported.
+No bugs have been reported on DC 1.1.0. 
+Bugs outstanding against SC 1.0.4 can be found at 
+L<https://rt.cpan.org/Dist/Display.html?Queue=Smart-Comments> and they are 
+probably all present in this version of DC. 
 
-This module has all the grace and effect of Smart::Comments. If it works, 
-credit goes to Damian Conway. If it fails when Smart::Comments works, 
-blame me. 
+Please report any bugs or feature requests to 
+L<https://rt.cpan.org/Public/Bug/Report.html?Queue=Devel-Comments>
+or email C<< <XIONG@cpan.org> >>. These are welcome and will be acted upon. 
 
-Before reporting any bug, please be sure it's specific to 
-Devel::Comments by testing with vanilla Smart::Comments. 
+=head1 TODO
 
-Please report any bugs or feature requests to
-C<< <XIONG@cpan.org> >>.
+Argment passing will be made orthogonal, as much as possible. Arguments can 
+be passed either as one flat list or as named elements of a single hashref. 
 
+Debug levels passed numerically and numerical introducers. 
+
+Invocation of client methods for dumping objects. 
+
+Pass-through execution of arbitrary debugging code. 
+
+Police up scraps of stuff currently left in caller's namespace. Store all 
+state entirely within DC. 
 
 =head1 AUTHOR
 
@@ -1976,7 +2044,6 @@ Copyright (c) 2005, Damian Conway C<< <DCONWAY@cpan.org> >>. All rights reserved
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
-
 
 =head1 DISCLAIMER OF WARRANTY
 
