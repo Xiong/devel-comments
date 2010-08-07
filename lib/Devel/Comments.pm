@@ -692,8 +692,7 @@ sub _decode_assert {
     my $assertion       = shift;
     my $signal_flag     = shift;
     
-#~     my $frame           = 1;
-    my $frame           = 0;
+    my $frame           = 0;    # replacement code calls Warn_for() directly
     
     my $Dump_for    = 'Devel::Comments::Dump_for';
     my $Print_for   = 'Devel::Comments::Print_for';
@@ -740,7 +739,7 @@ sub _decode_assert {
         qq*         $frame,                         *,  # $frame
         qq*         "\\n",                          *,  # @text to print
         qq*         q{### $assertion was not true}  *,  #   more @text
-        qq*     );                                  *,  #   more @text
+        qq*     );                                  *,  
         qq*     @vardump_code_lines;                *,  # call Dump_for
         qq*     $signal_code                        *,  # maybe die
         qq* }                                       *,
@@ -778,7 +777,7 @@ sub _decode_for {
     my $report_code     = join qq{\n},
         qq* my \$not_first__$ID;                                    *,
         qq* $for (my \@SmartComments__range__$ID = $range) {        *,
-        qq*     Devel::Comments::for_progress( $caller_id,     *,
+        qq*     Devel::Comments::for_progress( $caller_id,          *,
         qq*         qq{$mesg},                                      *,
         qq*         \$not_first__$ID,                               *,
         qq*         \\\@SmartComments__range__$ID                   *,
@@ -817,7 +816,7 @@ sub _decode_while {
     my $report_code     = join qq{\n},
         qq* my \$not_first__$ID;                                    *,
         qq* $while {                                                *,
-        qq*     Devel::Comments::while_progress( $caller_id,   *,
+        qq*     Devel::Comments::while_progress( $caller_id,        *,
         qq*         qq{$mesg},                                      *,
         qq*         \\\$not_first__$ID                              *,
         qq*     );                                                  *,
