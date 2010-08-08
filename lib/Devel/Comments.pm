@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 # Please see the file VERSIONS.
-use version 0.77; our $VERSION = qv('1.1.1');
+use version 0.77; our $VERSION = qv('1.1.2');
 
 # original S::C (originally used here)
 use Carp;
@@ -1424,7 +1424,7 @@ Devel::Comments - Debug with executable smart comments to logs
 
 =head1 VERSION
 
-This document describes Devel::Comments version 1.1.1
+This document describes Devel::Comments version 1.1.2
 
 =head1 SYNOPSIS
 
@@ -1478,7 +1478,7 @@ they return to being simple, dumb comments. Your debugging code can remain in
 place, guaranteed harmless, ready for the next development cycle. 
 
 Devel::Comments is a fork of L<Smart::Comments>; current intention is to add new 
-features without breaking backward compatibility. Version 1.1.1 implements the
+features without breaking backward compatibility. Version 1.1.2 implements the
 'any filehandle' feature, allowing smart output to go to any filehandle 
 opened for writing. You may instead pass in a filename, which DC will open for 
 you. Future plans include extended calling syntax, numerical level enabling, 
@@ -1514,7 +1514,7 @@ make a transition to named parameters as elements of a hash reference.
 Devel::Comments users are encouraged to use this newer calling syntax. 
 
 Following sections are headed by the appropriate hashref key, which begins 
-always with a leading dash. NOTE: This early version 1.1.1 does not yet 
+always with a leading dash. NOTE: This early version 1.1.2 does not yet 
 implement hashref calling syntax for parameters other than C<-filename>. 
 Other sections are headed by the hashref keys that I<will> name their 
 parameters. If the named parameter is unimplemented, you can still pass 
@@ -2029,7 +2029,7 @@ Not recommended to use DC is combination with other source filters.
 
 =head1 BUGS AND LIMITATIONS
 
-No bugs have been reported on DC 1.1.1. 
+No bugs have been reported on DC 1.1.2. 
 Bugs outstanding against SC 1.0.4 can be found at 
 L<https://rt.cpan.org/Dist/Display.html?Queue=Smart-Comments> and they are 
 probably all present in this version of DC. You are welcome to relist against 
