@@ -21,7 +21,7 @@ name: Devel-Comments
 provides:
   Devel::Comments:
     file: lib/Devel/Comments.pm
-    version: v1.1.0
+    version: v1.1.2
   IO::Capture::Sayfix:
     file: lib/IO/Capture/Sayfix.pm
     version: 0.05
@@ -47,4 +47,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: http://github.com/Xiong/devel-comments
-version: v1.1.0
+version: v1.1.2

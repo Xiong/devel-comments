@@ -1,4 +1,4 @@
-Devel-Comments version 1.1.1
+Devel-Comments version 1.1.2
 
 "I get the feeling that the computer just skips over all the comments."
     -- a grad student
@@ -12,7 +12,7 @@ they return to being simple, dumb comments. Your debugging code can remain in
 place, guaranteed harmless, ready for the next development cycle. 
 
 Devel::Comments is a fork of Smart::Comments; the intention is to add new 
-features without breaking backward compatibility. Version 1.1.0 implements the
+features without breaking backward compatibility. Version 1.1.2 implements the
 'any filehandle' feature, allowing smart output to go to any filehandle 
 opened for writing. You may instead pass in a filename, which DC will open for 
 you. Future plans include extended calling syntax, numerical level enabling, 
@@ -33,7 +33,7 @@ To install this module, run the following commands:
 DEPENDENCIES
     
     # 'requires'
-    perl                5.6.0
+    perl                5.8.0
     version             0.77
     Text::Balanced      2.0
     Data::Dumper        
