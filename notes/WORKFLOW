@@ -1,4 +1,4 @@
-WORKFLOW        2010-07-09 10:53:13
+WORKFLOW        2010-08-08 13:59:47
 
 This explains the workflow, or overall version control plan for this project. 
 
@@ -42,6 +42,9 @@ feature (F-name)
 hotfix (H-n.n)
     Branches of this type have a very short lifespan. They are created only to resolve simple but critical issues in the current release. If the issue is time-consuming or trivial, the improvement must wait for the next release. Hotfixes are based on trunk and upon completion, merged into both devel and trunk. After this, the hotfix branch is "dead". (But see also support branch.)
 
+smoke (xxxxxxx)
+    Just like hotfix branches but these are numbered after a CPAN Testers Smoke Report exposing the bug. 
+
 support (S-n.n)
     Branches of this type have an indefinitely long lifespan. 
     
@@ -57,4 +60,6 @@ support (S-n.n)
 
 Hotfix and support branches are unwieldy and best avoided. Normally, all improvements begin on devel, are developed in a feature branch, merge into devel where they are integrated, and branch off as part of a new release merged into trunk. 
 
+DISABLE IN PRODUCTION
 
+Be sure to disable all "disable in production" elements in production. That means to disable them *after* the last merge into devel and *before* the merge into trunk. 
