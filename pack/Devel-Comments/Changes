@@ -1,5 +1,12 @@
 Revision history for Devel-Comments
 
+1.1.2
+    - Disable 'disable in production' in production.
+    - Per smoke report 8149453.
+
+1.1.1
+    - Fix Build.PL per smoke report 8146302.
+
 1.1.0  
     - Fork Smart::Comments 1.0.4.
     - Add support for smart output to arbitrary filehandle or file. 

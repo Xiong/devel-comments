@@ -1,7 +1,8 @@
 do{ my $x = {
        'MANIFEST.SKIP' => 1,
-       'blib' => 1,
+       'Devel-Comments-v1.1.1' => 1,
        'Devel-Comments-*' => 1,
+       'blib' => 1,
        'Devel-Comments-v1.1.0' => 1
      };
 $x; }

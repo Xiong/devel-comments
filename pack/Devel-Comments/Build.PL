@@ -9,7 +9,7 @@ my $builder = Module::Build->new(
     dist_author             => 'Xiong Changnian <XIONG@cpan.org>',
     dist_version_from       => 'lib/Devel/Comments.pm',
     requires                => {
-        'perl'                  => 5.6.0,
+        'perl'                  => 5.008,
         'version'               => 0.77,
         'Text::Balanced'        => 2.0,
         'Data::Dumper'          => 0,
@@ -20,7 +20,7 @@ my $builder = Module::Build->new(
         'Test::More'            => 0,
     },
     recommends              => {
-        'perl'                  => 5.10.1
+        'perl'                  => 5.010_001,
         'Test::More'            => 0.94,
         'Test::Deep'            => 0,
         'Try::Tiny'             => 0,
