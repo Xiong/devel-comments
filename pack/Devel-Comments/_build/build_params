@@ -15,13 +15,14 @@ do{ my $x = [
          'recommends' => {
                            'Try::Tiny' => 0,
                            'Test::More' => '0.94',
+                           'perl' => '5.010001',
                            'IO::Capture::Sayfix' => 0,
                            'IO::Capture::Stdout::Extended' => 0,
                            'IO::Capture::Stderr::Extended' => 0,
                            'Test::Deep' => 0,
                            'IO::Capture::Tellfix' => 0
                          },
-         'dist_version' => 'v1.1.0',
+         'dist_version' => 'v1.1.1',
          'pod_files' => undef,
          'config_dir' => '_build',
          'sign' => undef,
@@ -35,7 +36,7 @@ do{ my $x = [
                                     'conflicts',
                                     'recommends'
                                   ],
-         'base_dir' => '/home/xiong/projects/comments/pack/Devel-Comments-1.1.0',
+         'base_dir' => '/home/xiong/projects/comments/pack/Devel-Comments',
          'allow_mb_mismatch' => 0,
          'xs_files' => undef,
          'destdir' => undef,
@@ -99,7 +100,7 @@ do{ my $x = [
                                'script'
                              ],
          'needs_compiler' => '',
-         'orig_dir' => '/home/xiong/projects/comments/pack/Devel-Comments-1.1.0',
+         'orig_dir' => '/home/xiong/projects/comments/pack/Devel-Comments',
          'include_dirs' => [],
          'installdirs' => 'site',
          'mymetafile' => 'MYMETA.yml',

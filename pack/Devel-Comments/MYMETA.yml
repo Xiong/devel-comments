@@ -24,8 +24,10 @@ provides:
     version: v1.1.0
   IO::Capture::Sayfix:
     file: lib/IO/Capture/Sayfix.pm
+    version: 0.05
   IO::Capture::Tellfix:
     file: lib/IO/Capture/Tellfix.pm
+    version: 0.05
 recommends:
   IO::Capture::Sayfix: 0
   IO::Capture::Stderr::Extended: 0
@@ -34,6 +36,7 @@ recommends:
   Test::Deep: 0
   Test::More: 0.94
   Try::Tiny: 0
+  perl: 5.010001
 requires:
   Data::Dumper: 0
   Filter::Simple: 0.8
