@@ -21,15 +21,15 @@ use Data::Dumper 'Dumper';
 
 # debug only
 
-$DB::single=1;                                                           #~
-use feature 'say';                  # disable in production              #~
+#~ $DB::single=1;                                                           #~
+#~ use feature 'say';               # disable in production                 #~
 #~ use Smart::Comments '###';       # playing with fire;     debug only     #~
 #~ use Smart::Comments '####';      # playing with fire;     debug only     #~
 #~ use Smart::Comments '#####';     # playing with fire;     debug only     #~
 
 ######## / use ########
 
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
 
 ######## pseudo-constants section ########
 
@@ -286,7 +286,7 @@ sub _init_state {
 # 
 sub _prefilter {
     
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
     
     shift;                          # Don't need our own package name
     s/\r\n/\n/g;                    # Handle win32 line endings
@@ -478,7 +478,7 @@ FILTER {
         open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: DATA. $!";
     }
     
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
     
     # Progress bar on a for loop...
     # Calls _decode_for()
@@ -625,7 +625,7 @@ FILTER {
 #   
 sub import {
     
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
 
 };
 ######## /import ########
@@ -1411,7 +1411,7 @@ sub Dump_for {
 };
 ######## /Dump_for ########
 
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
 
 #############################
 ######## END MODULE #########
