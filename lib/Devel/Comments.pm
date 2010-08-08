@@ -1463,7 +1463,7 @@ This document describes Devel::Comments version 1.1.2
     for my $i (0..1e6) {   ### Working===[%]     done
         do_something_expensive_with($i);
     }
-    
+
 =head1 DESCRIPTION
 
 I<I get the feeling that the computer just skips over all the comments.>

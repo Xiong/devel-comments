@@ -22,7 +22,7 @@ do{ my $x = [
                            'Test::Deep' => 0,
                            'IO::Capture::Tellfix' => 0
                          },
-         'dist_version' => 'v1.1.1',
+         'dist_version' => 'v1.1.2',
          'pod_files' => undef,
          'config_dir' => '_build',
          'sign' => undef,
