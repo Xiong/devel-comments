@@ -1,0 +1,32 @@
+[theorbtwo] [Xiong], how hard would it be to allow introducers that aren't just /^#{N}/, but rather /^###mytag/?
+Does the syntax currently require whitespace after the introducer?
+It might be helpful to allow me to turn things on by tag and not just by level.
+
+[mr_mischief] Many of my older projects have for example a line of '###' or '#####' before and another after the actual comment if they're really important comments to catch my eye.
+
+[Xiong] You want me to allow you to start a smart comment thus: <c>###foo</c> and then enable that by passing 'foo' somehow in the use line?
+
+[theorbtwo] Exactly. Then I can have ###db and ###html, and only enable the one I want.
+
+[mr_mischief] Anecdotally, if it had to start with '###' and I could customize it after that, I'd be okay with that. My editor already highlights '###' followed by ' TODO', ' XXX', ' FIXME', etc. specially to catch the eye.
+
+[Xiong] Then you will certainly have to use the hashref calling syntax; I can't test for that sort of thing in the flat list.
+
+[theorbtwo] That doesn't sound like a problem to me, [Xiong].
+
+Xiong] <c>use Devel::Comments({ -level => [ 3, 'foo', ], -file => 'foo.txt', });</c>
+
+[mr_mischief] IE It'd be awesome if I could have ###foo,bar that triggers if foo or bar in enabled and also ###foo and ###bar separately. But one tag at a time would be very nice, too.
+
+[mr_mischief] I've written application-specific ldebug logging that tracks a level per debug class, for example network is at 2 and db is at 4. That and selector-style tagging of comments combined would be my ultimate wish list, but aI'm sure a huge pain to implement.
+
+[theorbtwo] You could also make D::C report to something like Log4Perl and let that sort it out.
+
+[Xiong] You will have to pass me something that greps through smart comments and tells me which you want to see.
+
+<cbstream> [Xiong] Don't forget, you'll want to construct that before you get to the use line, most likely, which means in a previous BEGIN block. Then pass me <c>use Devel::Comments ({ -grep => $cref });</c>.
+
+<cbstream> [Xiong] And if you want to pass that in the perl command line invocation, well, I have a bottle of TUMS for you. ;)
+
+<cbstream> [mr_mischief] My two main wish-list items without the excessive bells and whistles are: selector style tags plain and simple (but with a separate file possible for each tag if possible) and to be able to select whether I want just a specific level or a miniimum level.
+
