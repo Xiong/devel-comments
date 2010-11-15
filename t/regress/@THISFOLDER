@@ -1,0 +1,6 @@
+~/projects/(project)/t/regress
+
+Contains test scripts converted to run on vanilla S::C.
+
+These are actual script files copied from t/dc-and-ok-for-vanilla/
+    and converted with util/regress. 

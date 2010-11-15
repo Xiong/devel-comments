@@ -1,0 +1,12 @@
+~/projects/(project)/t/vanilla-style-on-dc/
+
+Contains symlinks to actual test scripts in t/all/.
+
+These scripts were copied from the vanilla S::C distribution
+    and converted by hand to run on D::C. 
+
+These are the guarantee of strict compatibility and should not be modified. 
+They have only, so far, been modified to the minimum extent consistent with 
+    the need to run D::C. 
+
+These scripts may be removed from distribution starting in v2.0.0.

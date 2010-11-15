@@ -1,0 +1,1 @@
+/home/xiong/projects/comments/t/0300-dc/11-tmpfile.t
