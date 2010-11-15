@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/21-perlish_for.t
+/home/xiong/projects/comments/t/all/21-perlish_for.t

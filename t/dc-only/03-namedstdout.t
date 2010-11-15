@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0300-dc/03-namedstdout.t
+/home/xiong/projects/comments/t/all/03-namedstdout.t

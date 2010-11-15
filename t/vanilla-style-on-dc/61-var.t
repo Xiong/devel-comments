@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/61-var.t
+/home/xiong/projects/comments/t/all/61-var.t

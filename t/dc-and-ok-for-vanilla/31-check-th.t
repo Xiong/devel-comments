@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0200-dcr/31-check-th.t
+/home/xiong/projects/comments/t/all/31-check-th.t

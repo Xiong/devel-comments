@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0300-dc/11-tmpfile.t
+/home/xiong/projects/comments/t/all/11-tmpfile.t

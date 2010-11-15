@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/73-ENV_str.t
+/home/xiong/projects/comments/t/all/73-ENV_str.t

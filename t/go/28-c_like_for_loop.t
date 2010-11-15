@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/28-c_like_for_loop.t
+/home/xiong/projects/comments/t/all/28-c_like_for_loop.t

@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0200-dcr/01-load-deep.t
+/home/xiong/projects/comments/t/all/01-load-deep.t

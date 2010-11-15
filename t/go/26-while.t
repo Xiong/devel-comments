@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/26-while.t
+/home/xiong/projects/comments/t/all/26-while.t

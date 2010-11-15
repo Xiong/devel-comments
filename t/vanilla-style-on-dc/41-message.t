@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/41-message.t
+/home/xiong/projects/comments/t/all/41-message.t

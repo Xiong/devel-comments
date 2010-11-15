@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/31-assert.t
+/home/xiong/projects/comments/t/all/31-assert.t

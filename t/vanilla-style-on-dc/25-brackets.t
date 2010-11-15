@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/25-brackets.t
+/home/xiong/projects/comments/t/all/25-brackets.t

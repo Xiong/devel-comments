@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/37-verify.t
+/home/xiong/projects/comments/t/all/37-verify.t

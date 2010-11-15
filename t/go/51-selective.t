@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/51-selective.t
+/home/xiong/projects/comments/t/all/51-selective.t

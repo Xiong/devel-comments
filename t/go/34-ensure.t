@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/34-ensure.t
+/home/xiong/projects/comments/t/all/34-ensure.t

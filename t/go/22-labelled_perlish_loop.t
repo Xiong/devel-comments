@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0100-van/22-labelled_perlish_loop.t
+/home/xiong/projects/comments/t/all/22-labelled_perlish_loop.t

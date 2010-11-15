@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0300-dc/02-tostdout.t
+/home/xiong/projects/comments/t/all/02-tostdout.t

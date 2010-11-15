@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0200-dcr/42-simple-for.t
+/home/xiong/projects/comments/t/all/42-simple-for.t

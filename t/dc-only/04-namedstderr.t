@@ -1,1 +1,1 @@
-/home/xiong/projects/comments/t/0300-dc/04-namedstderr.t
+/home/xiong/projects/comments/t/all/04-namedstderr.t
