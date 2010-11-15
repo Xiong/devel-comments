@@ -13,3 +13,11 @@ download/
 .util/
 unpack/
 hold/
+
+# Ignore temporary files
+*.tmp
+*.pm.html
+
+# Ignore backup files
+*~
+
