@@ -30,7 +30,10 @@ my $builder = Module::Build->new(
         'IO::Capture::Sayfix'               => 0,
         'IO::Capture::Tellfix'              => 0,
     },
-    add_to_cleanup          => [ 'Devel-Comments-*' ],
+    add_to_cleanup          => [ 
+        'Devel-Comments-*',
+        'devel-comments-test.log',
+    ],
     meta_merge              => {
         resources               => {
             repository              => 'http://github.com/Xiong/devel-comments',

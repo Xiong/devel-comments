@@ -51,3 +51,6 @@
 
 # Avoid other stuff (xiong)
 devel-comments-test.log
+\bAcme\b
+\bBANG\b
+

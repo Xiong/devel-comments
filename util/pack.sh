@@ -106,6 +106,27 @@ then
     exit 1
 fi
 
+# Copy t/all/* to hold/pack/t/all/
+mkdir hold/pack/t/all/
+if (( $? ))
+then
+    echo "& Error mkdir hold/pack/t/all/."
+    echo "& ...Aborting."
+    exit 1
+fi
+
+cp --dereference --preserve=mode,ownership,timestamps \
+$verbose \
+t/all/* \
+hold/pack/t/all/
+
+if (( $? ))
+then
+    echo "& Error copying t/all/* to hold/pack/t/all/."
+    echo "& ...Aborting."
+    exit 1
+fi
+
 # cd to hold/pack/
 cd hold/pack/
 
@@ -297,7 +318,7 @@ then
     exit 1
 fi
 
-echo "Fakeinstalling..."
+echo "& Fakeinstalling..."
 ./Build fakeinstall
 
 if (( $? ))
