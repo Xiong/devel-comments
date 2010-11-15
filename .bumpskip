@@ -1,0 +1,37 @@
+# .bumpskip
+#
+# This file tells util/bump.pl which folders and files not to bump version. 
+# Each line should be a Perl regex. 
+# See also $ util/bump.pl --man
+
+# Skip the main .gitignore'd thing.
+\bhold\b
+
+# Skip tests and utilities
+\bt\b
+\butil\b
+
+# Skip notes
+\bnotes\b
+
+# Skip convenience symlinks
+\bsym\b
+
+# Skip all tarballs
+\.tar\.gz
+
+# Avoid temp and backup files.
+~$
+\.old$
+\#$
+\b\.#
+\.bak$
+
+# Must bump Changes manually
+\bChanges\b
+
+# Devel::Comments specific
+\bSmart\b
+\bAcme\b
+\bBANG\b
+\bIO\b
