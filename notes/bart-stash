@@ -1,8 +1,0 @@
-[bart] <c>
-
-sub namespace2stash { 
-	my $pkg = shift; 
-	no strict 'refs'; 
-	return \%{$pkg . '::'} }
-	
-</c> # now tested
