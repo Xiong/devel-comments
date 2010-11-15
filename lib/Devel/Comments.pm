@@ -387,17 +387,11 @@ sub _prefilter {
     while (@_) {
         my $arg = shift @_;
 
-        if ($arg =~ m{\A -ENV \Z}xms) {
-            my $env =  $ENV{Smart_Comments} || $ENV{SMART_COMMENTS}
-                    || $ENV{SmartComments}  || $ENV{SMARTCOMMENTS}
-                    ;
-
-            return 0 if !$env;   # i.e. if no filtering ABORT
-
-            if ($env !~ m{\A \s* 1 \s* \Z}xms) {
-                unshift @_, split m{\s+|\s*:\s*}xms, $env;
-            }
-        }
+   if ($arg eq '-ENV') {
+       my $env_filters = _handle_env();
+       return 0 if !$env_filters;  # i.e. if no filtering ABORT
+       unshift @_, @{$env_filters};
+   }
         else {
             push @intros, $arg;
         }
@@ -420,6 +414,76 @@ sub _prefilter {
     };
 };
 ######## /_prefilter ########
+
+######## INTERNAL ROUTINE ########
+# _handle_env
+#
+# Purpose  : Deal with environment variables
+# Params   : *none*
+# Reads    : %ENV
+# Returns  : nothing => no environment variable set
+#          : array ref => a list of things to put onto 
+#            the "intros" array. 
+sub _handle_env {
+    # First look to see if the Devel_Comments variable is set, if so
+    # process it and return.
+    my $dc_env = $ENV{Devel_Comments};
+    if ($dc_env) {
+        return _handle_dc_env($dc_env);
+    }
+    # Now check the multitude of smart comments environment variables.
+    my $sc_env =
+         $ENV{Smart_Comments}
+      || $ENV{SMART_COMMENTS}
+      || $ENV{SmartComments}
+      || $ENV{SMARTCOMMENTS};
+    if ($sc_env) {
+        return _handle_sc_env($sc_env);
+    }
+
+    return;
+}
+######## /_handle_env ########
+
+######## INTERNAL ROUTINE ########
+# _handle_dc_env
+#
+# Purpose  : To process the devel comments environment variable.
+# Params   : A scalar containing the value of the environment variable
+# Returns  : An array ref containing 0 or more ???s
+#            - if the env var just contains a 1 a ref to an empty
+#              array is returned.
+#            - otherwise the variable is split on space or (space
+#              surrounded) colons.
+sub _handle_dc_env {
+    my $env = shift;
+    # For now we can just do the same thing as for a smart comments 
+    # env variable.  In future it would be possible to handle devel
+    # comments environment variables differently.
+    return _handle_sc_env($env);
+}
+
+######## /_handle_dc_env ########
+
+######## INTERNAL ROUTINE ########
+# _handle_sc_env
+#
+# Purpose  : To process the devel comments environment variable.
+# Params   : A scalar containing the value of the environment variable
+# Returns  : An array ref containing 0 or more ???s
+#            - if the env var just contains a 1 a ref to an empty
+#              array is returned.
+#            - otherwise the variable is split on space or (space
+#              surrounded) colons.
+sub _handle_sc_env {
+    my $env = shift;
+    if ( $env !~ m{\A \s* 1 \s* \Z}xms ) {
+        return [ split m{\s+|\s*:\s*}xms, $env ];
+    }
+    return [];
+}
+
+######## /_handle_sc_env ########
 
 sub import;     # FORWARD
 

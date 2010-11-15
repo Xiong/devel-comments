@@ -378,5 +378,31 @@ As before:
     * Demos to demo/
     * Ready-for-prime-time scripts to bin/
 
+This should now be complete and correct. 
+
+= stok-62599 = 2010-11-15 08:57:49
+
+Mike Stok <mike@stok.co.uk> (MIKESTOK@cpan.org?) points out that 
+    POD and code do not agree in the matter of environment variables, filing
+    RT bug report #62599: Documentation for -ENV does not agree with code.
+    (https://rt.cpan.org/Ticket/Display.html?id=62599):
+    
+    
+> In the documentation (on CPAN) you say:
+>
+> CONFIGURATION AND ENVIRONMENT
+>
+> Devel::Comments can make use of an environment variable 
+> from your shell: Devel_Comments. 
+> ...
+> In the code around line 386 you look for Smart_Comments in the environment:
+> ...
+>    my $env =  $ENV{Smart_Comments} || $ENV{SMART_COMMENTS}
+>            || $ENV{SmartComments}  || $ENV{SMARTCOMMENTS}
+>            ;
+> ...
+
+He has posted a patch, hold/stok/patch.txt, which I intend to apply. 
+
 
 
