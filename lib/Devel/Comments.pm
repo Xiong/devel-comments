@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 # Please see the file VERSIONS.
-use version 0.77; our $VERSION = qv('1.1.2');
+use version 0.77; our $VERSION = qv('1.1.3');
 
 # original S::C (originally used here)
 use Carp;
@@ -1488,7 +1488,7 @@ Devel::Comments - Debug with executable smart comments to logs
 
 =head1 VERSION
 
-This document describes Devel::Comments version 1.1.2
+This document describes Devel::Comments version 1.1.3
 
 =head1 SYNOPSIS
 
@@ -1496,7 +1496,8 @@ This document describes Devel::Comments version 1.1.2
     
     # Dumps...
     my $scalar      = 42;
-    ### $scalar                             # prints to STDERR:    ### $my_scalar: 42
+    ### $scalar                             # prints to STDERR:    
+                                            ### $my_scalar: 42
     
     ### @array                              # dumps more complex 
     ### $HoHoA                              #   data structures, too
@@ -1541,9 +1542,10 @@ disabled at once by commenting out the C<use Devel::Comments> line, whereupon
 they return to being simple, dumb comments. Your debugging code can remain in 
 place, guaranteed harmless, ready for the next development cycle. 
 
-Devel::Comments is a fork of L<Smart::Comments>; current intention is to add new 
-features without breaking backward compatibility. Version 1.1.2 implements the
-'any filehandle' feature, allowing smart output to go to any filehandle 
+Devel::Comments is a fork of L<Smart::Comments>; current intention is to 
+add new features without breaking backward compatibility. 
+Version 1.1.2 implements the 'any filehandle' feature, 
+allowing smart output to go to any filehandle 
 opened for writing. You may instead pass in a filename, which DC will open for 
 you. Future plans include extended calling syntax, numerical level enabling, 
 improved progress bars, dump method callback, and execution of arbitrary code. 
@@ -2037,10 +2039,10 @@ The following table summarizes the behaviour:
          Value of
     $ENV{Devel_Comments}          Equivalent Perl
 
-            1                     use Smart::Comments;
-            0                      no Smart::Comments;
-        '###:####'                use Smart::Comments qw(### ####);
-        '### ####'                use Smart::Comments qw(### ####);
+            1                     use Devel::Comments;
+            0                      no Devel::Comments;
+        '###:####'                use Devel::Comments qw(### ####);
+        '### ####'                use Devel::Comments qw(### ####);
 
 To enable the C<Devel_Comments> environment variable, you need to load the
 module with the C<-ENV> flag:
@@ -2093,7 +2095,18 @@ Not recommended to use DC is combination with other source filters.
 
 =head1 BUGS AND LIMITATIONS
 
-No bugs have been reported on DC 1.1.2. 
+Tellfix is ugly and causes a warning to be raised under some circumstances. 
+Intent is to move off IO::Capture::* altogether in favor of Test::Trap;
+so this issue will not be fixed directly. 
+
+The current testing paradigm is flawed; it has too many dependencies, 
+including perl 5.010. We ship with a cut-down "user" test suite, which should 
+run fine under perl 5.008; this is mostly a rehash of the original 
+Smart::Comments test suite and doesn't fully exercise DC's new features. 
+Those interested may want to run the full test suite found in t/all/. 
+
+A number of features are marked as unimplemented. 
+
 Bugs outstanding against SC 1.0.4 can be found at 
 L<https://rt.cpan.org/Dist/Display.html?Queue=Smart-Comments> and they are 
 probably all present in this version of DC. You are welcome to relist against 
@@ -2116,6 +2129,17 @@ Pass-through execution of arbitrary debugging code.
 
 Police up scraps of stuff currently left in caller's namespace. Store all 
 state entirely within DC. 
+
+=head1 THANKS
+
+=over
+
+=item *
+
+Mike Stok C<< <MIKESTOK@cpan.org> >> 
+for reporting RT#62599 I<and> fixing it.
+
+=back
 
 =head1 AUTHOR
 
