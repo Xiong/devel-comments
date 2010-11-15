@@ -382,7 +382,7 @@ This should now be complete and correct.
 
 = stok-62599 = 2010-11-15 08:57:49
 
-Mike Stok <mike@stok.co.uk> (MIKESTOK@cpan.org?) points out that 
+Mike Stok (MIKESTOK@cpan.org) points out that 
     POD and code do not agree in the matter of environment variables, filing
     RT bug report #62599: Documentation for -ENV does not agree with code.
     (https://rt.cpan.org/Ticket/Display.html?id=62599):
