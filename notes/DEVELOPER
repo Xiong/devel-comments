@@ -43,21 +43,28 @@ Here is a summary of the folder structure:
 /lib            Perl modules
 /notes          developer notes; you may add to these
                     Changes to this folder are propagated among branches.
-/pack           release packages and folders to be zipped up
-                    Please name subfolders according to version numbers.
 
-/run            executable Perl scripts
-                    Any project script (end-user) goes here.
-    /not-t      tests not ready for testing
-    /t          tests ready for testing, whether passing or not
-    /util       utility scripts for development
+/bin            executable Perl scripts
+                    Any end-user project script goes here. (none planned)
+/demo           project demonstrations, safe for end user to run
 
+/t              do not put any files here -- only folders
+    /all        put all actual test scripts here
+    /go         symlinks to shippable test scripts
+    /(?)        group of test script symlinks, by some characteristic
+    /00         loading tests    
+    /not-t      tests not ready for testing -- failed testing attempts
+    /regress    D::C tests converted to load vanilla Smart::Comments instead
+
+/util       utility scripts for development; beware
+
+Please see '@THISFOLDER' for each folder for more info. 
 
 = Files =
 
 Selected files: 
 
-/lib/Smart/Comments/Any.pm
+/lib/Devel/Comments.pm
     The deliverable Perl module
 
 /file/workflow/workflow.svg
@@ -66,12 +73,11 @@ Selected files:
 /notes/general-notes
     Random development notes
 
-/notes/scrap
+/notes/scrap/scrap
     Perl code boilerplates; please use and add to these
 
-/run/util/regress
-    Clones an ::Any test and makes it load Vanilla instead
+util/regress
+    Clones a D::C test and makes it load Vanilla instead
+    This is our guarantee of compatibility
 
-/run/util/sync-notes
-    Synchronizes /notes and (untracked) /.notes
 

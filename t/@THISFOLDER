@@ -1,0 +1,13 @@
+~/projects/(project)/t/
+
+This is the project test script directory. 
+
+Files in this path are project-specific *.t files only. 
+
+Actual test scripts are kept in t/all/. 
+Symlinks to test scripts that are to ship 
+    with the project distribution are kept in t/go/. 
+Additional folders may contain symlinks to test scripts; 
+    these additional folders are for the purpose of categorization/tagging.
+
+See also @THISFOLDER in each child folder. 

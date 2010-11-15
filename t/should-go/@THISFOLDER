@@ -1,0 +1,10 @@
+~/projects/(project)/t/should-go/
+
+Contains symlinks to actual test scripts in t/all/.
+
+These scripts *should* all ship with the project distribution. 
+They do, but only in t/all/, which does not run when the module is "built". 
+
+The reason is that the testing paradigm used in some of these tests is unsuitable for perl 5.008 and maybe anything less than 5.010. 
+
+For that matter, the testing paradigm ("test-hump-ish") is probably altogether wrong and will be updated to a real Test::Ranger approach. 

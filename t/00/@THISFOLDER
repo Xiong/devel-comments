@@ -1,0 +1,7 @@
+~/projects/(project)/t/00/
+
+Contains symlinks to actual test scripts in t/all/.
+
+These scripts check to see that modules under test can be loaded at all.
+They should bailout of further testing in harness on failure. 
+Because they should run early, their names should begin with 00, etc.

@@ -1,0 +1,8 @@
+~/projects/(project)/bin/
+
+This is the project script directory. 
+
+Files in this path are project-specific executable files only. 
+
+Files in this folder itself are intended to be called by the project enduser. 
+

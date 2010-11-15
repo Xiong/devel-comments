@@ -1,0 +1,16 @@
+~/projects/(project)/t/dc-and-ok-for-vanilla/
+
+Contains symlinks to actual test scripts in t/all/.
+
+These scripts are written by Xiong using the 'test-humpish box' style: 
+    Test::More 0.94;
+    Test::Deep;
+    Try::Tiny;
+
+    IO::Capture::Stdout::Extended;
+    IO::Capture::Stderr::Extended;
+    IO::Capture::Sayfix;
+    IO::Capture::Tellfix;
+
+They exercise D::C but do not exercise any new features; 
+    so they may be converted to use vanilla S::C instead. 
