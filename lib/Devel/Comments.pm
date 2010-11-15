@@ -21,8 +21,8 @@ use Data::Dumper 'Dumper';
 
 # debug only
 
-$DB::single=1;                                                           #~
-use feature 'say';                  # disable in production              #~
+#~ $DB::single=1;                                                           #~
+#~ use feature 'say';                  # disable in production              #~
 #~ use Smart::Comments '###';       # playing with fire;     debug only     #~
 #~ use Smart::Comments '####';      # playing with fire;     debug only     #~
 #~ use Smart::Comments '#####';     # playing with fire;     debug only     #~
