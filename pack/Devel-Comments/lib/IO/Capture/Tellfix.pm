@@ -1,1 +1,0 @@
-/home/xiong/projects/comments/lib/IO/Capture/Tellfix.pm
