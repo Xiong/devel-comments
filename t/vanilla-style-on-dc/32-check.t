@@ -1,0 +1,1 @@
+/home/xiong/projects/comments/t/all/32-check.t

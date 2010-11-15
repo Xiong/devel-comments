@@ -1,9 +1,0 @@
-~/projects/(project)/run/
-
-This is the project script directory. 
- (run/ is chosen over script/ for brevity.)
-
-Files in this path are project-specific *.pl or *.t files only. 
-
-Files in this folder itself are intended to be called by the project enduser. 
-

@@ -1,4 +1,6 @@
-general-notes
+notes/general-notes
+
+*** This module has been released as Devel::Comments. Early notes refer to Smart::Comments::Any and Smart::Comments::Log, both of which have been subsumed into D::C. 
 
 I began to hack Smart::Comments, which I have long enjoyed and even publicly defended (see PerlMonks 'In Defense of Smart::Comments'), to remedy just one shortcoming: The original, Vanilla version prints only to STDERR. Granted that it's only a lightweight debugging tool, I still thought it would be simple to upgrade it to print to "::Any" filehandle. 
 
@@ -8,7 +10,7 @@ The overall plan is to write another, wrapper module, Smart::Comments::Log, whic
 
 I did not anticipate a lengthy project, merely a quick hack. I assumed that this would be sufficient, in essence: 
 
-	s/print STDERR/print $outfh/g
+    s/print STDERR/print $outfh/g
 
 ...and the only other bit would be to grab $outfh off the use line. It's turned out to be somewhat more difficult. 
 
@@ -28,34 +30,34 @@ Are these bugs or features:
 
 * FILTER appears to want to do something with a blank smart comment: 
 
-	###
+    ###
 
 ...since there's a section of the filter commented 'An empty comment dumps an empty line' (line 138). Well, it doesn't; it prints: 
 
-	### : ###   $VAR1 = [
+    ### : ###   $VAR1 = [
 
 ...which just doesn't seem right. Maybe Conway had something different in mind when he wrote 'empty'? The POD is silent. This being an undocumented feature, I feel justified in commenting it out; none of his own tests fail on this. 
 
 * FILTER also is ready to deal with 'Anything else [as] a literal string to be printed'; this is the final substitution rule (line 142). But apparently, any comment of the form: 
 
-	### Hello!
+    ### Hello!
 
 ... is caught earlier; so I've commented this out, too. Will this bite me later? Again, none of Conway's tests fail with it out. 
 
 * POD claims that *any* valid Perl expression can be smart-dumped but I've had no luck with: 
 
-	### $very{long}{thing}[18]
+    ### $very{long}{thing}[18]
 
 But this works as expected: 
 
-	### verylongthing : $very{long}{thing}[18]
+    ### verylongthing : $very{long}{thing}[18]
 
 ...and I don't know if the previous, unlabeled case should be tinkered. Certainly the unlabeled expression is advertised in POD. 
 
 * Each snippet of replacement code ends in the cryptic $DBX, which is seen nowhere else except when it is set, inline, globally (line 34): 
 
-	# Automagic debugging as well...
-	my $DBX = '$DB::single = $DB::single = 1;';
+    # Automagic debugging as well...
+    my $DBX = '$DB::single = $DB::single = 1;';
 
 ...and I cannot imagine what this might do when inserted into client code. 
 
@@ -65,9 +67,9 @@ Update: This turns out to have something to do with the Perl debugger; I think i
 
 * POD tells user to end any text-only smart comment in three dots: 
 
-	### Hello...
-	
-	... but the fact is that the dots aren't necessary. The only time dots mean anything is in a simple progress bar syntax. 
+    ### Hello...
+    
+    ... but the fact is that the dots aren't necessary. The only time dots mean anything is in a simple progress bar syntax. 
 
 = State =
 
@@ -79,44 +81,44 @@ But ::Any *must* take state seriously; multiple callers during a single run migh
 
 * Where to store the filehandle itself? 
 
-	# At first, I thought to stash the filehandle in caller's package global space. This is clever but requires to run under no strict 'refs' and possibly no warnings; it's a symbolic reference. I believe [bart] gets credit for this. 
+    # At first, I thought to stash the filehandle in caller's package global space. This is clever but requires to run under no strict 'refs' and possibly no warnings; it's a symbolic reference. I believe [bart] gets credit for this. 
 
-	my $ns                         = 'Teddy::Bear';
-	${ *{${ns} . '::foo'} }        = $cram;
-	$yank                          = ${ *{"${ns}\::foo"} };
-	
-	# Then [almut] proposed a similar form. This neither is a symbolic reference nor raises a warning; but it cannot handle arbitrary package names. The example works because 'Teddy' is only a top-level namespace. 
-	
-	$ns                            = 'Teddy::';
-	${ $::{$ns}{foo} }             = $cram;
-	$yank                          = ${ $::{$ns}{foo} };
-	
-	* So, I went to stashing -- er, storing -- inside S::C::Any itself, in the lexical pseudo-global %state_of, as $state_of{$caller_name}{-outfh}. This appeared to work at first but then not. 0220-sc-any-25-href-file.t failed; nothing seemed to be written to the given logfile. I tried many things. Eventually, I just command-line cat the logfile and presto, output is as expected. The fault is where? 
-	
-		! The logfile is a block buffered device and S::C doesn't close it explicitly, of course, since we don't know for sure when we're done with it. When we open it for reading inside .t, the buffer hasn't been written out yet. We need to set autoflushing on $outfh from go. 
-	
+    my $ns                         = 'Teddy::Bear';
+    ${ *{${ns} . '::foo'} }        = $cram;
+    $yank                          = ${ *{"${ns}\::foo"} };
+    
+    # Then [almut] proposed a similar form. This neither is a symbolic reference nor raises a warning; but it cannot handle arbitrary package names. The example works because 'Teddy' is only a top-level namespace. 
+    
+    $ns                            = 'Teddy::';
+    ${ $::{$ns}{foo} }             = $cram;
+    $yank                          = ${ $::{$ns}{foo} };
+    
+    * So, I went to stashing -- er, storing -- inside S::C::Any itself, in the lexical pseudo-global %state_of, as $state_of{$caller_name}{-outfh}. This appeared to work at first but then not. 0220-sc-any-25-href-file.t failed; nothing seemed to be written to the given logfile. I tried many things. Eventually, I just command-line cat the logfile and presto, output is as expected. The fault is where? 
+    
+        ! The logfile is a block buffered device and S::C doesn't close it explicitly, of course, since we don't know for sure when we're done with it. When we open it for reading inside .t, the buffer hasn't been written out yet. We need to set autoflushing on $outfh from go. 
+    
 * How to retrieve $outfh at need? 
 
-	This turns out to raise points about the previous question: where to store. If $outfh is stored as $state_of{$caller_name}{-outfh} then $caller_name must be found before doing any output. If all code that prints smart output (since it's probably going to a disk file) should be checked for error, it makes sense to define a print_for(). But then: 
-	
-		If print_for() is called from within client code, 
-			caller(0)[0] contains $caller_name.
-		If print_for() is called from within another ::Any routine, 
-			caller(1)[0] contains $caller_name.
-	
-	... and meanwhile there's still the clumsy _set_filter_caller() (or is it _get_filter_caller?). 
-	
-	Meanwhile, I'm seriously starting to wonder if it's right to set state according to __PACKAGE__, rather than to __FILE__. After all, I suspect that Filter::Simple will pass the remainder of the file, not cross file boundaries to pass the rest of the package, which conceivably isn't even known at "compile-time". Filter::Simple's POD strongly suggests this (toward its end). Vanilla Smart::Comments POD is silent. 
-	
-	For a moment there, I was leaning back toward [bart]'s symref stash-in-package-variable solution. But that doesn't play well with storing state according to filtered __FILE__! 
-	
-!!	Now, I'm thinking more of changing the nature of replacement code itself. If each time ::Any is called it increments, say, $caller_id, and inserts that *value*, literally, into each call to an external routine that prints (directly or more neatly, via print_for), then the filtered source code itself keeps track of which $outfh was intended for its smart output. It's not really necessary even to think about which file or package that may be. 
-	
-	Then the primary key to %state_of is $caller_id. The literal value can be interpolated at filter time as "$caller_id". 
-	
-	The more I think about the likelihood of disaster attendant upon keying off $caller_name -- however obtained -- the better this seems. 
-		
-	
+    This turns out to raise points about the previous question: where to store. If $outfh is stored as $state_of{$caller_name}{-outfh} then $caller_name must be found before doing any output. If all code that prints smart output (since it's probably going to a disk file) should be checked for error, it makes sense to define a print_for(). But then: 
+    
+        If print_for() is called from within client code, 
+            caller(0)[0] contains $caller_name.
+        If print_for() is called from within another ::Any routine, 
+            caller(1)[0] contains $caller_name.
+    
+    ... and meanwhile there's still the clumsy _set_filter_caller() (or is it _get_filter_caller?). 
+    
+    Meanwhile, I'm seriously starting to wonder if it's right to set state according to __PACKAGE__, rather than to __FILE__. After all, I suspect that Filter::Simple will pass the remainder of the file, not cross file boundaries to pass the rest of the package, which conceivably isn't even known at "compile-time". Filter::Simple's POD strongly suggests this (toward its end). Vanilla Smart::Comments POD is silent. 
+    
+    For a moment there, I was leaning back toward [bart]'s symref stash-in-package-variable solution. But that doesn't play well with storing state according to filtered __FILE__! 
+    
+!!  Now, I'm thinking more of changing the nature of replacement code itself. If each time ::Any is called it increments, say, $caller_id, and inserts that *value*, literally, into each call to an external routine that prints (directly or more neatly, via print_for), then the filtered source code itself keeps track of which $outfh was intended for its smart output. It's not really necessary even to think about which file or package that may be. 
+    
+    Then the primary key to %state_of is $caller_id. The literal value can be interpolated at filter time as "$caller_id". 
+    
+    The more I think about the likelihood of disaster attendant upon keying off $caller_name -- however obtained -- the better this seems. 
+        
+    
 = ::Log =
 
 Complexity of calling ::Any from yet another module -- who is caller? -- leads me to reject the idea of ::Log. Let's do it all within ::Any. One Juggernaut is enough. 
@@ -125,104 +127,104 @@ Complexity of calling ::Any from yet another module -- who is caller? -- leads m
 
 It's coming clear to me -- dimly -- that a variable-type filehandle (e.g., $fh) is a ref to a bareword filehandle (e.g., STDOUT). Study-up reveals that the variable is an "indirect filehandle". Confusion arises because open(), et al, accept indirect fhs as well as a bareword "real" fh; no need to en-/dereference. 
 
-	..."+<" is almost always preferred for read/write updates, as the dubious "+>" mode would first clobber the file before you could ever read anything from it.		-- Camel 29.02.104
-	
-	+<			won't create a new file (but most common of the three)
-	+>			will clobber existing, making the read problematical
-	+>>			will create and not clobber but all writes go to the end
+    ..."+<" is almost always preferred for read/write updates, as the dubious "+>" mode would first clobber the file before you could ever read anything from it.       -- Camel 29.02.104
+    
+    +<          won't create a new file (but most common of the three)
+    +>          will clobber existing, making the read problematical
+    +>>         will create and not clobber but all writes go to the end
 
-	# a good idea in the general case
-	truncate(FH, tell(FH))
-		or die "can't truncate counterfile: $!";
-	close(FH)
-		or die "can't close counterfile: $!";
+    # a good idea in the general case
+    truncate(FH, tell(FH))
+        or die "can't truncate counterfile: $!";
+    close(FH)
+        or die "can't close counterfile: $!";
 
-	# Without clobbering it first, you open a file in read/write mode. You read from it first (why you didn't clobber), then write *less* data than used to be there. So, truncate afterwards, then close. 
-	
-	# You don't want to open-read, close, then open-write (truncating on open) in case of getting an exclusive lock, which is on a filehandle, so no reopening. 
-	
-	# The q{_} filehandle can be used for file test operators to return info on the current stat buffer without doing another system call: 
-	if (-s) > 100_000 and -A _ > 90;     # -s on $_ (slow); -A on buffer (fast)
-	
+    # Without clobbering it first, you open a file in read/write mode. You read from it first (why you didn't clobber), then write *less* data than used to be there. So, truncate afterwards, then close. 
+    
+    # You don't want to open-read, close, then open-write (truncating on open) in case of getting an exclusive lock, which is on a filehandle, so no reopening. 
+    
+    # The q{_} filehandle can be used for file test operators to return info on the current stat buffer without doing another system call: 
+    if (-s) > 100_000 and -A _ > 90;     # -s on $_ (slow); -A on buffer (fast)
+    
 * Caution not to attempt to pass FH as a string: 
-		Strings ("LOGFILE" instead of *LOGFILE) require special finessing to work between packages, and references to typeglobs can't be usefully returned from functions.
-			-- Perl Cookbook 7.16
-	
+        Strings ("LOGFILE" instead of *LOGFILE) require special finessing to work between packages, and references to typeglobs can't be usefully returned from functions.
+            -- Perl Cookbook 7.16
+    
 * To test filehandle equivalence, test == for fileno($fh):
 
-	if ( fileno $fh == fileno *STDERR ) {...};	# IN == 0, OUT == 1, ERR == 2
+    if ( fileno $fh == fileno *STDERR ) {...};  # IN == 0, OUT == 1, ERR == 2
 
-	These can change, though, so test correctly; don't test against literal 2. 
-	
+    These can change, though, so test correctly; don't test against literal 2. 
+    
 * Do tilde expansion on passed-in filenames: 
-	
-	open(MAILRC, (glob("~/.mailrc"))[0])     # expand tilde first
-		or die "can't open ~/.mailrc: $!";
-	
+    
+    open(MAILRC, (glob("~/.mailrc"))[0])     # expand tilde first
+        or die "can't open ~/.mailrc: $!";
+    
 = Filter::Simple =
 
 2010-06-22 01:57:27
 
 * It appears that the filter terminator parameter doesn't work at all.
 
-	See util/use-filter-bang.pl, lib/BANG.pm, util/load-dumb-no.pl.
+    See util/use-filter-bang.pl, lib/BANG.pm, util/load-dumb-no.pl.
 
-	POD (Disabling or changing <no> behaviour) says: 
-	
-		By default, the installed filter only filters up to a line...
-		no ModuleName;  # optional comment
-		[or] __END__
-		[or] __DATA__
-		...but this can be altered by passing a second argument to use Filter::Simple or FILTER...
-	
-	It goes on to trail FILTER with a qr// and a hashref; an example is shown. 
-	
-	The example does not work. No amount of fooling with it works. Something does happen, although it's not clear what. If the using script contains 
-	
-		no BANG;
-	
-	... then filtering is terminated as expected. But if some alternate terminator is specified in BANG.pm and given in the using script, then FILTER is called *twice*, with the source code before and after the terminator. 
-	
-	It doesn't seem to matter whether the terminator's regex includes string boundaries or not, with or without /m (multiline input flag), or is given as a literal string; or whether the terminator is given by itself or as a value for the key 'terminator' in a hashref. Nothing works right. 
-	
-	Either Conway (also Filter:::Simple author) boldly advertised this feature without testing it or something broke it later. I don't see any exercise of this feature in its test suite. The test suite loads several test-only modules (source filter callers of F::S) and none specify a terminator. There are only 4 test scripts in the suite and only one tests source filtering termination in any way -- and it does it with a 'no Module;' line. 
+    POD (Disabling or changing <no> behaviour) says: 
+    
+        By default, the installed filter only filters up to a line...
+        no ModuleName;  # optional comment
+        [or] __END__
+        [or] __DATA__
+        ...but this can be altered by passing a second argument to use Filter::Simple or FILTER...
+    
+    It goes on to trail FILTER with a qr// and a hashref; an example is shown. 
+    
+    The example does not work. No amount of fooling with it works. Something does happen, although it's not clear what. If the using script contains 
+    
+        no BANG;
+    
+    ... then filtering is terminated as expected. But if some alternate terminator is specified in BANG.pm and given in the using script, then FILTER is called *twice*, with the source code before and after the terminator. 
+    
+    It doesn't seem to matter whether the terminator's regex includes string boundaries or not, with or without /m (multiline input flag), or is given as a literal string; or whether the terminator is given by itself or as a value for the key 'terminator' in a hashref. Nothing works right. 
+    
+    Either Conway (also Filter:::Simple author) boldly advertised this feature without testing it or something broke it later. I don't see any exercise of this feature in its test suite. The test suite loads several test-only modules (source filter callers of F::S) and none specify a terminator. There are only 4 test scripts in the suite and only one tests source filtering termination in any way -- and it does it with a 'no Module;' line. 
 
-	Steffen Mueller is credited as the CPAN maintainer but it's not clear he actually maintains the module; POD says 'Filter::Simple is now maintained by the Perl5-Porters...'. I think it's time for a bug report. 
-	
+    Steffen Mueller is credited as the CPAN maintainer but it's not clear he actually maintains the module; POD says 'Filter::Simple is now maintained by the Perl5-Porters...'. I think it's time for a bug report. 
+    
 = Dual-run Test Scripts =
 
-	The reason for getting deeper into Filter::Simple is that I wanted a way to run the same test script foreach of Vanilla and ::Any. By running it for Vanilla, I can see what it's supposed to do, then adjust ::Any to fit -- perhaps adjust the test first. 
-	
-	Well, there are ways to load a choice of modules but if I want to terminate filtering at some point then I need to write both: 
-	
-		no Smart::Comments::Any;
-		no Smart::Comments;
-	
-	This messes up, since for whichever module wasn't used, the 'no' line actually loads the module in order to call its unimport(). This might be tolerated but it confuses matters; the confusion, I think, outweighs the benefit. 
-	
-	I had thought to make a minor hack of Vanilla, permitting a terminator shared with ::Any; one terminator in the test script would serve for either module. But that's just not going to work without fixing F::S, which is yet another digression from my main project. 
-	
-	A shorter, simpler digression is probably to write a simple script to duplicate a test, remove all occurances of '::Any', and change the test name by replacing 'sca' with 'scv' or some such. 
-	
-	2010-06-28 07:34:11 -- DONE. The new script is run/util/regress.
-	
+    The reason for getting deeper into Filter::Simple is that I wanted a way to run the same test script foreach of Vanilla and ::Any. By running it for Vanilla, I can see what it's supposed to do, then adjust ::Any to fit -- perhaps adjust the test first. 
+    
+    Well, there are ways to load a choice of modules but if I want to terminate filtering at some point then I need to write both: 
+    
+        no Smart::Comments::Any;
+        no Smart::Comments;
+    
+    This messes up, since for whichever module wasn't used, the 'no' line actually loads the module in order to call its unimport(). This might be tolerated but it confuses matters; the confusion, I think, outweighs the benefit. 
+    
+    I had thought to make a minor hack of Vanilla, permitting a terminator shared with ::Any; one terminator in the test script would serve for either module. But that's just not going to work without fixing F::S, which is yet another digression from my main project. 
+    
+    A shorter, simpler digression is probably to write a simple script to duplicate a test, remove all occurances of '::Any', and change the test name by replacing 'sca' with 'scv' or some such. 
+    
+    2010-06-28 07:34:11 -- DONE. The new script is run/util/regress.
+    
 = Multiline Replacement Code = 2010-06-28 07:38:54
-	
-	Vanilla (and perforce, ::Any) inserts rather large chunks of code into caller's source. I naively reformatted these into multiline strings, annoyed that they were jammed all into single lines in Vanilla. 
-	
-	This thought-to-be-small change broke just about every test. Since spacer_required() tests to see if a given smart comment immediately follows a previous one, and outputs a gratuitous newline if not, these multiline insertions screw it up, and force un-Vanilla newlines in smart output. 
-	
-	My clumsy reformatting took two forms: join qq{\n}, @lines and literal newlines. When the filtered source is dumped, these both look equally good; the latter, of course, looks better in ::Any source. Both equally screw up the caller line numbering. 
-	
-	The solution is the #line directive (Camel 24.5.2). By setting the caller line number explicitly after replacement code insertion, original line numbering can be preserved. 
-	
-	A difficulty here is that FILTER is currently written as a few global s///g statements. The #line directive must be inserted with the correct literal line number but how do we get the original at filter time?
-	
-	2010-06-30 23:39:29
-	
-	After noding on PerlMonks, decide to stick with join. May use perltidy or Perl::Tidy to format code dumps, dunno. 
-	
-	If using join() in substitution, must use /e flag. 
+    
+    Vanilla (and perforce, ::Any) inserts rather large chunks of code into caller's source. I naively reformatted these into multiline strings, annoyed that they were jammed all into single lines in Vanilla. 
+    
+    This thought-to-be-small change broke just about every test. Since spacer_required() tests to see if a given smart comment immediately follows a previous one, and outputs a gratuitous newline if not, these multiline insertions screw it up, and force un-Vanilla newlines in smart output. 
+    
+    My clumsy reformatting took two forms: join qq{\n}, @lines and literal newlines. When the filtered source is dumped, these both look equally good; the latter, of course, looks better in ::Any source. Both equally screw up the caller line numbering. 
+    
+    The solution is the #line directive (Camel 24.5.2). By setting the caller line number explicitly after replacement code insertion, original line numbering can be preserved. 
+    
+    A difficulty here is that FILTER is currently written as a few global s///g statements. The #line directive must be inserted with the correct literal line number but how do we get the original at filter time?
+    
+    2010-06-30 23:39:29
+    
+    After noding on PerlMonks, decide to stick with join. May use perltidy or Perl::Tidy to format code dumps, dunno. 
+    
+    If using join() in substitution, must use /e flag. 
 
 = Feature Requests = 2010-07-27 04:40:51
 
@@ -305,7 +307,7 @@ I had not yet written a TH-ish test of the feature; I was relying on the modifie
     ok $@ eq "\n"                    => 'False assertion is deadly silent';
 
     # Conway fudges the relatively stable file name 
-    #	but not the unstable line number. 
+    #   but not the unstable line number. 
     # For ::Any, we fudge both. 
     #~ $STDERR =~ s/ at \S+ line / at FILE line /;
     $STDERR =~ s/ at \S+ line \d[\d]*/ at FILE line 00/;
@@ -334,4 +336,47 @@ Turns out that util/regress had gone sour, somehow, and wasn't converting the te
 The moral of this story, if there is one, is that I was right: Errors in tests are difficult to find and easy to introduce. Therefore, it's important to have a robust test framework that itself can be well-tested. It's important that tests themselves (.t) be clean as possible, since they're essentially impossible to test. 
 
 In this case, the expectations themselves were wrong; you might say a better framework wouldn't have helped. But lacking the framework, I took the easy way and copy-paste-edited an existing test. The falsely lazy approach is what bit me. 
+
+= SEE ALSO = 2010-09-04 16:52:04
+
+POD should have a SEE ALSO section listing related/alternative modules. 
+
+http://search.cpan.org/~mschwern/Carp-Assert-0.20/lib/Carp/Assert.pm
+
+= sort-tree = 2010-11-15 01:28:11
+
+The primacy of this kind of notes file is not to be underestimated. I failed to update it before/while making a major change and now I must reconstruct. 
+
+The motive for this feature branch was that the old file tree was badly organized. In particular: 
+    * The top level project folder was overcrowded.
+    * Notes files were all tracked, requiring a messy synchronization script. 
+    * Test scripts were disorganized; or rather, organized badly.
+    * Unclear which folders were to be tracked and which untracked. 
+    * The run/ folder was overcrowded and too deeply nested.
+
+The solution, proven in development of Acme::Teddy and (Bundle::)Cheat::*, is:
+    * No top-level loose files; 
+        with the exception of README (for developers) and .gitignore
+    * All files that should go to the tarball top level to top/
+    
+    * The only untracked folder is now hold/ with its children
+    * Also, sym/ is untracked; properly it is a symlink
+    * Some temporary files are untracked.
+    * All notes files that should be kept private to hold/notes/
+    * All packing for distribution in hold/pack/, hold/unpack/, hold/tarball/
+    
+    * All test scripts to t/all/
+    * Symlinks to all shipping tests to t/go/
+    * Symlinks to tests, grouped by whatever, to t/whatever/
+    
+    * Utilities in top-level util/ or hold/util/ -- no synchronization
+    * util/pack.sh -- run to copy files for distribution and tarball them
+    
+As before:
+    * Non-Perl files to file/
+    * Modules to lib/
+    * Demos to demo/
+    * Ready-for-prime-time scripts to bin/
+
+
 
