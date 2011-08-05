@@ -23,10 +23,14 @@ $STDERR = q{};
 open *STDERR, '>', \$STDERR;
 
 ### scalar728: $scalar
+sub foo { return; }
+### foo: foo()
 
 my $expected = <<"END_MESSAGES";
 
 #\## scalar728: 728
+
+#\## foo:
 END_MESSAGES
 
 is $STDERR, $expected      => 'Labelled expressions work';
