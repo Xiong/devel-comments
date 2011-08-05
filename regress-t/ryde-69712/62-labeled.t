@@ -38,7 +38,7 @@ my $expected = <<"END_MESSAGES";
 #\## undef: undef
 #\## zero: 0
 
-#\## foo:
+#\## foo: undef
 END_MESSAGES
 
 is $STDERR, $expected      => 'Labelled expressions work';
