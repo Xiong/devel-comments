@@ -29,7 +29,7 @@ use Data::Dumper 'Dumper';
 
 ######## / use ########
 
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
 
 ######## pseudo-constants section ########
 
@@ -286,7 +286,7 @@ sub _init_state {
 # 
 sub _prefilter {
     
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
     
     shift;                          # Don't need our own package name
     s/\r\n/\n/g;                    # Handle win32 line endings
@@ -542,7 +542,7 @@ FILTER {
         open *{caller(1).'::DATA'}, '<', \$DATA or die "Internal error: DATA. $!";
     }
     
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
     
     # Progress bar on a for loop...
     # Calls _decode_for()
@@ -689,7 +689,7 @@ FILTER {
 #   
 sub import {
     
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
 
 };
 ######## /import ########
@@ -1405,6 +1405,7 @@ sub Dump_for {
             ;
     
     my $prefix          = $hash{-prefix};
+#~ my $exists_varref   = exists $hash{-varref};    # save test              #~
     my $defined_varref  = defined $hash{-varref};   # save test
     my $varref          = $hash{-varref};
     my $no_newline      = $hash{-no_newline};
@@ -1433,6 +1434,8 @@ sub Dump_for {
         $spacer_required    = _spacer_required( $caller_id, @caller );
     };
 #~ ### $spacer_required                                                     #~
+
+#~ print $outfh 'defined_varref: ', $defined_varref, '    ';                #~
     # Handle a prefix with no actual variable...
     if ($prefix && !$defined_varref) {
         $prefix =~ s/:$//;
@@ -1451,20 +1454,39 @@ sub Dump_for {
     my $dumped                          = Dumper $varref;
 
     # Clean up the results...
+    
+#~ say $outfh q{};                                                          #~
+#~ say $outfh q{-----};                                                     #~
+#~ my $gotstuff = join '', @{$varref};                                      #~
+#~ say $outfh '@{varref}: >' . $gotstuff . '<';                             #~
+#~ say $outfh 'dumped before: >' . $dumped . '<';                           #~
+#~ say $outfh 'exists: (', $exists_varref, ')';                             #~
+    
+    # report 'null' for "return;" -- see RT#69712
+    $dumped =~ s/\$VAR1 = \[];\n/\$VAR1 = \[\n          null\n];\n/; 
+    
     $dumped =~ s/\$VAR1 = \[\n//;
     $dumped =~ s/\s*\];\s*$//;
+#~ my $len_1;                                                               #~
+#~ $len_1 = length $1;                                                      #~
+#~ say $outfh '$1: ', $1, 'length: ', $len_1;                               #~
     $dumped =~ s/\A(\s*)//;
+#~ $len_1 = length $1;                                                      #~
+#~ say $outfh '$1: ', $1, 'length: ', $len_1;                               #~
+#~ 
+#~ say $outfh 'dumped after: >' . $dumped . '<';                            #~
 
     # How much to shave off and put back on each line...
     my $indent  = length $1;
     my $outdent = q{ } x (length($prefix) + 1);
-
+#~ say $outfh 'indent: ', $indent, ' outdent: >', $outdent, '<';            #~
     # Report "inside-out" and "flyweight" objects more cleanly...
     $dumped =~ s{bless[(] do[{]\\[(]my \$o = undef[)][}], '([^']+)' [)]}
                 {<Opaque $1 object (blessed scalar)>}g;
 
     # Adjust the indents...
     $dumped =~ s/^[ ]{$indent}([ ]*)/### $outdent$1/gm;
+#~ say $outfh 'dumped later: >' . $dumped . '<';                            #~
 
     # Print the message...
     Print_for( $caller_id, "\n" ) if $spacer_required;
@@ -1475,7 +1497,7 @@ sub Dump_for {
 };
 ######## /Dump_for ########
 
-#~ say '---| Devel::Comments at line ', __LINE__;                      #~
+#~ say '---| Devel::Comments at line ', __LINE__;                           #~
 
 #############################
 ######## END MODULE #########
