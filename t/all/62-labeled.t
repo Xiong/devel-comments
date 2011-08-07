@@ -18,7 +18,7 @@ my $empty   = '';
 my $zero    = 0;
 my @array   = (1..3);
 my %hash    = ('a'..'d');
-
+my $undef   ;
 
 close *STDERR;
 $STDERR = q{};
