@@ -1,4 +1,4 @@
-Devel-Comments version 1.1.3
+Devel-Comments version 1.1.4
 
 "I get the feeling that the computer just skips over all the comments."
     -- a grad student
@@ -24,10 +24,10 @@ INSTALLATION
 
 To install this module, run the following commands:
 
-	perl Build.PL
-	./Build
-	./Build test
-	./Build install
+    perl Build.PL
+    ./Build
+    ./Build test
+    ./Build install
 
 
 DEPENDENCIES
@@ -57,7 +57,7 @@ DEPENDENCIES
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2010 Xiong Changnian
+Copyright (C) 2010, 2011 Xiong Changnian
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

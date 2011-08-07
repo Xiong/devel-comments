@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 # Please see the file VERSIONS.
-use version 0.77; our $VERSION = qv('1.1.3');
+use version 0.77; our $VERSION = qv('1.1.4');
 
 # original S::C (originally used here)
 use Carp;
@@ -1510,7 +1510,7 @@ Devel::Comments - Debug with executable smart comments to logs
 
 =head1 VERSION
 
-This document describes Devel::Comments version 1.1.3
+This document describes Devel::Comments version 1.1.4
 
 =head1 SYNOPSIS
 
@@ -2161,6 +2161,10 @@ state entirely within DC.
 Mike Stok C<< <MIKESTOK@cpan.org> >> 
 for reporting RT#62599 I<and> fixing it.
 
+=item *
+
+Kevin Ryde for reporting RT#69712 and reviving the project.
+
 =back
 
 =head1 AUTHOR
@@ -2169,7 +2173,7 @@ Xiong Changnian  C<< <XIONG@cpan.org> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2010, Xiong Changnian  C<< <XIONG@cpan.org> >>. All rights reserved.
+Copyright (c) 2010, 2011, Xiong Changnian  C<< <XIONG@cpan.org> >>. All rights reserved.
 
 Based almost entirely on Smart::Comments, 
 Copyright (c) 2005, Damian Conway C<< <DCONWAY@cpan.org> >>. All rights reserved.
