@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 # Please see the file VERSIONS.
-use version 0.77; our $VERSION = qv('1.1.3');
+use version; our $VERSION = qv('1.1.3');
 
 # original S::C (originally used here)
 use Carp;
