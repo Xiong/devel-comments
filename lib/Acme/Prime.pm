@@ -256,7 +256,7 @@ Acme::Prime requires no configuration files or environment variables.
 
 use autodie;			# Builtins throw exceptions on failure
 
-use version 0.77; 
+use version ; 
 
 require 5.008_008;		
 
